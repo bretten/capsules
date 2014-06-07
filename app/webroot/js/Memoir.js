@@ -3,8 +3,9 @@
  *
  * @author https://github.com/bretten
  */
-function Memoir(id, file, message, order) {
+function Memoir(id, title, file, message, order) {
     this.id = id;
+    this.title = title;
     this.file = file;
     this.message = message;
     this.order = order;
@@ -22,10 +23,28 @@ Memoir.prototype.setID = function(id) {
 /**
  * Gets the id.
  *
- * @returns string
+ * @returns int
  */
 Memoir.prototype.getID = function() {
     return this.id;
+}
+
+/**
+ * Sets the title.
+ *
+ * @param string
+ */
+Memoir.prototype.setTitle = function(title) {
+    this.title = title;
+}
+
+/**
+ * Gets the title.
+ *
+ * @returns string
+ */
+Memoir.prototype.getTitle = function() {
+    return this.title;
 }
 
 /**

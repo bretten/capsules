@@ -28,6 +28,17 @@ class Memoir extends AppModel {
  * @var array
  */
     public $validate = array(
+        'title' => array(
+            'notEmpty' => array(
+                'rule' => 'notEmpty',
+                'message' => 'Please enter a title.',
+                'required' => true
+            ),
+            'maxLength' => array(
+                'rule' => array('maxLength' ,255),
+                'message' => 'The title cannot exceed 255 characters.'
+            )
+        ),
         'file' => array(
             'notEmpty' => array(
                 'rule' => 'notEmpty',

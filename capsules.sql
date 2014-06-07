@@ -50,8 +50,9 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `capsules`.`memoirs` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `capsule_id` INT UNSIGNED NOT NULL,
-  `file` TEXT NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
   `message` TEXT NULL,
+  `file` TEXT NOT NULL,
   `order` INT UNSIGNED NOT NULL,
   `created` DATETIME NOT NULL,
   `modified` DATETIME NOT NULL,

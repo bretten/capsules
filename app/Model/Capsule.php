@@ -25,7 +25,8 @@ class Capsule extends AppModel {
         'Belongs' => array(
             'userPrimaryKey' => 'id',
             'foreignKey' => 'user_id'
-        )
+        ),
+        'Has'
     );
 
 /**

@@ -54,15 +54,13 @@ class CapsulesController extends AppController {
     public function add() {
         if ($this->request->is('post')) {
             $this->Capsule->create();
-            if ($this->Capsule->save($this->request->data)) {
+            if ($this->Capsule->saveAll($this->request->data, array('deep' => true))) {
                 $this->Session->setFlash(__('The capsule has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
                 $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'));
             }
         }
-        $users = $this->Capsule->User->find('list');
-        $this->set(compact('users'));
     }
 
 /**
@@ -77,18 +75,25 @@ class CapsulesController extends AppController {
             throw new NotFoundException(__('Invalid capsule'));
         }
         if ($this->request->is(array('post', 'put'))) {
-            if ($this->Capsule->save($this->request->data)) {
+            if ($this->Capsule->saveDiff($this->request->data, array('deep' => true, 'removeHasMany' => 'Memoir'))) {
                 $this->Session->setFlash(__('The capsule has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
                 $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'));
             }
         } else {
-            $options = array('conditions' => array('Capsule.' . $this->Capsule->primaryKey => $id));
+            $options = array(
+                'conditions' => array(
+                    'Capsule.' . $this->Capsule->primaryKey => $id
+                ),
+                'contain' => array(
+                    'Memoir'
+                )
+            );
             $this->request->data = $this->Capsule->find('first', $options);
         }
-        $users = $this->Capsule->User->find('list');
-        $this->set(compact('users'));
+        // Use the add view
+        $this->render('add');
     }
 
 /**
