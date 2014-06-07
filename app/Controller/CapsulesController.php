@@ -22,6 +22,12 @@ class CapsulesController extends AppController {
  */
     public function index() {
         $this->Capsule->recursive = 0;
+        $query = array(
+            'conditions' => array(
+                'Capsule.user_id' => $this->Auth->user('id')
+            )
+        );
+        $this->Paginator->settings = $query;
         $this->set('capsules', $this->Paginator->paginate());
     }
 

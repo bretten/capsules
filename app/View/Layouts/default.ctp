@@ -36,11 +36,17 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
         echo $this->fetch('css');
         echo $this->fetch('script');
     ?>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 </head>
 <body>
     <div id="container">
         <div id="header">
-            <h1><?php echo $this->Html->link($cakeDescription, 'http://cakephp.org'); ?></h1>
+            <h1>
+                <?php echo $this->Html->link(__('My Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?> |
+                <?php echo $this->Html->link(__('My Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?> |
+                <?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?> |
+                <?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?>
+            </h1>
         </div>
         <div id="content">
 

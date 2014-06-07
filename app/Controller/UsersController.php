@@ -16,6 +16,74 @@ class UsersController extends AppController {
     public $components = array('Paginator');
 
 /**
+ * beforeFilter method
+ *
+ * @return void
+ */
+    public function beforeFilter() {
+        parent::beforeFilter();
+        $this->Auth->allow(array('login'));
+    }
+
+/**
+ * login method
+ *
+ * @return void
+ */
+    public function login() {
+        if ($this->request->is('post')) {
+            if ($this->Auth->login()) {
+                $this->redirect($this->Auth->redirect());
+            } else {
+                $this->Session->setFlash(__('Invalid credentials.'));
+            }
+        }
+    }
+
+/**
+ * logout method
+ *
+ * @return void
+ */
+    public function logout() {
+        $this->redirect($this->Auth->logout());
+    }
+
+
+/**
+ * account method
+ *
+ * @throws NotFoundException
+ * @return void
+ */
+    public function account() {
+        $this->User->id = $this->Auth->user('id');
+        if (!$this->User->exists()) {
+            throw new NotFoundException(__('Invalid user'));
+        }
+        if ($this->request->is(array('post', 'put'))) {
+            if ($this->User->save($this->request->data, array(
+                'confirmPassword' => (boolean) $this->request->data['User']['change_password'],
+                'fieldList' => array(
+                    'password', 'email', 'confirm_password'
+                )
+            ))) {
+                $this->Session->setFlash(__('Your account has been saved.'));
+                return $this->redirect(array('action' => 'account'));
+            } else {
+                $this->Session->setFlash(__('Your account could not be saved. Please, try again.'));
+            }
+        } else {
+            $options = array(
+                'conditions' => array(
+                    'User.' . $this->User->primaryKey => $this->Auth->user('id')
+                )
+            );
+            $this->request->data = $this->User->find('first', $options);
+        }
+    }
+
+/**
  * index method
  *
  * @return void

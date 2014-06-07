@@ -21,4 +21,26 @@ class Memoir extends AppModel {
             'order' => ''
         )
     );
+
+/**
+ * validate
+ *
+ * @var array
+ */
+    public $validate = array(
+        'file' => array(
+            'notEmpty' => array(
+                'rule' => 'notEmpty',
+                'message' => 'Please choose a file.',
+                'required' => true
+            )
+        ),
+        'order' => array(
+            'numeric' => array(
+                'rule' => 'numeric',
+                'message' => 'Please enter a valid numeric ordering.'
+            )
+        )
+    );
+
 }

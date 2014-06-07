@@ -9,6 +9,18 @@ App::uses('AppModel', 'Model');
 class Discovery extends AppModel {
 
 /**
+ * actsAs
+ *
+ * @var array
+ */
+    public $actsAs = array(
+        'Belongs' => array(
+            'userPrimaryKey' => 'id',
+            'foreignKey' => 'user_id'
+        )
+    );
+
+/**
  * belongsTo associations
  *
  * @var array
@@ -29,4 +41,19 @@ class Discovery extends AppModel {
             'order' => ''
         )
     );
+
+/**
+ * validate
+ *
+ * @var array
+ */
+    public $validate = array(
+        'rating' => array(
+            'decimal' => array(
+                'rule' => array('decimal', 1),
+                'message' => 'Please enter a valid rating.'
+            )
+        )
+    );
+
 }

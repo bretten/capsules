@@ -22,6 +22,12 @@ class DiscoveriesController extends AppController {
  */
     public function index() {
         $this->Discovery->recursive = 0;
+        $query = array(
+            'conditions' => array(
+                'Discovery.user_id' => $this->Auth->user('id')
+            )
+        );
+        $this->Paginator->settings = $query;
         $this->set('discoveries', $this->Paginator->paginate());
     }
 
