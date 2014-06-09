@@ -119,4 +119,39 @@ class Capsule extends AppModel {
         )
     );
 
+/**
+ * Returns all Capsules within the specified radius around the specified latitude and longitude.
+ *
+ * @param $lat float
+ * @param $lng float
+ * @param $radius float The radius to query within in miles.
+ * @param array $query
+ * @return array
+ */
+    public function getInRadius($lat, $lng, $radius, $query = array()) {
+        $this->virtualFields['distance'] = "
+        (
+            (
+                ACOS(
+                    SIN($lat * PI() / 180) * SIN(Capsule.lat * PI() / 180) +
+                    COS($lat * PI() / 180) * COS(Capsule.lat * PI() / 180) *
+                    COS(($lng - Capsule.lng) * PI() / 180)
+                ) * 180 / PI()
+            ) * 60 * 1.1515
+        )";
+
+        $append = array(
+            'fields' => array(
+                'Capsule.*',
+            ),
+            'conditions' => array(
+                'Capsule.distance <=' => $radius
+            )
+        );
+
+        $query = array_merge_recursive($query, $append);
+
+        return $this->find('all', $query);
+    }
+
 }
