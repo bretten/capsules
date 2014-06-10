@@ -91,7 +91,7 @@ class Capsule extends AppModel {
                 'required' => true
             ),
             'maxLength' => array(
-                'rule' => array('maxLength' ,255),
+                'rule' => array('maxLength', 255),
                 'message' => 'The name cannot exceed 255 characters.'
             )
         ),
@@ -141,9 +141,6 @@ class Capsule extends AppModel {
         )";
 
         $append = array(
-            'fields' => array(
-                'Capsule.*',
-            ),
             'conditions' => array(
                 'Capsule.distance <=' => $radius
             )
@@ -152,6 +149,71 @@ class Capsule extends AppModel {
         $query = array_merge_recursive($query, $append);
 
         return $this->find('all', $query);
+    }
+
+/**
+ * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
+ * around the specified latitude and longitude.
+ *
+ * TODO: Rework without using sub-query.
+ *
+ * @param $userId
+ * @param $lat
+ * @param $lng
+ * @param $radius
+ * @param array $query
+ * @return array
+ */
+    public function getUndiscovered($userId, $lat, $lng, $radius, $query = array()) {
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => '(SELECT * FROM discoveries WHERE discoveries.user_id = ' . $userId . ')',
+                    'alias' => 'Discovery',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.id = Discovery.capsule_id'
+                    ),
+                )
+            ),
+            'fields' => array(
+                'Capsule.*', 'Discovery.*'
+            ),
+            'conditions' => array(
+                'Capsule.user_id !=' => $userId,
+                'Discovery.id IS NULL'
+            )
+        );
+
+        $query = array_merge_recursive($query, $append);
+
+        return $this->getInRadius($lat, $lng, $radius, $query);
+    }
+
+/**
+ * Checks if the Capsule specified by the primary key is within the specified radius originating from the
+ * specified latitude and longitude.
+ *
+ * @param $id
+ * @param $lat
+ * @param $lng
+ * @param $radius
+ * @param array $query
+ * @return bool
+ */
+    public function isReachable($id, $lat, $lng, $radius, $query = array()) {
+        $append = array(
+            'conditions' => array(
+                'Capsule.id' => $id
+            ),
+            'fields' => array(
+                'Capsule.id'
+            )
+        );
+
+        $query = array_merge_recursive($query, $append);
+
+        return (boolean)$this->getInRadius($lat, $lng, $radius, $query);
     }
 
 }
