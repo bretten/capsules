@@ -116,4 +116,24 @@ class CapsulesController extends AppController {
         }
         return $this->redirect(array('action' => 'index'));
     }
+
+/**
+ * API method that returns undiscovered Capsules within the User's radius.
+ *
+ * @return void
+ */
+    public function ping() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $results = $this->Capsule->getUndiscovered(
+            $this->StatelessAuth->user('id'),
+            $this->request->data['lat'],
+            $this->request->data['lng'],
+            Configure::read('Capsule.Search.Radius')
+        );
+
+        $this->response->body(json_encode($results));
+    }
+
 }

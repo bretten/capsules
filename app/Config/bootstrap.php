@@ -106,3 +106,8 @@ CakeLog::config('error', array(
     'types' => array('warning', 'error', 'critical', 'alert', 'emergency'),
     'file' => 'error',
 ));
+
+/**
+ * Search radius
+ */
+Configure::write('Capsule.Search.Radius', 1);
