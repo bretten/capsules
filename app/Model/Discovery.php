@@ -56,4 +56,40 @@ class Discovery extends AppModel {
         )
     );
 
+/**
+ * Creates a Discovery given a Capsule and User.
+ *
+ * @param $id
+ * @param $userId
+ * @return mixed
+ */
+    public function create($id, $userId) {
+        $data = array(
+            'Discovery' => array(
+                'capsule_id' => $id,
+                'user_id' => $userId
+            )
+        );
+
+        return $this->save($data);
+    }
+
+/**
+ * Checks if a User has already discovered a Capsule.
+ *
+ * @param $capsuleId
+ * @param $userId
+ * @return bool
+ */
+    public function created($capsuleId, $userId) {
+        return (boolean)$this->find('count', array(
+            'conditions' => array(
+                'Discovery.capsule_id' => $capsuleId,
+                'Discovery.user_id' => $userId
+            ),
+            'recursive' => -1,
+            'callbacks' => false
+        ));
+    }
+
 }
