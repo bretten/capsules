@@ -59,14 +59,14 @@ class Discovery extends AppModel {
 /**
  * Creates a Discovery given a Capsule and User.
  *
- * @param $id
+ * @param $capsuleId
  * @param $userId
  * @return mixed
  */
-    public function create($id, $userId) {
+    public function create($capsuleId, $userId) {
         $data = array(
             'Discovery' => array(
-                'capsule_id' => $id,
+                'capsule_id' => $capsuleId,
                 'user_id' => $userId
             )
         );
@@ -82,7 +82,7 @@ class Discovery extends AppModel {
  * @return bool
  */
     public function created($capsuleId, $userId) {
-        return (boolean)$this->find('count', array(
+        return $this->find('first', array(
             'conditions' => array(
                 'Discovery.capsule_id' => $capsuleId,
                 'Discovery.user_id' => $userId

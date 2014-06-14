@@ -54,7 +54,7 @@ class CapsulesController extends AppController {
     public function add() {
         if ($this->request->is('post')) {
             $this->Capsule->create();
-            if ($this->Capsule->saveAll($this->request->data, array('deep' => true))) {
+            if ($this->Capsule->saveAll($this->request->data, array('deep' => true, 'associateOwner' => true))) {
                 $this->Session->setFlash(__('The capsule has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
@@ -75,7 +75,7 @@ class CapsulesController extends AppController {
             throw new NotFoundException(__('Invalid capsule'));
         }
         if ($this->request->is(array('post', 'put'))) {
-            if ($this->Capsule->saveDiff($this->request->data, array('deep' => true, 'removeHasMany' => 'Memoir'))) {
+            if ($this->Capsule->saveDiff($this->request->data, array('deep' => true, 'removeHasMany' => 'Memoir', 'associateOwner' => true))) {
                 $this->Session->setFlash(__('The capsule has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
@@ -136,4 +136,100 @@ class CapsulesController extends AppController {
         $this->response->body(json_encode($results));
     }
 
+/**
+ * API method that handles opening a Capsule for a User.
+ *
+ * @return void
+ */
+    public function open() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($this->Capsule->isReachable(
+            $this->request->data['capsule'],
+            $this->request->data['lat'],
+            $this->request->data['lng'],
+            Configure::read('Capsule.Search.Radius')
+        )) {
+            if (!$this->Capsule->Discovery->created(
+                $this->request->data['capsule'],
+                $this->StatelessAuth->user('id')
+            )) {
+                if ($insert = $this->Capsule->Discovery->create(
+                    $this->request->data['capsule'],
+                    $this->StatelessAuth->user('id')
+                )) {
+                    $body['success'] = true;
+                    $body['data'] = $insert;
+                }
+            }
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
+/**
+ * API method that handles marking a Discovery/Capsule as a favorite for a User.
+ */
+    public function favorite() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($discovery = $this->Capsule->Discovery->created(
+            $this->request->data['capsule'],
+            $this->StatelessAuth->user('id')
+        )) {
+            // Build the save data
+            $data = array(
+                'Discovery' => array(
+                    'id' => $discovery['Discovery']['id'],
+                    'favorite' => (boolean)$this->request->data['favorite']
+                )
+            );
+            if ($result = $this->Capsule->Discovery->save($data)) {
+                $body['success'] = true;
+                $body['favorite'] = (boolean)$this->request->data['favorite'];
+            }
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
+/**
+ * API method to handle rating a Discovery.
+ */
+    public function rate() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($discovery = $this->Capsule->Discovery->created(
+            $this->request->data['capsule'],
+            $this->StatelessAuth->user('id')
+        )) {
+            // Build the save data
+            $data = array(
+                'Discovery' => array(
+                    'id' => $discovery['Discovery']['id'],
+                    'rating' => $this->request->data['rating']
+                )
+            );
+            if ($result = $this->Capsule->Discovery->save($data)) {
+                $body['success'] = true;
+            }
+        }
+
+        $this->response->body(json_encode($body));
+    }
 }

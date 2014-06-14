@@ -47,7 +47,7 @@ class AppController extends Controller {
         'StatelessAuth' => array(
             'map' => array(
                 'capsules' => array(
-                    'ping'
+                    'ping', 'open', 'favorite', 'rate'
                 )
             )
         )
