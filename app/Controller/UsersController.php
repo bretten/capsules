@@ -22,6 +22,10 @@ class UsersController extends AppController {
  */
     public function beforeFilter() {
         parent::beforeFilter();
+        // Use Basic authentication for authenticating API calls
+        if ($this->request->params['action'] === 'authenticate') {
+            $this->Auth->authenticate = array('Basic');
+        }
         $this->Auth->allow(array('login'));
     }
 
@@ -169,4 +173,38 @@ class UsersController extends AppController {
         }
         return $this->redirect(array('action' => 'index'));
     }
+
+    /**
+     * API method to handle authenticating Users.  Response body contains an authentication token
+     * to be used in future API calls.
+     *
+     * @return void
+     */
+    public function authenticate() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($this->Auth->login()) {
+            // Create the User's token
+            $token = Security::hash(uniqid() . 'capsules' . $this->Auth->user('id'), null, true);
+            // Save the User's token
+            $data = array(
+                'id' => $this->Auth->user('id'),
+                'token' => $token
+            );
+            if ($this->User->save($data, array('fieldList' => array('id', 'token')))) {
+                $body = array(
+                    'success' => true,
+                    'token' => $token
+                );
+            }
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
 }
