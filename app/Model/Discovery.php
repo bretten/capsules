@@ -17,6 +17,10 @@ class Discovery extends AppModel {
         'Belongs' => array(
             'userPrimaryKey' => 'id',
             'foreignKey' => 'user_id'
+        ),
+        'Resource' => array(
+            'etagField' => 'etag',
+            'autoSave' => true
         )
     );
 

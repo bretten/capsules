@@ -26,6 +26,10 @@ class Capsule extends AppModel {
             'userPrimaryKey' => 'id',
             'foreignKey' => 'user_id'
         ),
+        'Resource' => array(
+            'etagField' => 'etag',
+            'autoSave' => true
+        ),
         'Has'
     );
 
