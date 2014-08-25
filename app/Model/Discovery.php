@@ -89,13 +89,13 @@ class Discovery extends AppModel {
     }
 
 /**
- * Creates a Discovery given a Capsule and User.
+ * INSERTs a new Discovery given a Capsule and User.
  *
  * @param $capsuleId
  * @param $userId
  * @return mixed
  */
-    public function create($capsuleId, $userId) {
+    public function saveNew($capsuleId, $userId) {
         $data = array(
             'Discovery' => array(
                 'capsule_id' => $capsuleId,

@@ -163,7 +163,7 @@ class CapsulesController extends AppController {
                 $this->request->data['capsule'],
                 $this->StatelessAuth->user('id')
             )) {
-                if ($insert = $this->Capsule->Discovery->create(
+                if ($insert = $this->Capsule->Discovery->saveNew(
                     $this->request->data['capsule'],
                     $this->StatelessAuth->user('id')
                 )) {
