@@ -184,9 +184,7 @@ class UsersController extends AppController {
         $this->autoRender = false;
         $this->layout = false;
 
-        $body = array(
-            'success' => false
-        );
+        $body = array();
 
         if ($this->Auth->login()) {
             // Create the User's token
@@ -197,11 +195,19 @@ class UsersController extends AppController {
                 'token' => $token
             );
             if ($this->User->save($data, array('fieldList' => array('id', 'token')))) {
-                $body = array(
-                    'success' => true,
+                $body['data'] = array(
                     'token' => $token
                 );
+            } else {
+                $this->response->statusCode(500);
             }
+        } else {
+            $this->response->statusCode(401);
+        }
+
+        // Indicate success if the response body was built
+        if ($body) {
+            $this->response->statusCode(200);
         }
 
         $this->response->body(json_encode($body));
