@@ -122,11 +122,32 @@ class CapsulesController extends AppController {
     }
 
 /**
+ * API method for retrieving the Capsules ctag
+ *
+ * @return void
+ */
+    public function api_ctag() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($ctag = $this->Capsule->User->field('ctag_capsules', array('User.id' => $this->StatelessAuth->user('id')))) {
+            $body['success'] = true;
+            $body['ctag'] = $ctag;
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
+/**
  * API method that returns undiscovered Capsules within the User's radius.
  *
  * @return void
  */
-    public function ping() {
+    public function api_ping() {
         $this->autoRender = false;
         $this->layout = false;
 
@@ -145,7 +166,7 @@ class CapsulesController extends AppController {
  *
  * @return void
  */
-    public function open() {
+    public function api_open() {
         $this->autoRender = false;
         $this->layout = false;
 
@@ -179,7 +200,7 @@ class CapsulesController extends AppController {
 /**
  * API method that handles marking a Discovery/Capsule as a favorite for a User.
  */
-    public function favorite() {
+    public function api_favorite() {
         $this->autoRender = false;
         $this->layout = false;
 
@@ -210,7 +231,7 @@ class CapsulesController extends AppController {
 /**
  * API method to handle rating a Discovery.
  */
-    public function rate() {
+    public function api_rate() {
         $this->autoRender = false;
         $this->layout = false;
 

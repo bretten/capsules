@@ -113,4 +113,26 @@ class DiscoveriesController extends AppController {
         }
         return $this->redirect(array('action' => 'index'));
     }
+
+/**
+ * API method for retrieving the Discoveries ctag
+ *
+ * @return void
+ */
+    public function api_ctag() {
+        $this->autoRender = false;
+        $this->layout = false;
+
+        $body = array(
+            'success' => false
+        );
+
+        if ($ctag = $this->Discovery->User->field('ctag_discoveries', array('User.id' => $this->StatelessAuth->user('id')))) {
+            $body['success'] = true;
+            $body['ctag'] = $ctag;
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
 }
