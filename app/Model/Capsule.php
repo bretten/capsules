@@ -124,6 +124,34 @@ class Capsule extends AppModel {
     );
 
 /**
+ * After save callback
+ *
+ * @param boolean $created INSERT or UPDATE
+ * @param array $options Options passed from Model::save().
+ */
+    public function afterSave($created, $options = array()) {
+        // Update the Capsule ctag for the User owner
+        if (isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
+            $this->User->updateCtag('ctag_capsules', $options['updateCtagForUser']);
+        }
+    }
+
+/**
+ * Before delete callback
+ *
+ * @param boolean $cascade
+ * @return void
+ */
+    public function beforeDelete($cascade = true) {
+        // Update the Capsule ctag for the User
+        if (isset($this->id)) {
+            // Get the User id
+            $userId = $this->field('user_id', array('Capsule.id' => $this->id));
+            $this->User->updateCtag('ctag_capsules', $userId);
+        }
+    }
+
+/**
  * Returns all Capsules within the specified radius around the specified latitude and longitude.
  *
  * @param $lat float

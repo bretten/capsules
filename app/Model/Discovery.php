@@ -61,6 +61,34 @@ class Discovery extends AppModel {
     );
 
 /**
+ * After save callback
+ *
+ * @param boolean $created INSERT or UPDATE
+ * @param array $options Options passed from Model::save().
+ */
+    public function afterSave($created, $options = array()) {
+        // Update the Capsule ctag for the User owner
+        if (isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
+            $this->User->updateCtag('ctag_discoveries', $options['updateCtagForUser']);
+        }
+    }
+
+/**
+ * Before delete callback
+ *
+ * @param boolean $cascade
+ * @return void
+ */
+    public function beforeDelete($cascade = true) {
+        // Update the Capsule ctag for the User
+        if (isset($this->id)) {
+            // Get the User id
+            $userId = $this->field('user_id', array('Discovery.id' => $this->id));
+            $this->User->updateCtag('ctag_discoveries', $userId);
+        }
+    }
+
+/**
  * Creates a Discovery given a Capsule and User.
  *
  * @param $capsuleId

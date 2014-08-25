@@ -54,7 +54,7 @@ class DiscoveriesController extends AppController {
     public function add() {
         if ($this->request->is('post')) {
             $this->Discovery->create();
-            if ($this->Discovery->save($this->request->data)) {
+            if ($this->Discovery->save($this->request->data, array('updateCtagForUser' => $this->Auth->user('id')))) {
                 $this->Session->setFlash(__('The discovery has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
@@ -78,7 +78,7 @@ class DiscoveriesController extends AppController {
             throw new NotFoundException(__('Invalid discovery'));
         }
         if ($this->request->is(array('post', 'put'))) {
-            if ($this->Discovery->save($this->request->data)) {
+            if ($this->Discovery->save($this->request->data, array('updateCtagForUser' => $this->Auth->user('id')))) {
                 $this->Session->setFlash(__('The discovery has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {

@@ -98,4 +98,18 @@ class User extends AppModel {
         )
     );
 
+/**
+ * Updates the specified ctag field for the given User.
+ *
+ * @param string $ctag
+ * @param int $userId
+ * @return boolean
+ */
+    public function updateCtag($ctag, $userId) {
+        return $this->updateAll(
+            array('User.' . $ctag => "'" . md5(time()) . "'"),
+            array('User.id' => $userId)
+        );
+    }
+
 }

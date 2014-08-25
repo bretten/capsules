@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `capsules`.`users` (
   `password` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `token` TEXT NULL DEFAULT NULL,
+  `ctag_capsules` VARCHAR(255) NOT NULL,
+  `ctag_discoveries` VARCHAR(255) NOT NULL,
   `created` DATETIME NOT NULL,
   `modified` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
