@@ -336,7 +336,19 @@ class ApiController extends AppController {
         } elseif ($this->request->is('get')) {
             $this->response->statusCode(501);
         } elseif ($this->request->is('delete')) {
-            $this->response->statusCode(501);
+            $this->Capsule->id = $id;
+            if (!$this->Capsule->exists()) {
+                $this->response->statusCode(404);
+            } elseif (!$this->Capsule->ownedBy($this->StatelessAuth->user('id'))) {
+                $this->response->statusCode(405);
+            } else {
+                if ($this->Capsule->delete()) {
+                    $this->response->statusCode(204);
+                    return;
+                } else {
+                    $this->response->statusCode(500);
+                }
+            }
         } else {
             $this->response->statusCode(405);
         }
@@ -378,7 +390,7 @@ class ApiController extends AppController {
         } elseif ($this->request->is('get')) {
             $this->response->statusCode(501);
         } elseif ($this->request->is('delete')) {
-            $this->response->statusCode(501);
+            $this->response->statusCode(405);
         } else {
             $this->response->statusCode(405);
         }
