@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `capsules`.`capsules` (
   `name` VARCHAR(255) NOT NULL,
   `lat` FLOAT(10,6) NOT NULL,
   `lng` FLOAT(10,6) NOT NULL,
+  `point` POINT NOT NULL,
   `etag` VARCHAR(255) NOT NULL,
   `created` DATETIME NOT NULL,
   `modified` DATETIME NOT NULL,

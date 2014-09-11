@@ -124,6 +124,24 @@ class Capsule extends AppModel {
     );
 
 /**
+ * Before save method
+ *
+ * @param array $options Options passed from Model::save().
+ * @return boolean true to continue, false to abort the save
+ */
+    public function beforeSave($options = array()) {
+        // Use the latitude and longitude values in a MySQL expression to save a POINT data type
+        if (isset($this->data[$this->alias]['lat']) && isset($this->data[$this->alias]['lng'])) {
+            $dataSource = $this->getDataSource();
+            $this->data[$this->alias]['point'] = $dataSource->expression("POINT(" . $this->data[$this->alias]['lat'] . ", " . $this->data[$this->alias]['lng'] . ")");
+        } elseif (isset($this->data['lat']) && isset($this->data['lng'])) {
+            $dataSource = $this->getDataSource();
+            $this->data['point'] = $dataSource->expression("POINT(" . $this->data[$this->alias]['lat'] . ", " . $this->data[$this->alias]['lng'] . ")");
+        }
+        return true;
+    }
+
+/**
  * After save callback
  *
  * @param boolean $created INSERT or UPDATE
