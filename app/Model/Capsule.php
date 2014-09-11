@@ -202,6 +202,65 @@ class Capsule extends AppModel {
     }
 
 /**
+ * Returns all Capsules within the bounded rectangle
+ *
+ * @param float $latNE The Northeast latitude
+ * @param float $lngNE The Northeast longitude
+ * @param float $latSW The Southwest latitude
+ * @param float $lngSW The Southwest longitude
+ * @param array $query
+ * @return array
+ */
+    public function getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query = array()) {
+        $append = array(
+            'conditions' => array(
+                "MBRWITHIN(Capsule.point, MULTIPOINT(POINT($latNE, $lngNE), POINT($latSW, $lngSW)))"
+            )
+        );
+
+        $query = array_merge_recursive($query, $append);
+
+        return $this->find('all', $query);
+    }
+
+/**
+ * Returns all Discovery Capsules within the bounded rectangle
+ *
+ * TODO: Rework without using sub-query.
+ *
+ * @param float $latNE The Northeast latitude
+ * @param float $lngNE The Northeast longitude
+ * @param float $latSW The Southwest latitude
+ * @param float $lngSW The Southwest longitude
+ * @param array $query
+ * @return array
+ */
+    public function getDiscovered($userId, $latNE, $lngNE, $latSW, $lngSW, $query = array()) {
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => '(SELECT * FROM discoveries WHERE discoveries.user_id = ' . $userId . ')',
+                    'alias' => 'Discovery',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'Capsule.id = Discovery.capsule_id'
+                    ),
+                )
+            ),
+            'fields' => array(
+                'Capsule.*', 'Discovery.*'
+            ),
+            'conditions' => array(
+                'Discovery.user_id' => $userId
+            )
+        );
+
+        $query = array_merge_recursive($query, $append);
+
+        return $this->getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query);
+    }
+
+/**
  * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
  * around the specified latitude and longitude.
  *
