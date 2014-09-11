@@ -27,6 +27,7 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
         <?php echo $cakeDescription ?>:
         <?php echo $title_for_layout; ?>
     </title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <?php
         echo $this->Html->meta('icon');
 
@@ -44,6 +45,7 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
             <h1>
                 <?php echo $this->Html->link(__('My Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?> |
                 <?php echo $this->Html->link(__('My Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?> |
+                <?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?> |
                 <?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?> |
                 <?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?>
             </h1>

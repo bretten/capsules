@@ -122,6 +122,17 @@ class CapsulesController extends AppController {
     }
 
 /**
+ * map method
+ *
+ * Displays the map
+ *
+ * @return void
+ */
+    public function map() {
+    
+    }
+
+/**
  * Internal API method to return markers to the web version of the map
  *
  * @return void
