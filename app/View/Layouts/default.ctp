@@ -27,29 +27,43 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
         <?php echo $cakeDescription ?>:
         <?php echo $title_for_layout; ?>
     </title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <?php
         echo $this->Html->meta('icon');
-
-        echo $this->Html->css('cake.generic');
 
         echo $this->fetch('meta');
         echo $this->fetch('css');
         echo $this->fetch('script');
     ?>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </head>
 <body>
     <div id="container">
-        <div id="header">
-            <h1>
-                <?php echo $this->Html->link(__('My Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?> |
-                <?php echo $this->Html->link(__('My Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?> |
-                <?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?> |
-                <?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?> |
-                <?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?>
-            </h1>
-        </div>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-header-collapse">
+                        <span class="sr-only">Toggle Nav</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <span class="navbar-brand">Capsules</span>
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbar-header-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
+                        <li><?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?></li>
+                        <li><?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?></li>
+                    </ul>
+                </div>
+
+            </div>
+        </nav>
         <div id="content">
 
             <?php echo $this->Session->flash(); ?>
