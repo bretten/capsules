@@ -1,8 +1,14 @@
+<?php
+    $this->Paginator->options(array(
+        'update' => '#tab-pane-discoveries',
+        'evalScripts' => true
+    ));
+?>
+
 <div class="discoveries index">
-    <h2><?php echo __('Discoveries'); ?></h2>
-    <table cellpadding="0" cellspacing="0">
+    <table class="table table-striped">
     <tr>
-            <th><?php echo $this->Paginator->sort('capsule_id'); ?></th>
+            <th><?php echo $this->Paginator->sort('capsule_id', 'Name'); ?></th>
             <th><?php echo $this->Paginator->sort('favorite'); ?></th>
             <th><?php echo $this->Paginator->sort('rating'); ?></th>
             <th><?php echo $this->Paginator->sort('created'); ?></th>
@@ -17,18 +23,19 @@
         <td><?php echo h($discovery['Discovery']['rating']); ?>&nbsp;</td>
         <td><?php echo h($discovery['Discovery']['created']); ?>&nbsp;</td>
         <td class="actions">
-            <?php echo $this->Html->link(__('View'), array('action' => 'view', $discovery['Discovery']['id'])); ?>
+            <a href="#" class="anchor-map-goto" data-lat="<?php echo $discovery['Capsule']['lat']; ?>" data-lng="<?php echo $discovery['Capsule']['lng']; ?>">Go To on Map</a>
             <?php echo $this->Html->link(__('Favorite'), array('action' => '#', $discovery['Discovery']['id'])); ?>
         </td>
     </tr>
-<?php endforeach; ?>
+    <?php endforeach; ?>
     </table>
     <p>
     <?php
-    echo $this->Paginator->counter(array(
-    'format' => __('Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}')
-    ));
-    ?>  </p>
+        echo $this->Paginator->counter(array(
+            'format' => __('Page {:page} of {:pages}, showing {:current} records out of {:count} total, starting on record {:start}, ending on {:end}')
+        ));
+        ?>
+    </p>
     <div class="paging">
     <?php
         echo $this->Paginator->prev('< ' . __('previous'), array(), null, array('class' => 'prev disabled'));
@@ -37,3 +44,5 @@
     ?>
     </div>
 </div>
+
+<?php echo $this->Js->writeBuffer(); ?>

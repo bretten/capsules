@@ -13,7 +13,14 @@ class DiscoveriesController extends AppController {
  *
  * @var array
  */
-    public $components = array('Paginator');
+    public $components = array('Paginator', 'RequestHandler');
+
+/**
+ * Helpers
+ *
+ * @var array
+ */
+    public $helpers = array('Js');
 
 /**
  * index method
@@ -21,6 +28,12 @@ class DiscoveriesController extends AppController {
  * @return void
  */
     public function index() {
+        if (!$this->request->is('ajax')) {
+            throw new MethodNotAllowedException(__('Invalid request'));
+        }
+
+        $this->layout = 'ajax';
+
         $this->Discovery->recursive = 0;
         $query = array(
             'conditions' => array(

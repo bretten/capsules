@@ -137,6 +137,36 @@
             mapView.undiscoveredMarkers[value.data.id] = marker;
         });
     }
+
+    /**
+     * Gets the Capsule list
+     */
+    mapView.updateCapsuleList = function(href) {
+        var container;
+        var uri;
+        if (href === "#tab-pane-discoveries") {
+            container = $('#tab-pane-discoveries');
+            uri = "/discoveries/";
+        } else {
+            container = $('#tab-pane-capsules');
+            uri = "/capsules/";
+        }
+        var loaded = (container.attr('data-loaded') != 0) ? true : false;
+        if (!loaded) {
+            $.ajax({
+                type: 'GET',
+                url: uri,
+                success: function(data, textStatus, jqXHR) {
+                    container.html(data);
+                    // Flag that the data was loaded
+                    container.attr('data-loaded', 1);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    container.html("The list could not be retrieved");
+                }
+            });
+        }
+    }
 </script>
 <script type="text/javascript">
     // Define the namespace
@@ -203,6 +233,9 @@
     // The user's location circle
     gmap.locationCircle;
 
+    // The zoom level for focusing on a single Capsule
+    gmap.singleFocusZoom = 18;
+
     // Load the Map
     $(document).ready(function() {
         // Initialize the map
@@ -236,7 +269,7 @@
         $('#toggle_discovery_mode').prop('checked', false);
 
         // Listener for toggling owned Capsules
-        $('#toggle_owned, #toggle_discovered').change(function() {
+        $('#toggle_owned, #toggle_discovered').change(function(e) {
             var markers;
             if ($(this).attr('id') === "toggle_owned") {
                 markers = mapView.ownedMarkers;
@@ -255,7 +288,7 @@
         });
 
         // Listener for toggling Discovery Mode
-        $('#toggle_discovery_mode').change(function() {
+        $('#toggle_discovery_mode').change(function(e) {
             mapView.discoveryModeOn = $(this).prop('checked');
             if (mapView.discoveryModeOn == true) {
                 if (navigator.geolocation) {
@@ -278,16 +311,58 @@
         });
 
         // Listener for centering on the user's location
-        $('#center-my-location').click(function() {
+        $('#center-my-location').click(function(e) {
             if (mapView.discoveryModeOn == true) {
                 gmap.map.setCenter(new google.maps.LatLng(geoloc.coordinates.latitude, geoloc.coordinates.longitude));
             }
         });
     });
+
+    // Listener for going to a point on the map
+    $(document).on('click', '.anchor-map-goto', function(e) {
+        $('#modal-capsule-list').modal('hide');
+        var lat = $(this).attr('data-lat');
+        var lng = $(this).attr('data-lng');
+        gmap.map.setCenter(new google.maps.LatLng(lat, lng));
+        gmap.map.setZoom(gmap.singleFocusZoom);
+    });
 </script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Modal Capsule List content after shown listener
+        $('#modal-capsule-list').on('shown.bs.modal', function(e) {
+            mapView.updateCapsuleList($(this).find('.modal-body > .nav-tabs > li.active > a').attr('href'));
+        });
+
+        // Lisenter for Modal Capsule List tabs
+        $('#modal-capsule-list a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            mapView.updateCapsuleList($(e.target).attr('href'));
+        });
+    });
+</script>
+<div id="modal-capsule-list" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-list" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-label-capsule-list">Capsules</h4>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#tab-pane-capsules" role="tab" data-toggle="tab">My Capsules</a></li>
+                    <li><a href="#tab-pane-discoveries" role="tab" data-toggle="tab">My Discoveries</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="tab-pane-capsules" data-loaded="0"></div>
+                    <div class="tab-pane" id="tab-pane-discoveries" data-loaded="0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div id="map-controls">
     <div><input type="checkbox" id="toggle_owned" checked="true" />My Capsules</div>
     <div><input type="checkbox" id="toggle_discovered" checked="true" />My Discoveries</div>
     <div><input type="checkbox" id="toggle_discovery_mode" />Discovery Mode <button type="button" id="center-my-location">Center on My Location</button></div>
+    <div><button type="button" id="capsule_list" data-toggle="modal" data-target="#modal-capsule-list">Capsules</button></div>
 </div>
 <div id="map"></div>
