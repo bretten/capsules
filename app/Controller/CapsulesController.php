@@ -51,12 +51,63 @@ class CapsulesController extends AppController {
  * @param string $id
  * @return void
  */
-    public function view($id = null) {
-        if (!$this->Capsule->exists($id)) {
+    public function view() {
+        $this->layout = 'ajax';
+
+        if (!$this->request->is('post') || !$this->request->is('ajax')) {
+            throw new MethodNotAllowedException(__('Invalid request'));
+        }
+
+        if (!$this->Capsule->exists($this->request->data['id'])) {
             throw new NotFoundException(__('Invalid capsule'));
         }
-        $options = array('conditions' => array('Capsule.' . $this->Capsule->primaryKey => $id));
-        $this->set('capsule', $this->Capsule->find('first', $options));
+
+        // Get the Capsule
+        $capsule = $this->Capsule->find('first', array(
+            'conditions' => array(
+                'Capsule.id' => $this->request->data['id']
+            )
+        ));
+
+        // Determine if the current User is the owner
+        $isOwned = (isset($capsule['Capsule']['user_id']) && $capsule['Capsule']['user_id'] == $this->Auth->user('id')) ? true : false;
+        // Determines if the Capsule is reachable
+        $isReachable = false;
+
+        // Determine if it is a Discovery
+        if (!$isOwned) {
+            $discovery = $this->Capsule->Discovery->find('first', array(
+                'conditions' => array(
+                    'Discovery.capsule_id' => $this->request->data['id'],
+                    'Discovery.user_id' => $this->Auth->user('id')
+                )
+            ));
+            // If this is not a Discovery, see if it is range to be opened
+            if (!$discovery) {
+                if ($isReachable = $this->Capsule->isReachable(
+                    $this->request->data['id'],
+                    $this->request->data['lat'],
+                    $this->request->data['lng'],
+                    Configure::read('Capsule.Search.Radius')
+                )) {
+                    if ($discovery = $this->Capsule->Discovery->saveNew(
+                        $this->request->data['id'],
+                        $this->Auth->user('id')
+                    )) {
+                        $this->Session->setFlash(__('Congratulations!  You have discovered a new Capsule!'));
+                    } else {
+                        $this->Session->setFlash(__('There was a problem opening the Capsule.  Please try again.'));
+                    }
+                } else {
+                    $this->Session->setFlash(__('Sorry, you are not within range to open this Capsule.'));
+                }
+            }
+        } else {
+            // This Capsule is owned by the current User
+            $discovery = null;
+        }
+        
+        $this->set(compact('isOwned', 'isReachable', 'capsule', 'discovery'));
     }
 
 /**
