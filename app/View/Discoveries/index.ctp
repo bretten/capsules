@@ -17,7 +17,7 @@
     <?php foreach ($discoveries as $discovery): ?>
     <tr>
         <td>
-            <?php echo $this->Html->link($discovery['Capsule']['name'], array('controller' => 'capsules', 'action' => 'view', $discovery['Capsule']['id'])); ?>
+            <a href="#" data-toggle="modal" data-target="#modal-capsule-info" data-id="<?php echo $discovery['Capsule']['id']; ?>"><?php echo h($discovery['Capsule']['name']); ?></a>
         </td>
         <td><?php echo h($discovery['Discovery']['favorite']); ?>&nbsp;</td>
         <td><?php echo h($discovery['Discovery']['rating']); ?>&nbsp;</td>

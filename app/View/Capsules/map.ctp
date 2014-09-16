@@ -70,6 +70,8 @@
                 visible: ownedVisible,
                 capsuleId: value.data.id
             });
+            // Add the Marker InfoWindow event listener
+            gmap.setupMarkerInfoWindow(marker, value.data, false /* isUndiscovered */);
             // Add the Marker to the Map
             marker.setMap(map);
             // Add the Marker to the collection of Markers
@@ -84,6 +86,8 @@
                 visible: discoveredVisible,
                 capsuleId: value.data.id
             });
+            // Add the Marker InfoWindow event listener
+            gmap.setupMarkerInfoWindow(marker, value.data, false /* isUndiscovered */);
             // Add the Marker to the Map
             marker.setMap(map);
             // Add the Marker to the collection of Markers
@@ -131,6 +135,8 @@
                 visible: mapView.discoveryModeOn,
                 capsuleId: value.data.id
             });
+            // Add the Marker InfoWindow event listener
+            gmap.setupMarkerInfoWindow(marker, value.data, true /* isUndiscovered */);
             // Add the Marker to the Map
             marker.setMap(map);
             // Add the Marker to the collection of Markers
@@ -224,17 +230,64 @@
     // The Map options
     gmap.mapOptions = {
         center: new google.maps.LatLng(47.618475, -122.365431),
-        zoom: 10
+        zoom: 10,
+        styles: [
+            {
+                "featureType": "poi.attraction", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.business", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.government", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.medical", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.place_of_worship", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.school", "stylers": [{"visibility": "off"}]
+            },
+            {
+                "featureType": "poi.sports_complex", "stylers": [{"visibility": "off"}]
+            }
+        ]
     };
 
     // Will hold the Map
     gmap.map;
+
+    // The Marker InfoWindow
+    gmap.markerInfoWindow = new google.maps.InfoWindow({
+        content: ""
+    });
 
     // The user's location circle
     gmap.locationCircle;
 
     // The zoom level for focusing on a single Capsule
     gmap.singleFocusZoom = 18;
+
+    /**
+     * Sets up the Marker InfoWindow including adding the listener and setting the content
+     */
+    gmap.setupMarkerInfoWindow = function(marker, capsule, isUndiscovered) {
+        google.maps.event.addListener(marker, 'click', function() {
+            // Set the content
+            gmap.markerInfoWindow.setContent(
+                '<h3>' + capsule.name + '</h3>'
+                + '<div>'
+                    + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '">'
+                        + (isUndiscovered ? 'Discover' : 'Open')
+                    + '</button>'
+                + '</div>'
+            );
+            // Open the info window
+            gmap.markerInfoWindow.open(gmap.map, marker);
+        });
+    }
 
     // Load the Map
     $(document).ready(function() {
@@ -329,14 +382,42 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
-        // Modal Capsule List content after shown listener
+        // Hide other modals when opening a new one
+        $('.modal').on('show.bs.modal', function (e) {
+            $('.modal').modal('hide');
+        });
+
+        // Modal Capsule list content after shown listener
         $('#modal-capsule-list').on('shown.bs.modal', function(e) {
             mapView.updateCapsuleList($(this).find('.modal-body > .nav-tabs > li.active > a').attr('href'));
         });
 
-        // Lisenter for Modal Capsule List tabs
+        // Lisenter for modal Capsule list tabs
         $('#modal-capsule-list a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
             mapView.updateCapsuleList($(e.target).attr('href'));
+        });
+
+        // Handler for GETing the content of the Capsule info modal
+        $('#modal-capsule-info').on('shown.bs.modal', function(e) {
+            var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
+            var requestData = {
+                "data[id]": e.relatedTarget.dataset.id
+            }
+            if (typeof geoloc.coordinates !== 'undefined' && geoloc.coordinates.latitude !== 'undefined' && geoloc.coordinates.longitude !== 'undefined') {
+                requestData["data[lat]"] = geoloc.coordinates.latitude;
+                requestData["data[lng]"] = geoloc.coordinates.longitude;
+            }
+            $.ajax({
+                type: 'POST',
+                url: "/capsules/view/",
+                data: requestData,
+                success: function(data, textStatus, jqXHR) {
+                    container.html(data);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    container.html("The data could not be retrieved");
+                }
+            });
         });
     });
 </script>
@@ -356,6 +437,16 @@
                     <div class="tab-pane" id="tab-pane-discoveries" data-loaded="0"></div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+<div id="modal-capsule-info" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-info" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-label-capsule-info">Capsule Info</h4>
+            </div>
+            <div class="modal-body"></div>
         </div>
     </div>
 </div>

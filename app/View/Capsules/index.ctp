@@ -15,7 +15,7 @@
     <?php foreach ($capsules as $capsule): ?>
     <tr>
         <td>
-            <?php echo h($capsule['Capsule']['name']); ?>&nbsp;
+            <a href="#" data-toggle="modal" data-target="#modal-capsule-info" data-id="<?php echo $capsule['Capsule']['id']; ?>"><?php echo h($capsule['Capsule']['name']); ?></a>
         </td>
         <td><?php echo h($capsule['Capsule']['created']); ?>&nbsp;</td>
         <td class="actions">
