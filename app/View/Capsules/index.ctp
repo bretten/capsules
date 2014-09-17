@@ -1,7 +1,8 @@
 <?php
     $this->Paginator->options(array(
         'update' => '#tab-pane-capsules',
-        'evalScripts' => true
+        'evalScripts' => true,
+        'before' => 'mapView.paginationUri.capsules = $(this).attr("url")'
     ));
 ?>
 
@@ -15,11 +16,12 @@
     <?php foreach ($capsules as $capsule): ?>
     <tr>
         <td>
-            <a href="#" data-toggle="modal" data-target="#modal-capsule-info" data-id="<?php echo $capsule['Capsule']['id']; ?>"><?php echo h($capsule['Capsule']['name']); ?></a>
+            <a href="#" class="anchor-map-goto" data-id="<?php echo $capsule['Capsule']['id']; ?>" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">
+                <?php echo h($capsule['Capsule']['name']); ?>
+            </a>
         </td>
         <td><?php echo h($capsule['Capsule']['created']); ?>&nbsp;</td>
         <td class="actions">
-            <a href="#" class="anchor-map-goto" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">Go To on Map</a>
             <?php echo $this->Html->link(__('Edit'), array('action' => 'edit', $capsule['Capsule']['id'])); ?>
             <?php echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $capsule['Capsule']['id']), array(), __('Are you sure you want to delete # %s?', $capsule['Capsule']['id'])); ?>
         </td>

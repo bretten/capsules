@@ -3,10 +3,26 @@
     // Define the namespace
     var mapView = {};
 
+    // "Contstants" to differentiate Capsule types
+    mapView.CAPSULE_OWNERSHIP = 0;
+    mapView.CAPSULE_DISCOVERY = 1;
+    mapView.CAPSULE_UNDISCOVERED = 2;
+
+    // Icon images
+    mapView.ICON_CAPSULE_OWNERSHIP = "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+    mapView.ICON_CAPSULE_DISCOVERY = "https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+    mapView.ICON_CAPSULE_UNDISCOVERED = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+
     // Will hold references to the Markers
     mapView.ownedMarkers = {};
     mapView.discoveredMarkers = {};
     mapView.undiscoveredMarkers = {};
+
+    // Will hold the last viewed paginated lists to maintain the query parameters on a refresh
+    mapView.paginationUri = {
+        capsules: "/capsules/",
+        discoveries: "/discoveries/"
+    }
 
     // Will hold the state of the Discovery Mode toggle
     mapView.discoveryModeOn;
@@ -45,57 +61,6 @@
     }
 
     /**
-     * Populates the GoogleMap with stored Markers
-     */
-    mapView.populateMarkers = function(map, capsules, discoveries) {
-        // Remove all existing Markers
-        $.each(mapView.ownedMarkers, function(id, marker) {
-            marker.setMap(null);
-        });
-        $.each(mapView.discoveredMarkers, function(id, marker) {
-            marker.setMap(null);
-        });
-        // Reinitialize Marker collections
-        mapView.ownedMarkers = {};
-        mapView.discoveredMarkers = {};
-
-        var ownedVisible = $('#toggle_owned').prop('checked');
-        var discoveredVisible = $('#toggle_discovered').prop('checked');
-        $.each(capsules, function(index, value) {
-            // Create the Marker
-            var marker = new google.maps.Marker({
-                position: new google.maps.LatLng(value.data.lat, value.data.lng),
-                title: value.data.name,
-                icon: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-                visible: ownedVisible,
-                capsuleId: value.data.id
-            });
-            // Add the Marker InfoWindow event listener
-            gmap.setupMarkerInfoWindow(marker, value.data, false /* isUndiscovered */);
-            // Add the Marker to the Map
-            marker.setMap(map);
-            // Add the Marker to the collection of Markers
-            mapView.ownedMarkers[value.data.id] = marker;
-        });
-        $.each(discoveries, function(index, value) {
-            // Create the Marker
-            var marker = new google.maps.Marker({
-                position: new google.maps.LatLng(value.data.lat, value.data.lng),
-                title: value.data.name,
-                icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                visible: discoveredVisible,
-                capsuleId: value.data.id
-            });
-            // Add the Marker InfoWindow event listener
-            gmap.setupMarkerInfoWindow(marker, value.data, false /* isUndiscovered */);
-            // Add the Marker to the Map
-            marker.setMap(map);
-            // Add the Marker to the collection of Markers
-            mapView.discoveredMarkers[value.data.id] = marker;
-        });
-    }
-
-    /**
      * Fetches undiscovered Capsule Markers
      */
     mapView.getUndiscoveredMarkers = function(lat, lng, callback) {
@@ -116,32 +81,69 @@
     }
 
     /**
-     * Populates the GoogleMap with undiscovered Capsule Markers
+     * Populates the GoogleMap with stored Markers
      */
-    mapView.populateUndiscoveredMarkers = function(map, capsules) {
+    mapView.populateMarkers = function(map, collection, capsules, type, visible) {
+        // Determine type specific properties
+        var icon;
+        if (type === mapView.CAPSULE_OWNERSHIP) {
+            icon = mapView.ICON_CAPSULE_OWNERSHIP;
+        } else if (type === mapView.CAPSULE_DISCOVERY) {
+            icon = mapView.ICON_CAPSULE_DISCOVERY;
+        } else {
+            icon = mapView.ICON_CAPSULE_UNDISCOVERED;
+        }
+
+        // Create or update a Marker for each Capsule
+        $.each(capsules, function(index, capsule) {
+            var marker;
+            if (!collection.hasOwnProperty(capsule.data.id)) {
+                // Create the Marker
+                marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(capsule.data.lat, capsule.data.lng),
+                    title: capsule.data.name,
+                    icon: icon,
+                    visible: visible,
+                    capsuleId: capsule.data.id
+                });
+                // Add the Marker to the Map
+                marker.setMap(map);
+                // Add the Marker to the collection of Markers
+                collection[capsule.data.id] = marker;
+            } else {
+                // Get the Marker that has already been created
+                marker = collection[capsule.data.id];
+                // Update the Marker data with the data from the server
+                marker.setTitle(capsule.data.name);
+                // Remove the listener
+                google.maps.event.clearListeners(marker, 'click');
+            }
+
+            if (typeof marker !== 'undefined') {
+                // Add the Marker InfoWindow event listener
+                gmap.setupMarkerInfoWindow(marker, capsule.data, ((type === mapView.CAPSULE_UNDISCOVERED) ? true : false) /* isUndiscovered */);
+            }
+        });
+    }
+
+    /**
+     * Removes all the Markers in the specified collection
+     *
+     * TODO Rework so don't need to pass both the type and collection in
+     */
+    mapView.removeMarkers = function(type, collection) {
         // Remove all existing Markers
-        $.each(mapView.undiscoveredMarkers, function(id, marker) {
+        $.each(collection, function(id, marker) {
             marker.setMap(null);
         });
-        // Reinitialize Marker collections
-        mapView.undiscoveredMarkers = {};
-
-        $.each(capsules, function(index, value) {
-            // Create the Marker
-            var marker = new google.maps.Marker({
-                position: new google.maps.LatLng(value.data.lat, value.data.lng),
-                title: value.data.name,
-                icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                visible: mapView.discoveryModeOn,
-                capsuleId: value.data.id
-            });
-            // Add the Marker InfoWindow event listener
-            gmap.setupMarkerInfoWindow(marker, value.data, true /* isUndiscovered */);
-            // Add the Marker to the Map
-            marker.setMap(map);
-            // Add the Marker to the collection of Markers
-            mapView.undiscoveredMarkers[value.data.id] = marker;
-        });
+        // Reinitialize Marker collection
+        if (type === mapView.CAPSULE_OWNERSHIP) {
+            mapView.ownedMarkers = {};
+        } else if (type === mapView.CAPSULE_DISCOVERY) {
+            mapView.discoveredMarkers = {};
+        } else if (type === mapView.CAPSULE_UNDISCOVERED) {
+            mapView.undiscoveredMarkers = {};
+        }
     }
 
     /**
@@ -152,26 +154,21 @@
         var uri;
         if (href === "#tab-pane-discoveries") {
             container = $('#tab-pane-discoveries');
-            uri = "/discoveries/";
+            uri = mapView.paginationUri.discoveries;
         } else {
             container = $('#tab-pane-capsules');
-            uri = "/capsules/";
+            uri = mapView.paginationUri.capsules;
         }
-        var loaded = (container.attr('data-loaded') != 0) ? true : false;
-        if (!loaded) {
-            $.ajax({
-                type: 'GET',
-                url: uri,
-                success: function(data, textStatus, jqXHR) {
-                    container.html(data);
-                    // Flag that the data was loaded
-                    container.attr('data-loaded', 1);
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    container.html("The list could not be retrieved");
-                }
-            });
-        }
+        $.ajax({
+            type: 'GET',
+            url: uri,
+            success: function(data, textStatus, jqXHR) {
+                container.html(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                container.html("The list could not be retrieved");
+            }
+        });
     }
 </script>
 <script type="text/javascript">
@@ -204,22 +201,24 @@
 
         // Get the latitude and longitude
         mapView.getUndiscoveredMarkers(coordinates.latitude, coordinates.longitude, function (capsules) {
-            mapView.populateUndiscoveredMarkers(gmap.map, capsules);
+            mapView.populateMarkers(gmap.map, mapView.undiscoveredMarkers, capsules, mapView.CAPSULE_UNDISCOVERED, mapView.discoveryModeOn);
         });
     }
 
     /**
      * Callback for handling a geolocation error
+     *
+     * TODO Provide proper error messages (probably will use modals)
      */
     geoloc.onError = function(error) {
         if (error.code == error.PERMISSION_DENIED) {
-            alert('demoed');
+            alert('User denied permission');
         } else if (error.code == error.POSITION_UNAVAILABLE) {
-            alert('unavai;l');
+            alert('Could not retrieve the user location');
         } else if (error.code == error.TIMEOUT) {
-            alert('timeout');
+            alert('Timeout');
         } else {
-            alert('unknown error');
+            alert('Unknown Error');
         }
     }
 </script>
@@ -299,8 +298,9 @@
             var latLngNE = bounds.getNorthEast();
             var latLngSW = bounds.getSouthWest();
             mapView.getMarkers(latLngNE.lat(), latLngNE.lng(), latLngSW.lat(), latLngSW.lng(), function(capsules, discoveries) {
-                // Populate the map
-                mapView.populateMarkers(gmap.map, capsules, discoveries);
+                // Populate the Map with Markers
+                mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle_owned').prop('checked'));
+                mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle_discovered').prop('checked'));
             });
         });
         // Create the user's location Circle
@@ -355,11 +355,7 @@
                 // Remove the user's location circle
                 gmap.locationCircle.setVisible(false);
                 // Remove all existing Markers
-                $.each(mapView.undiscoveredMarkers, function(id, marker) {
-                    marker.setMap(null);
-                });
-                // Reinitialize Marker collections
-                mapView.undiscoveredMarkers = {};
+                mapView.removeMarkers(mapView.CAPSULE_UNDISCOVERED, mapView.undiscoveredMarkers);
             }
         });
 
@@ -374,10 +370,17 @@
     // Listener for going to a point on the map
     $(document).on('click', '.anchor-map-goto', function(e) {
         $('#modal-capsule-list').modal('hide');
+        var id = $(this).attr('data-id');
         var lat = $(this).attr('data-lat');
         var lng = $(this).attr('data-lng');
         gmap.map.setCenter(new google.maps.LatLng(lat, lng));
         gmap.map.setZoom(gmap.singleFocusZoom);
+        // Show the Marker InfoWindow
+        if (mapView.ownedMarkers.hasOwnProperty(id)) {
+            google.maps.event.trigger(mapView.ownedMarkers[id], 'click');
+        } else if (mapView.discoveredMarkers.hasOwnProperty(id)) {
+            google.maps.event.trigger(mapView.discoveredMarkers[id], 'click');
+        }
     });
 </script>
 <script type="text/javascript">
@@ -433,8 +436,8 @@
                     <li><a href="#tab-pane-discoveries" role="tab" data-toggle="tab">My Discoveries</a></li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane active" id="tab-pane-capsules" data-loaded="0"></div>
-                    <div class="tab-pane" id="tab-pane-discoveries" data-loaded="0"></div>
+                    <div class="tab-pane active" id="tab-pane-capsules"></div>
+                    <div class="tab-pane" id="tab-pane-discoveries"></div>
                 </div>
             </div>
         </div>

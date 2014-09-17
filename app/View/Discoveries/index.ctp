@@ -1,7 +1,8 @@
 <?php
     $this->Paginator->options(array(
         'update' => '#tab-pane-discoveries',
-        'evalScripts' => true
+        'evalScripts' => true,
+        'before' => 'mapView.paginationUri.discoveries = $(this).attr("url")'
     ));
 ?>
 
@@ -17,14 +18,15 @@
     <?php foreach ($discoveries as $discovery): ?>
     <tr>
         <td>
-            <a href="#" data-toggle="modal" data-target="#modal-capsule-info" data-id="<?php echo $discovery['Capsule']['id']; ?>"><?php echo h($discovery['Capsule']['name']); ?></a>
+            <a href="#" class="anchor-map-goto" data-id="<?php echo $discovery['Capsule']['id']; ?>" data-lat="<?php echo $discovery['Capsule']['lat']; ?>" data-lng="<?php echo $discovery['Capsule']['lng']; ?>">
+                <?php echo h($discovery['Capsule']['name']); ?>
+            </a>
         </td>
         <td><?php echo h($discovery['Discovery']['favorite']); ?>&nbsp;</td>
         <td><?php echo h($discovery['Discovery']['rating']); ?>&nbsp;</td>
         <td><?php echo h($discovery['Discovery']['created']); ?>&nbsp;</td>
         <td class="actions">
-            <a href="#" class="anchor-map-goto" data-lat="<?php echo $discovery['Capsule']['lat']; ?>" data-lng="<?php echo $discovery['Capsule']['lng']; ?>">Go To on Map</a>
-            <?php echo $this->Html->link(__('Favorite'), array('action' => '#', $discovery['Discovery']['id'])); ?>
+            <?php echo $this->Html->link(__('Rate'), array('action' => '#', $discovery['Discovery']['id'])); ?>
         </td>
     </tr>
     <?php endforeach; ?>
