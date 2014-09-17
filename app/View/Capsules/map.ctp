@@ -127,6 +127,15 @@
     }
 
     /**
+     * Removes a single Marker from a collection given an id
+     */
+    mapView.removeMarker = function(id, collection) {
+        var marker = collection[id];
+        marker.setMap(null);
+        delete collection[id];
+    }
+
+    /**
      * Removes all the Markers in the specified collection
      *
      * TODO Rework so don't need to pass both the type and collection in
@@ -414,8 +423,34 @@
                 type: 'POST',
                 url: "/capsules/view/",
                 data: requestData,
+                dataType: 'json',
                 success: function(data, textStatus, jqXHR) {
-                    container.html(data);
+                    // Render the view
+                    if (data.hasOwnProperty('view')) {
+                        container.html(data.view);
+                    }
+                    // Remove the Capsule from the undiscovered collection
+                    if (data.hasOwnProperty('newDiscovery')) {
+                        // Remove the old Marker
+                        if (mapView.undiscoveredMarkers.hasOwnProperty(data.newDiscovery.id)) {
+                            mapView.removeMarker(data.newDiscovery.id, mapView.undiscoveredMarkers);
+                        }
+
+                        // Create the replacement Marker
+                        var marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(data.newDiscovery.lat, data.newDiscovery.lng),
+                            title: data.newDiscovery.name,
+                            icon: mapView.ICON_CAPSULE_DISCOVERY,
+                            visible: $('#toggle_discovered').prop('checked'),
+                            capsuleId: data.newDiscovery.id
+                        });
+                        // Add the Marker to the Map
+                        marker.setMap(gmap.map);
+                        // Add the Marker to the collection of Markers
+                        mapView.discoveredMarkers[data.newDiscovery.id] = marker;
+                        // Add the event click listener
+                        gmap.setupMarkerInfoWindow(marker, data.newDiscovery, false /* isUndiscovered */);
+                    }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     container.html("The data could not be retrieved");

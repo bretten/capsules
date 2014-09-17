@@ -52,6 +52,7 @@ class CapsulesController extends AppController {
  * @return void
  */
     public function view() {
+        $this->autoRender = false;
         $this->layout = 'ajax';
 
         if (!$this->request->is('post') || !$this->request->is('ajax')) {
@@ -73,6 +74,8 @@ class CapsulesController extends AppController {
         $isOwned = (isset($capsule['Capsule']['user_id']) && $capsule['Capsule']['user_id'] == $this->Auth->user('id')) ? true : false;
         // Determines if the Capsule is reachable
         $isReachable = false;
+        // Determines if this is a new Discovery
+        $isNewDiscovery = false;
 
         // Determine if it is a Discovery
         if (!$isOwned) {
@@ -94,6 +97,7 @@ class CapsulesController extends AppController {
                         $this->request->data['id'],
                         $this->Auth->user('id')
                     )) {
+                        $isNewDiscovery = true;
                         $this->Session->setFlash(__('Congratulations!  You have discovered a new Capsule!'));
                     } else {
                         $this->Session->setFlash(__('There was a problem opening the Capsule.  Please try again.'));
@@ -106,8 +110,26 @@ class CapsulesController extends AppController {
             // This Capsule is owned by the current User
             $discovery = null;
         }
-        
-        $this->set(compact('isOwned', 'isReachable', 'capsule', 'discovery'));
+
+        // Render the view
+        $view = new View($this, false);
+        $view->set(compact('isOwned', 'isReachable', 'capsule', 'discovery'));
+
+        // Build the response body
+        $body = array(
+            'view' => $view->render('view')
+        );
+        // Append the Capsule id if this is a new Discovery
+        if ($isNewDiscovery) {
+            $body['newDiscovery'] = array(
+                'id' => $capsule['Capsule']['id'],
+                'lat' => $capsule['Capsule']['lat'],
+                'lng' => $capsule['Capsule']['lng'],
+                'name' => $capsule['Capsule']['name']
+            );
+        }
+        // Send the response
+        $this->response->body(json_encode($body));
     }
 
 /**

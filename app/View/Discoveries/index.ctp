@@ -9,7 +9,7 @@
 <div class="discoveries index">
     <table class="table table-striped">
     <tr>
-            <th><?php echo $this->Paginator->sort('capsule_id', 'Name'); ?></th>
+            <th><?php echo $this->Paginator->sort('Capsule.name', 'Name'); ?></th>
             <th><?php echo $this->Paginator->sort('favorite'); ?></th>
             <th><?php echo $this->Paginator->sort('rating'); ?></th>
             <th><?php echo $this->Paginator->sort('created'); ?></th>
