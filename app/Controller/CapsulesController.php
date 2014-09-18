@@ -159,28 +159,87 @@ class CapsulesController extends AppController {
  * @return void
  */
     public function edit($id = null) {
-        if (!$this->Capsule->exists($id)) {
+        $this->layout = 'ajax';
+
+        if ($id && (!$this->Capsule->exists($id) || !$this->Capsule->ownedBy($this->Auth->user('id'), $id))) {
             throw new NotFoundException(__('Invalid capsule'));
         }
+
         if ($this->request->is(array('post', 'put'))) {
-            if ($this->Capsule->saveDiff($this->request->data, array(
-                'deep' => true, 'removeHasMany' => 'Memoir', 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
-            ))) {
-                $this->Session->setFlash(__('The capsule has been saved.'));
-                return $this->redirect(array('action' => 'index'));
+            // Handle some Capsule data here to prevent form tampering
+            $fieldList = array(
+                'Capsule' => array(
+                    'name',
+                    'point',
+                    'user_id'
+                )
+            );
+            if ($id) {
+                $this->request->data['Capsule']['id'] = $id;
+                unset($this->request->data['Capsule']['lat']);
+                unset($this->request->data['Capsule']['lng']);
             } else {
+                $fieldList = array_merge_recursive($fieldList, array(
+                    'Capsule' => array(
+                        'lat', 'lng'
+                    )
+                ));
+            }
+
+            if ($this->Capsule->saveDiff($this->request->data, array(
+                'deep' => true, 'fieldList' => $fieldList,
+                'removeHasMany' => 'Memoir', 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
+            ))) {
+                // Turn off autoRender
+                $this->autoRender = false;
+
+                // Flash message
+                $this->Session->setFlash(__('The capsule has been saved.'));
+
+                // Determine the ID of the INSERTed/UPDATEd Capsule
+                $capsuleId;
+                if ($id) {
+                    $capsuleId = $id;
+                } else {
+                    $capsuleId = $this->Capsule->getLastInsertID();
+                }
+
+                // Get the Capsule
+                $capsule = $this->Capsule->find('first', array(
+                    'conditions' => array(
+                        'Capsule.id' => $capsuleId
+                    )
+                ));
+
+                // Build the response body
+                $body = array(
+                    'capsule' => array(
+                        'isNew' => ($id) ? false : true,
+                        'id' => $capsule['Capsule']['id'],
+                        'lat' => $capsule['Capsule']['lat'],
+                        'lng' => $capsule['Capsule']['lng'],
+                        'name' => $capsule['Capsule']['name']
+                    )
+                );
+                // Send the response
+                $this->response->body(json_encode($body));
+                return;
+            } else {
+                $this->response->statusCode(400);
                 $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'));
             }
         } else {
-            $options = array(
-                'conditions' => array(
-                    'Capsule.' . $this->Capsule->primaryKey => $id
-                ),
-                'contain' => array(
-                    'Memoir'
-                )
-            );
-            $this->request->data = $this->Capsule->find('first', $options);
+            if ($id) {
+                $options = array(
+                    'conditions' => array(
+                        'Capsule.' . $this->Capsule->primaryKey => $id
+                    ),
+                    'contain' => array(
+                        'Memoir'
+                    )
+                );
+                $this->request->data = $this->Capsule->find('first', $options);
+            }
         }
         // Use the add view
         $this->render('add');

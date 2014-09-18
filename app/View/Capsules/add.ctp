@@ -96,16 +96,16 @@
     });
 </script>
 <div class="capsules form">
+<?php if (isset($this->request->data['Capsule']['id']) && $this->request->data['Capsule']['id']) : ?>
+    <h2><?php echo __('Editing: ' . $this->request->data['Capsule']['name']); ?></h2>
+<?php else : ?>
+    <h2><?php echo __('New Capsule'); ?></h2>
+<?php endif; ?>
+
 <?php echo $this->Form->create('Capsule', array('id' => 'CapsuleAddForm')); ?>
     <fieldset>
-        <legend><?php echo __('Add Capsule'); ?></legend>
     <?php
-        if (isset($this->request->data['Capsule']['id']) && $this->request->data['Capsule']['id']) {
-            echo $this->Form->input('id');
-        }
         echo $this->Form->input('name');
-        echo $this->Form->input('lat');
-        echo $this->Form->input('lng');
     ?>
         <button type="button" class="add">Add Memoir</button>
         <div id="memoirs">
@@ -143,10 +143,4 @@
         </div>
     </fieldset>
 <?php echo $this->Form->end(__('Submit')); ?>
-</div>
-<div class="actions">
-    <h3><?php echo __('Actions'); ?></h3>
-    <ul>
-        <li><?php echo $this->Html->link(__('List Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?> </li>
-    </ul>
 </div>

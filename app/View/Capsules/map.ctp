@@ -12,11 +12,20 @@
     mapView.ICON_CAPSULE_OWNERSHIP = "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
     mapView.ICON_CAPSULE_DISCOVERY = "https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
     mapView.ICON_CAPSULE_UNDISCOVERED = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+    mapView.ICON_CAPSULE_NEW = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
 
     // Will hold references to the Markers
     mapView.ownedMarkers = {};
     mapView.discoveredMarkers = {};
     mapView.undiscoveredMarkers = {};
+
+    // Will hold a reference to the new Capsule Marker
+    mapView.newCapsuleMarker = new google.maps.Marker({
+        title: "New Capsule",
+        icon: mapView.ICON_CAPSULE_NEW,
+        draggable: true,
+        animation: google.maps.Animation.DROP
+    });
 
     // Will hold the last viewed paginated lists to maintain the query parameters on a refresh
     mapView.paginationUri = {
@@ -238,6 +247,7 @@
     // The Map options
     gmap.mapOptions = {
         center: new google.maps.LatLng(47.618475, -122.365431),
+        disableDoubleClickZoom: true,
         zoom: 10,
         styles: [
             {
@@ -301,7 +311,7 @@
     $(document).ready(function() {
         // Initialize the map
         gmap.map = new google.maps.Map(document.getElementById("map"), gmap.mapOptions);
-        // Listeners
+        // Listeners for map idling
         google.maps.event.addListener(gmap.map, 'idle', function() {
             var bounds = gmap.map.getBounds();
             var latLngNE = bounds.getNorthEast();
@@ -311,6 +321,29 @@
                 mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle_owned').prop('checked'));
                 mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle_discovered').prop('checked'));
             });
+        });
+        // Listener for double clicks
+        google.maps.event.addListener(gmap.map, 'dblclick', function(e) {
+            mapView.newCapsuleMarker.setPosition(e.latLng);
+            mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
+            if (!mapView.newCapsuleMarker.getMap()) {
+                mapView.newCapsuleMarker.setMap(gmap.map);
+            }
+        });
+        // Listener for the new Capsule Marker click event
+        google.maps.event.addListener(mapView.newCapsuleMarker, 'click', function() {
+            // Set the content
+            gmap.markerInfoWindow.setContent(
+                '<h3>New Capsule </h3>'
+                + '<h4>You can drag this to finalize your position.  When you are ready, bury it.</h4>'
+                + '<div>'
+                    + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor">'
+                        + "Bury Here"
+                    + '</button>'
+                + '</div>'
+            );
+            // Open the info window
+            gmap.markerInfoWindow.open(gmap.map, mapView.newCapsuleMarker);
         });
         // Create the user's location Circle
         gmap.locationCircle = new google.maps.Circle({
@@ -391,6 +424,89 @@
             google.maps.event.trigger(mapView.discoveredMarkers[id], 'click');
         }
     });
+
+    // Listener for the Capsule editor form submission
+    $(document).on('submit', '#CapsuleAddForm', function(e) {
+        e.preventDefault();
+        // Reference to the form
+        var form = $(this);
+
+        // Reference to the container
+        var container = $(this).parents('.modal-body');
+
+        // Get the LatLng
+        var latLng = mapView.newCapsuleMarker.getPosition();
+        if (typeof latLng !== 'undefined') {
+            var lat = latLng.lat();
+            var lng = latLng.lng();
+
+            // Append the lat/lng inputs
+            $('<input/>', {
+                type: 'hidden',
+                name: 'data[Capsule][lat]',
+                value: lat
+            }).appendTo(form);
+            $('<input/>', {
+                type: 'hidden',
+                name: 'data[Capsule][lng]',
+                value: lng
+            }).appendTo(form);
+        }
+
+        // Submit the form
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(data, textStatus, jqXHR) {
+                // Render the view
+                if (data.hasOwnProperty('capsule')) {
+                    // Check if the Capsule is new
+                    var marker;
+                    if (data.capsule.hasOwnProperty('isNew') && data.capsule.isNew == true) {
+                        // Create the Marker
+                        marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(data.capsule.lat, data.capsule.lng),
+                            title: data.capsule.name,
+                            icon: mapView.ICON_CAPSULE_OWNERSHIP,
+                            visible: $('#toggle_owned').prop('checked'),
+                            capsuleId: data.capsule.id
+                        });
+                        // Add the Marker to the Map
+                        marker.setMap(gmap.map);
+                        // Add the Marker to the collection of Markers
+                        mapView.ownedMarkers[data.capsule.id] = marker;
+                        // Remove the new Capsule Marker
+                        mapView.newCapsuleMarker.setMap(null);
+                        mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
+                    } else {
+                        // Get the Marker that has already been created
+                        marker = mapView.ownedMarkers[data.capsule.id];
+                        // Update the Marker data with the data from the server
+                        marker.setTitle(data.capsule.name);
+                        // Remove the listener
+                        google.maps.event.clearListeners(marker, 'click');
+                    }
+
+                    if (typeof marker !== 'undefined') {
+                        // Add the Marker InfoWindow event listener
+                        gmap.setupMarkerInfoWindow(marker, data.capsule, false /* isUndiscovered */);
+                        google.maps.event.trigger(mapView.ownedMarkers[data.capsule.id], 'click');
+                    }
+
+                    // Open the previous modal
+                    $('#modal-capsule-info').data('id', data.capsule.id);
+                    $('#modal-capsule-info').modal('show');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (jqXHR.hasOwnProperty('responseText')) {
+                    container.html(jqXHR.responseText);
+                }
+            }
+        });
+    });
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
@@ -409,13 +525,20 @@
             mapView.updateCapsuleList($(e.target).attr('href'));
         });
 
-        // Handler for GETing the content of the Capsule info modal
+        // Handler for the content of the Capsule info modal
         $('#modal-capsule-info').on('shown.bs.modal', function(e) {
             var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
-            var requestData = {
-                "data[id]": e.relatedTarget.dataset.id
+            var id;
+            if ($(this).data('id')) {
+                id = $(this).data('id');
+                $(this).removeData('id');
+            } else if (typeof e.relatedTarget.dataset.id !== 'undefined') {
+                id = e.relatedTarget.dataset.id;
             }
-            if (typeof geoloc.coordinates !== 'undefined' && geoloc.coordinates.latitude !== 'undefined' && geoloc.coordinates.longitude !== 'undefined') {
+            var requestData = {
+                "data[id]": id
+            }
+            if (typeof geoloc.coordinates !== 'undefined' && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
                 requestData["data[lat]"] = geoloc.coordinates.latitude;
                 requestData["data[lng]"] = geoloc.coordinates.longitude;
             }
@@ -457,6 +580,40 @@
                 }
             });
         });
+
+        // Handler for Capsule editor modal
+        $('#modal-capsule-editor').on('shown.bs.modal', function(e) {
+            if (typeof mapView.newCapsuleMarker === 'undefined') {
+                return false;
+            }
+
+            var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
+
+            // Check if this is a CREATE or UPDATE
+            var id;
+            if (typeof e.relatedTarget.dataset.id !== 'undefined') {
+                id = e.relatedTarget.dataset.id;
+            }
+
+            // Determine the URI
+            var uri = "/capsules/edit/";
+            if (typeof id !== 'undefined') {
+                uri = uri + id;
+            }
+
+            // Fetch the view
+            $.ajax({
+                type: 'GET',
+                url: uri,
+                success: function(data, textStatus, jqXHR) {
+                    // Render content
+                    container.html(data);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    container.html("The data could not be retrieved");
+                }
+            });
+        });
     });
 </script>
 <div id="modal-capsule-list" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-list" aria-hidden="true">
@@ -483,6 +640,16 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modal-label-capsule-info">Capsule Info</h4>
+            </div>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+<div id="modal-capsule-editor" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-editor" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal-label-capsule-editor">Capsule Editor</h4>
             </div>
             <div class="modal-body"></div>
         </div>

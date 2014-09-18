@@ -4,7 +4,9 @@
     <a href="#" class="anchor-map-goto" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">Go To on Map</a>
 
     <?php if ($isOwned) : ?>
-    EDIT
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor" data-id="<?php echo $capsule['Capsule']['id']; ?>">
+        Edit
+    </button>
     <?php endif; ?>
 
     <?php if ($discovery) : ?>
