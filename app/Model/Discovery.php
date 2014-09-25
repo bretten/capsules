@@ -52,9 +52,15 @@ class Discovery extends AppModel {
  * @var array
  */
     public $validate = array(
+        'favorite' => array(
+            'boolean' => array(
+                'rule' => array('boolean'),
+                'message' => 'Please choose either favorite or unfavorite.'
+            )
+        ),
         'rating' => array(
-            'decimal' => array(
-                'rule' => array('decimal', 1),
+            'range' => array(
+                'rule' => array('inList', array(-1, 0, 1, '-1', '0', '1')),
                 'message' => 'Please enter a valid rating.'
             )
         )

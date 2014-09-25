@@ -106,7 +106,7 @@ class Capsule extends AppModel {
                 'required' => true
             ),
             'decimal' => array(
-                'rule' => array('decimal', 6),
+                'rule' => array('decimal'),
                 'message' => 'Please enter a valid latitude.'
             )
         ),
@@ -117,7 +117,7 @@ class Capsule extends AppModel {
                 'required' => true
             ),
             'decimal' => array(
-                'rule' => array('decimal', 6),
+                'rule' => array('decimal'),
                 'message' => 'Please enter a valid longitude.'
             )
         )
@@ -136,7 +136,7 @@ class Capsule extends AppModel {
             $this->data[$this->alias]['point'] = $dataSource->expression("POINT(" . $this->data[$this->alias]['lat'] . ", " . $this->data[$this->alias]['lng'] . ")");
         } elseif (isset($this->data['lat']) && isset($this->data['lng'])) {
             $dataSource = $this->getDataSource();
-            $this->data['point'] = $dataSource->expression("POINT(" . $this->data[$this->alias]['lat'] . ", " . $this->data[$this->alias]['lng'] . ")");
+            $this->data['point'] = $dataSource->expression("POINT(" . $this->data['lat'] . ", " . $this->data['lng'] . ")");
         }
         return true;
     }

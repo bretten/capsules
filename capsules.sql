@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `capsules`.`discoveries` (
   `capsule_id` INT UNSIGNED NOT NULL,
   `user_id` INT UNSIGNED NOT NULL,
   `favorite` TINYINT(1) NOT NULL DEFAULT 0,
-  `rating` DECIMAL(2,1) NULL DEFAULT NULL,
+  `rating` TINYINT(2) NOT NULL DEFAULT 0,
   `etag` VARCHAR(255) NOT NULL,
   `created` DATETIME NOT NULL,
   `modified` DATETIME NOT NULL,
