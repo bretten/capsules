@@ -11,6 +11,8 @@
     <?php if ($discovery) : ?>
         <script type="text/javascript" src="/js/discovery_rater.js"></script>
         <?php echo $this->element('discovery_rater', array('id' => $discovery['Discovery']['id'], 'rating' => $discovery['Discovery']['rating'])); ?>
+        <script type="text/javascript" src="/js/discovery_favorite_toggle.js"></script>
+        <?php echo $this->element('discovery_favorite_toggle', array('id' => $discovery['Discovery']['id'], 'favorite' => $discovery['Discovery']['favorite'])); ?>
     <?php endif; ?>
 
 <?php else : ?>

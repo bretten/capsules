@@ -165,4 +165,42 @@ class DiscoveriesController extends AppController {
         $this->response->body(json_encode($body));
     }
 
+/**
+ * Internal API method to favorite a Discovery
+ *
+ * @return void
+ */
+    public function favorite() {
+        $this->autoRender = false;
+        $this->layout = 'ajax';
+
+        $body = array();
+
+        if ($this->request->is('post') && $this->request->is('ajax')) {
+            $discovery = $this->Discovery->find('first', array(
+                'conditions' => array(
+                    'Discovery.id' => $this->request->data['id'],
+                    'Discovery.user_id' => $this->Auth->user('id')
+                )
+            ));
+            if (!$discovery) {
+                $this->response->statusCode(404);
+            } else {
+                // Inverse the favorite flag
+                $this->request->data['favorite'] = !$discovery['Discovery']['favorite'];
+
+                if ($this->Discovery->save($this->request->data)) {
+                    $body['favorite'] = $this->request->data['favorite'];
+                    $this->response->statusCode(200);
+                } else {
+                    $this->response->statusCode(500);
+                }
+            }
+        } else {
+            $this->response->statusCode(405);
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
 }
