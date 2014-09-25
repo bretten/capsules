@@ -23,7 +23,15 @@
             </a>
         </td>
         <td><?php echo h($discovery['Discovery']['favorite']); ?>&nbsp;</td>
-        <td><?php echo h($discovery['Discovery']['rating']); ?>&nbsp;</td>
+        <td>
+            <?php if ($discovery['Discovery']['rating'] == 1) : ?>
+                <span class="glyphicon glyphicon-chevron-up glyphicon-positive"></span>
+            <?php elseif ($discovery['Discovery']['rating'] == -1) : ?>
+                <span class="glyphicon glyphicon-chevron-down glyphicon-negative"></span>
+            <?php else : ?>
+                <span class="glyphicon glyphicon-minus glyphicon-neutral"></span>
+            <?php endif; ?>
+        </td>
         <td><?php echo h($discovery['Discovery']['created']); ?>&nbsp;</td>
         <td class="actions">
             <?php echo $this->Html->link(__('Rate'), array('action' => '#', $discovery['Discovery']['id'])); ?>

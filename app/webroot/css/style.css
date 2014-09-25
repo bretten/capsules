@@ -35,3 +35,35 @@ body
     height: 70%;
     width: 100%;
 }
+
+/**
+ * Discoveries
+ */
+
+/* Rater */
+
+div.discovery-rater-container div
+{
+    text-align: center;
+}
+
+/**
+ * Bootstrap
+ */
+
+/* Glyphicon */
+
+.glyphicon-positive
+{
+    color: #5cb85c;
+}
+
+.glyphicon-negative
+{
+    color: #d9534f;
+}
+
+.glyphicon-neutral
+{
+    color: #eee;
+}

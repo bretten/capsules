@@ -127,4 +127,42 @@ class DiscoveriesController extends AppController {
         return $this->redirect(array('action' => 'index'));
     }
 
+/**
+ * Internal API method to rate a Discovery
+ *
+ * @return void
+ */
+    public function rate() {
+        $this->autoRender = false;
+        $this->layout = 'ajax';
+
+        $body = array();
+
+        if ($this->request->is('post') && $this->request->is('ajax')) {
+            $discovery = $this->Discovery->find('first', array(
+                'conditions' => array(
+                    'Discovery.id' => $this->request->data['id'],
+                    'Discovery.user_id' => $this->Auth->user('id')
+                )
+            ));
+            if (!$discovery) {
+                $this->response->statusCode(404);
+            } else {
+                if ($discovery['Discovery']['rating'] != 0 && $discovery['Discovery']['rating'] == $this->request->data['rating']) {
+                    $this->request->data['rating'] = 0;
+                }
+                if ($discovery['Discovery']['rating'] == $this->request->data['rating'] || $this->Discovery->save($this->request->data)) {
+                    $body['rating'] = $this->request->data['rating'];
+                    $this->response->statusCode(200);
+                } else {
+                    $this->response->statusCode(500);
+                }
+            }
+        } else {
+            $this->response->statusCode(405);
+        }
+
+        $this->response->body(json_encode($body));
+    }
+
 }

@@ -1,7 +1,6 @@
 <?php if ($isOwned || $discovery) : ?>
 
     <h1><?php echo $capsule['Capsule']['name']; ?></h1>
-    <a href="#" class="anchor-map-goto" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">Go To on Map</a>
 
     <?php if ($isOwned) : ?>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor" data-id="<?php echo $capsule['Capsule']['id']; ?>">
@@ -10,7 +9,8 @@
     <?php endif; ?>
 
     <?php if ($discovery) : ?>
-    RATE
+        <script type="text/javascript" src="/js/discovery_rater.js"></script>
+        <?php echo $this->element('discovery_rater', array('id' => $discovery['Discovery']['id'], 'rating' => $discovery['Discovery']['rating'])); ?>
     <?php endif; ?>
 
 <?php else : ?>
