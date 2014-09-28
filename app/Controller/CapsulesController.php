@@ -40,8 +40,14 @@ class CapsulesController extends AppController {
                 'Capsule.user_id' => $this->Auth->user('id')
             )
         );
+        // Search refinement
+        $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
+        if ($search) {
+            $query['conditions']['Capsule.name LIKE'] = "%" . urldecode($search) . "%";
+        }
         $this->Paginator->settings = $query;
         $this->set('capsules', $this->Paginator->paginate());
+        $this->set(compact('search'));
     }
 
 /**

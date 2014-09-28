@@ -111,3 +111,11 @@ CakeLog::config('error', array(
  * Search radius
  */
 Configure::write('Capsule.Search.Radius', 1);
+
+/**
+ * Search params
+ */
+Configure::write('Search.Filter.Favorite', 'favorite');
+Configure::write('Search.Filter.UpVote', 'upvote');
+Configure::write('Search.Filter.DownVote', 'downvote');
+Configure::write('Search.Filter.NoVote', 'novote');

@@ -40,8 +40,30 @@ class DiscoveriesController extends AppController {
                 'Discovery.user_id' => $this->Auth->user('id')
             )
         );
+        // Search refinement
+        $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
+        if ($search) {
+            $query['conditions']['Capsule.name LIKE'] = "%" . urldecode($search) . "%";
+        }
+        // Filter refinement
+        $filter = (isset($this->request->query['filter']) && $this->request->query['filter']) ? $this->request->query['filter'] : "";
+        if ($filter) {
+            if ($filter == Configure::read('Search.Filter.Favorite')) {
+                $query['conditions']['Discovery.favorite >='] = 1;
+            }
+            if ($filter == Configure::read('Search.Filter.UpVote')) {
+                $query['conditions']['Discovery.rating >='] = 1;
+            }
+            if ($filter == Configure::read('Search.Filter.DownVote')) {
+                $query['conditions']['Discovery.rating <='] = -1;
+            }
+            if ($filter == Configure::read('Search.Filter.NoVote')) {
+                $query['conditions']['Discovery.rating'] = 0;
+            }
+        }
         $this->Paginator->settings = $query;
         $this->set('discoveries', $this->Paginator->paginate());
+        $this->set(compact('search', 'filter'));
     }
 
 /**

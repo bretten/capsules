@@ -7,6 +7,27 @@
 ?>
 
 <div class="discoveries index">
+    <?php
+        echo $this->element('searcher', array(
+            'container' => '#tab-pane-discoveries',
+            'controller' => 'discoveries',
+            'action' => 'index',
+            'hasSearch' => true,
+            'before' => 'mapView.paginationUri.discoveries = searcher.buildUri();',
+            'sorts' => array(
+                '/sort:Capsule.name/direction:asc' => 'A - Z',
+                '/sort:Capsule.name/direction:desc' => 'Z - A',
+                '/sort:created/direction:desc' => 'Discovered first'
+            ),
+            'filters' => array(
+                Configure::read('Search.Filter.Favorite') => 'Favorited',
+                Configure::read('Search.Filter.UpVote') => 'Up Voted',
+                Configure::read('Search.Filter.DownVote') => 'Down Voted',
+                Configure::read('Search.Filter.NoVote') => 'No Vote'
+                
+            )
+        ));
+    ?>
     <table class="table table-striped">
     <tr>
             <th><?php echo $this->Paginator->sort('Capsule.name', 'Name'); ?></th>

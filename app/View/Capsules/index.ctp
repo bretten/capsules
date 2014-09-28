@@ -7,6 +7,20 @@
 ?>
 
 <div class="capsules index">
+    <?php
+        echo $this->element('searcher', array(
+            'container' => '#tab-pane-capsules',
+            'controller' => 'capsules',
+            'action' => 'index',
+            'hasSearch' => true,
+            'before' => 'mapView.paginationUri.capsules = searcher.buildUri();',
+            'sorts' => array(
+                '/sort:name/direction:asc' => 'A - Z',
+                '/sort:name/direction:desc' => 'Z - A',
+                '/sort:created/direction:desc' => 'Newest first'
+            )
+        ));
+    ?>
     <table class="table table-striped">
     <tr>
             <th><?php echo $this->Paginator->sort('name'); ?></th>
