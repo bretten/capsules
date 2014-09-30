@@ -13,6 +13,12 @@ $(document).ready(function() {
                 url: '/discoveries/rate/',
                 data: {'data[id]': id, 'data[rating]': rating},
                 dataType: 'json',
+                beforeSend: function(jqXHR, settings) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                },
+                complete: function(jqXHR, textStatus) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                },
                 success: function(data, textStatus, jqXHR) {
                     if (data.hasOwnProperty('rating')) {
                         discoveryRater.onSuccess(container, data.rating);

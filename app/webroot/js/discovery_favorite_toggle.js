@@ -11,6 +11,12 @@ $(document).ready(function() {
                 url: '/discoveries/favorite/',
                 data: {'data[id]': id},
                 dataType: 'json',
+                beforeSend: function(jqXHR, settings) {
+                    ele.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                },
+                complete: function(jqXHR, textStatus) {
+                    ele.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                },
                 success: function(data, textStatus, jqXHR) {
                     if (data.hasOwnProperty('favorite')) {
                         discoveryFavoriteToggle.onSuccess(ele, data.favorite);

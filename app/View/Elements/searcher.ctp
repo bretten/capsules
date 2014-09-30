@@ -47,6 +47,12 @@
             $.ajax({
                 type: 'GET',
                 url: location,
+                beforeSend: function(jqXHR, settings) {
+                    searcher.container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                },
+                complete: function(jqXHR, textStatus) {
+                    searcher.container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                },
                 success: function(data, textStatus, jqXHR) {
                     searcher.container.html(data);
                 },

@@ -36,6 +36,13 @@ body
     width: 100%;
 }
 
+/* AJAX Loading Notification */
+
+.modal-loader
+{
+    display: none;
+}
+
 /**
  * Discoveries
  */

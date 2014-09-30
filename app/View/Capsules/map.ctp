@@ -180,6 +180,12 @@
         $.ajax({
             type: 'GET',
             url: uri,
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
             success: function(data, textStatus, jqXHR) {
                 container.html(data);
             },
@@ -459,6 +465,12 @@
             url: form.attr('action'),
             data: form.serialize(),
             dataType: 'json',
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
             success: function(data, textStatus, jqXHR) {
                 // Render the view
                 if (data.hasOwnProperty('capsule')) {
@@ -511,8 +523,13 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // Hide other modals when opening a new one
-        $('.modal').on('show.bs.modal', function (e) {
+        $('.modal').on('show.bs.modal', function(e) {
             $('.modal').modal('hide');
+        });
+
+        // Clear modal content after being hidden
+        $('#modal-capsule-info, #modal-capsule-editor').on('hidden.bs.modal', function(e) {
+            $(e.target).find('.modal-dialog > .modal-content > .modal-body').html('');
         });
 
         // Modal Capsule list content after shown listener
@@ -547,6 +564,12 @@
                 url: "/capsules/view/",
                 data: requestData,
                 dataType: 'json',
+                beforeSend: function(jqXHR, settings) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                },
+                complete: function(jqXHR, textStatus) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                },
                 success: function(data, textStatus, jqXHR) {
                     // Render the view
                     if (data.hasOwnProperty('view')) {
@@ -605,6 +628,12 @@
             $.ajax({
                 type: 'GET',
                 url: uri,
+                beforeSend: function(jqXHR, settings) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                },
+                complete: function(jqXHR, textStatus) {
+                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                },
                 success: function(data, textStatus, jqXHR) {
                     // Render content
                     container.html(data);
@@ -621,6 +650,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modal-label-capsule-list">Capsules</h4>
+                <div class="modal-loader">
+                    <div class="text-center">
+                        <span class="glyphicon glyphicon-repeat"></span> Loading...
+                    </div>
+                </div>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-tabs" role="tablist">
@@ -640,6 +674,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modal-label-capsule-info">Capsule Info</h4>
+                <div class="modal-loader">
+                    <div class="text-center">
+                        <span class="glyphicon glyphicon-repeat"></span> Loading...
+                    </div>
+                </div>
             </div>
             <div class="modal-body"></div>
         </div>
@@ -650,6 +689,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modal-label-capsule-editor">Capsule Editor</h4>
+                <div class="modal-loader">
+                    <div class="text-center">
+                        <span class="glyphicon glyphicon-repeat"></span> Loading...
+                    </div>
+                </div>
             </div>
             <div class="modal-body"></div>
         </div>
