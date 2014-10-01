@@ -1,4 +1,5 @@
 <?php
+    $rating = (isset($rating) && $rating) ? $rating : 0;
     // Determine the rating
     $isPositive = $isNegative = false;
     if (isset($rating) && $rating > 0) {
