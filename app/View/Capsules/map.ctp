@@ -303,7 +303,7 @@
             gmap.markerInfoWindow.setContent(
                 '<h3>' + capsule.name + '</h3>'
                 + '<div>'
-                    + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '">'
+                    + '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '" data-undiscovered="' + isUndiscovered + '">'
                         + (isUndiscovered ? 'Discover' : 'Open')
                     + '</button>'
                 + '</div>'
@@ -527,6 +527,21 @@
             $('.modal').modal('hide');
         });
 
+        // Handler for showing displaying an animation before opening the Discovery model
+        $('#modal-capsule-info').on('show.bs.modal', function(e) {
+            if (typeof e.relatedTarget !== 'undefined' && e.relatedTarget.dataset.hasOwnProperty('undiscovered')
+                && e.relatedTarget.dataset.hasOwnProperty('id') && e.relatedTarget.dataset.undiscovered == "true"
+            ) {
+                e.preventDefault();
+                $('#modal-animation').modal('show');
+                setTimeout(function() {
+                    $('#modal-capsule-info').data('id', e.relatedTarget.dataset.id);
+                    $('#modal-capsule-info').data('undiscovered', true);
+                    $('#modal-capsule-info').modal('show');
+                }, 1000);
+            }
+        });
+
         // Clear modal content after being hidden
         $('#modal-capsule-info, #modal-capsule-editor').on('hidden.bs.modal', function(e) {
             $(e.target).find('.modal-dialog > .modal-content > .modal-body').html('');
@@ -545,6 +560,7 @@
         // Handler for the content of the Capsule info modal
         $('#modal-capsule-info').on('shown.bs.modal', function(e) {
             var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
+            // Determine the id
             var id;
             if ($(this).data('id')) {
                 id = $(this).data('id');
@@ -552,13 +568,20 @@
             } else if (typeof e.relatedTarget.dataset.id !== 'undefined') {
                 id = e.relatedTarget.dataset.id;
             }
+            // Unset the undiscovered flag
+            if ($(this).data('undiscovered')) {
+                $(this).removeData('undiscovered');
+            }
+            // Build the request data
             var requestData = {
                 "data[id]": id
             }
+            // Determine if a location will be submitted in the request
             if (typeof geoloc.coordinates !== 'undefined' && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
                 requestData["data[lat]"] = geoloc.coordinates.latitude;
                 requestData["data[lng]"] = geoloc.coordinates.longitude;
             }
+            // Send the request
             $.ajax({
                 type: 'POST',
                 url: "/capsules/view/",
@@ -696,6 +719,15 @@
                 </div>
             </div>
             <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+<div id="modal-animation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-animation" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h1 class="text-center">Discovering...</h1>
+            </div>
         </div>
     </div>
 </div>
