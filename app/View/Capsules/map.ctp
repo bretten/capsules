@@ -216,6 +216,10 @@
     geoloc.onPositionUpdate = function(position) {
         var coordinates = position.coords;
         geoloc.coordinates = position.coords;
+        
+        // If a position update occurs, Discovery mode is on
+        $('#toggle_discovery_mode').prop('checked', true);
+        mapView.discoveryModeOn = true;
 
         // Update the user's location circle
         if (!gmap.locationCircle.getVisible()) {
@@ -393,7 +397,15 @@
             mapView.discoveryModeOn = $(this).prop('checked');
             if (mapView.discoveryModeOn == true) {
                 if (navigator.geolocation) {
+                    // Enable location watching and store the watchID
                     geoloc.watchId = navigator.geolocation.watchPosition(geoloc.onPositionUpdate, geoloc.onError, geoloc.options);
+                    // If the user has not chosen to have their position watched, turn off Discovery mode
+                    setTimeout(function() {
+                        if (typeof geoloc.coordinates === 'undefined' || geoloc.coordinates == null) {
+                            $('#toggle_discovery_mode').prop('checked', false);
+                            mapView.discoveryModeOn = false;
+                        }
+                    }, 10000);
                 } else {
                     alert('Geolocation not supported by the browser');
                 }
@@ -404,6 +416,8 @@
                 gmap.locationCircle.setVisible(false);
                 // Remove all existing Markers
                 mapView.removeMarkers(mapView.CAPSULE_UNDISCOVERED, mapView.undiscoveredMarkers);
+                // Clear out the stored coordinates
+                geoloc.coordinates = null;
             }
         });
 
