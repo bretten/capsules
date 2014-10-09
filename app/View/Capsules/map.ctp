@@ -317,6 +317,65 @@
         });
     }
 
+    /**
+     * Creates a custom control
+     */
+    gmap.createControl = function(map, position, attr, content, event, callback) {
+        // Create the container
+        var container = document.createElement('div');
+        $(container).attr({
+            'class': 'gmnoprint'
+        });
+        $(container).css({
+            'margin': '5px',
+            'z-index': '0',
+            'position': 'absolute',
+            'cursor': 'pointer',
+            'right': '0px',
+            'top': '0px'
+        });
+
+        // Create the outer element
+        var outer = document.createElement('div');
+        outer.className = 'gm-style-mtc';
+        $(outer).attr(attr);
+        $(outer).css({
+            'float': 'left'
+        });
+        container.appendChild(outer);
+
+        // Create the inner element
+        var inner = document.createElement('div');
+        $(inner).attr({
+            'draggable': 'false'
+        });
+        $(inner).css({
+            'direction': 'ltr',
+            'overflow': 'hidden',
+            'text-align': 'center',
+            'position': 'relative',
+            'color': 'rgb(86, 86, 86)',
+            'font-family': 'Roboto, Arial, sans-serif',
+            '-moz-user-select': 'none',
+            'font-size': '11px',
+            'background-color': 'rgb(255, 255, 255)',
+            'padding': '1px 6px',
+            'border-bottom-left-radius': '2px',
+            'border-top-left-radius': '2px',
+            'background-clip': 'padding-box',
+            'border': '1px solid rgba(0, 0, 0, 0.15)',
+            'box-shadow': '0px 1px 4px -1px rgba(0, 0, 0, 0.3)',
+            'min-width': '22px'
+        });
+        inner.innerHTML = content;
+        outer.appendChild(inner);
+
+        google.maps.event.addDomListener(outer, event, callback);
+
+        container.index = 1;
+        map.controls[position].push(container);
+    }
+
     // Load the Map
     $(document).ready(function() {
         // Initialize the map
@@ -366,6 +425,31 @@
             visible: false,
             radius: <?php echo Configure::read('Capsule.Search.Radius'); ?> * 1609.34 // meters
         });
+        // Create the custom control for centering on the user location
+        gmap.createControl(
+            gmap.map,
+            google.maps.ControlPosition.TOP_RIGHT, 
+            {
+                'id': 'gmap-cntrl-location',
+                'title': 'Go to My Location',
+                'data-toggle': 'popover',
+                'data-trigger': 'manual',
+                'data-content': 'To center the map on your location, "Discovery mode" must be enabled.',
+                'data-placement': 'bottom'
+            },
+            '<span class="glyphicon glyphicon-flag"></span>',
+            'click',
+            function() {
+                if (mapView.discoveryModeOn == true) {
+                    gmap.map.setCenter(new google.maps.LatLng(geoloc.coordinates.latitude, geoloc.coordinates.longitude));
+                } else {
+                    $('#gmap-cntrl-location').popover('show');
+                    setTimeout(function(){
+                        $('#gmap-cntrl-location').popover('hide');
+                    }, 5000);
+                }
+            }
+        );
     });
 </script>
 <script type="text/javascript">
@@ -418,13 +502,6 @@
                 mapView.removeMarkers(mapView.CAPSULE_UNDISCOVERED, mapView.undiscoveredMarkers);
                 // Clear out the stored coordinates
                 geoloc.coordinates = null;
-            }
-        });
-
-        // Listener for centering on the user's location
-        $('#center-my-location').click(function(e) {
-            if (mapView.discoveryModeOn == true) {
-                gmap.map.setCenter(new google.maps.LatLng(geoloc.coordinates.latitude, geoloc.coordinates.longitude));
             }
         });
     });
@@ -748,7 +825,7 @@
 <div id="map-controls">
     <div><input type="checkbox" id="toggle_owned" checked="true" />My Capsules</div>
     <div><input type="checkbox" id="toggle_discovered" checked="true" />My Discoveries</div>
-    <div><input type="checkbox" id="toggle_discovery_mode" />Discovery Mode <button type="button" id="center-my-location">Center on My Location</button></div>
+    <div><input type="checkbox" id="toggle_discovery_mode" />Discovery Mode</div>
     <div><button type="button" id="capsule_list" data-toggle="modal" data-target="#modal-capsule-list">Capsules</button></div>
 </div>
 <div id="map"></div>
