@@ -10,6 +10,26 @@ App::uses('AppModel', 'Model');
 class Capsule extends AppModel {
 
 /**
+ * Database function for calculating the number of Discovery favorites on a Capsule
+ *
+ * @const string
+ */
+    const FIELD_FAVORITE_COUNT = 'sum(if(DiscoveryStat.favorite >= 1, 1, 0))';
+
+/**
+ * Database function for calculating the total Discovery rating on a Capsule
+ *
+ * @const string
+ */
+    const FIELD_RATING = 'sum(
+        CASE
+            WHEN DiscoveryStat.rating >= 1 THEN 1
+            WHEN DiscoveryStat.rating <= -1 THEN -1
+            ELSE 0
+        END
+    )';
+
+/**
  * Display field
  *
  * @var string

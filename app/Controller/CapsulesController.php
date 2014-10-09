@@ -35,10 +35,25 @@ class CapsulesController extends AppController {
         $this->layout = 'ajax';
 
         $this->Capsule->recursive = 0;
+        // Add the virtual fields for favorite count and total rating
+        $this->Capsule->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
+        $this->Capsule->virtualFields['total_rating'] = Capsule::FIELD_RATING;
+        // Build the query options
         $query = array(
             'conditions' => array(
                 'Capsule.user_id' => $this->Auth->user('id')
-            )
+            ),
+            'joins' => array(
+                array(
+                    'table' => 'discoveries',
+                    'alias' => 'DiscoveryStat',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.id = DiscoveryStat.capsule_id',
+                    )
+                )
+            ),
+            'group' => array('Capsule.id')
         );
         // Search refinement
         $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";

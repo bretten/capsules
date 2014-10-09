@@ -34,11 +34,35 @@ class DiscoveriesController extends AppController {
 
         $this->layout = 'ajax';
 
-        $this->Discovery->recursive = 0;
+        $this->Discovery->Capsule->recursive = 0;
+        // Add the virtual fields for favorite count and total rating
+        $this->Discovery->Capsule->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
+        $this->Discovery->Capsule->virtualFields['total_rating'] = Capsule::FIELD_RATING;
+        // Build the query options
         $query = array(
-            'conditions' => array(
-                'Discovery.user_id' => $this->Auth->user('id')
-            )
+            'fields' => array(
+                'Capsule.*', 'Discovery.*'
+            ),
+            'joins' => array(
+                array(
+                    'table' => 'discoveries',
+                    'alias' => 'Discovery',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.id = Discovery.capsule_id',
+                        'Discovery.user_id' => $this->Auth->user('id')
+                    )
+                ),
+                array(
+                    'table' => 'discoveries',
+                    'alias' => 'DiscoveryStat',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'Discovery.capsule_id = DiscoveryStat.capsule_id'
+                    )
+                )
+            ),
+            'group' => array('Capsule.id')
         );
         // Search refinement
         $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
@@ -62,7 +86,7 @@ class DiscoveriesController extends AppController {
             }
         }
         $this->Paginator->settings = $query;
-        $this->set('discoveries', $this->Paginator->paginate());
+        $this->set('discoveries', $this->Paginator->paginate('Capsule'));
         $this->set(compact('search', 'filter'));
     }
 
