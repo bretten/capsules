@@ -77,16 +77,16 @@
         });
 
         $('#<?php echo $id['search']; ?>').on('keypress', function(e) {
-            if (e.keyCode === 13) {
+            if (e.keyCode === 13 || e.keyCode === 9) {
                 searcher.search = encodeURIComponent($(this).val());
                 searcher.fetch(searcher.buildUri());
             }
         });
 
         $('#<?php echo $id['search-icon']; ?>').on('click', function(e) {
-            var val = $('#search').val();
+            var val = $('#<?php echo $id['search']; ?>').val();
             if (typeof val !== 'undefined') {
-                searcher.search = encodeURIComponent($('#search').val());
+                searcher.search = encodeURIComponent(val);
             }
             searcher.fetch(searcher.buildUri());
         });
@@ -107,8 +107,10 @@
         <div class="form-group">
             <div class="input-group">
                 <input type="text" id="<?php echo $id['search']; ?>" class="form-control" name="data[search]" value="<?php echo (isset($search) && $search) ? $search : "";?>" placeholder="Search" />
-                <span id="<?php echo $id['search-icon']; ?>" class="input-group-addon">
-                    <i class="glyphicon glyphicon-search"></i>
+                <span id="<?php echo $id['search-icon']; ?>" class="input-group-btn">
+                    <button type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </button>
                 </span>
             </div>
         </div>
