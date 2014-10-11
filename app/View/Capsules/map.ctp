@@ -305,11 +305,13 @@
         google.maps.event.addListener(marker, 'click', function() {
             // Set the content
             gmap.markerInfoWindow.setContent(
-                '<h3>' + capsule.name + '</h3>'
-                + '<div>'
-                    + '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '" data-undiscovered="' + isUndiscovered + '">'
-                        + (isUndiscovered ? 'Discover' : 'Open')
-                    + '</button>'
+                '<div class="map-info-window-container">'
+                    + '<h3>' + capsule.name + '</h3>'
+                    + '<div class="text-center">'
+                        + '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '" data-undiscovered="' + isUndiscovered + '">'
+                            + (isUndiscovered ? 'Discover' : 'Open')
+                        + '</button>'
+                    + '</div>'
                 + '</div>'
             );
             // Open the info window
@@ -408,12 +410,14 @@
         google.maps.event.addListener(mapView.newCapsuleMarker, 'click', function() {
             // Set the content
             gmap.markerInfoWindow.setContent(
-                '<h3>New Capsule </h3>'
-                + '<h4>You can drag this to finalize your position.  When you are ready, bury it.</h4>'
-                + '<div>'
-                    + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor">'
-                        + "Bury Here"
-                    + '</button>'
+                '<div class="map-info-window-container">'
+                    + '<h3>New Capsule</h3>'
+                    + '<h4>You can drag this to finalize your position.  When you are ready, bury it.</h4>'
+                    + '<div class="text-center">'
+                        + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor">'
+                            + "Bury Here"
+                        + '</button>'
+                    + '</div>'
                 + '</div>'
             );
             // Open the info window

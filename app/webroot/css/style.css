@@ -36,6 +36,12 @@ body
     width: 100%;
 }
 
+.map-info-window-container
+{
+    min-height: 75px;
+    min-width: 350px;
+}
+
 /* Controls */
 
 #map-controls
