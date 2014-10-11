@@ -825,15 +825,15 @@
 <div id="map-controls">
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-success">
-            <input type="checkbox" id="toggle_discovery_mode"> Discovery Mode
+            <input type="checkbox" id="toggle_discovery_mode" autocomplete="off"> Discovery Mode
         </label>
     </div>
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-default active">
-            <input type="checkbox" id="toggle_owned" checked> My Capsules
+            <input type="checkbox" id="toggle_owned" autocomplete="off" checked> My Capsules
         </label>
         <label class="btn btn-default active">
-            <input type="checkbox" id="toggle_discovered" checked> My Discoveries
+            <input type="checkbox" id="toggle_discovered" autocomplete="off" checked> My Discoveries
         </label>
     </div>
     <div class="btn-group">
