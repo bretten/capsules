@@ -376,6 +376,19 @@
         map.controls[position].push(container);
     }
 
+    /**
+     * Adds a double-click listener to the object passed in for handling the new Capsule Marker
+     */
+    gmap.markerDropListener = function(instance, marker) {
+        google.maps.event.addListener(instance, 'dblclick', function(e) {
+            marker.setPosition(e.latLng);
+            marker.setAnimation(google.maps.Animation.DROP);
+            if (!marker.getMap()) {
+                marker.setMap(gmap.map);
+            }
+        });
+    }
+
     // Load the Map
     $(document).ready(function() {
         // Initialize the map
@@ -390,14 +403,6 @@
                 mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle_owned').prop('checked'));
                 mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle_discovered').prop('checked'));
             });
-        });
-        // Listener for double clicks
-        google.maps.event.addListener(gmap.map, 'dblclick', function(e) {
-            mapView.newCapsuleMarker.setPosition(e.latLng);
-            mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
-            if (!mapView.newCapsuleMarker.getMap()) {
-                mapView.newCapsuleMarker.setMap(gmap.map);
-            }
         });
         // Listener for the new Capsule Marker click event
         google.maps.event.addListener(mapView.newCapsuleMarker, 'click', function() {
@@ -425,6 +430,9 @@
             visible: false,
             radius: <?php echo Configure::read('Capsule.Search.Radius'); ?> * 1609.34 // meters
         });
+        // Create the listeners to handle dropping the new Capsule Marker
+        gmap.markerDropListener(gmap.map, mapView.newCapsuleMarker);
+        gmap.markerDropListener(gmap.locationCircle, mapView.newCapsuleMarker);
         // Create the custom control for centering on the user location
         gmap.createControl(
             gmap.map,
@@ -668,7 +676,7 @@
                 "data[id]": id
             }
             // Determine if a location will be submitted in the request
-            if (typeof geoloc.coordinates !== 'undefined' && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
+            if (typeof geoloc.coordinates !== 'undefined' && geoloc.coordinates != null && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
                 requestData["data[lat]"] = geoloc.coordinates.latitude;
                 requestData["data[lng]"] = geoloc.coordinates.longitude;
             }
