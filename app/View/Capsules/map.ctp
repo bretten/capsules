@@ -823,9 +823,23 @@
     </div>
 </div>
 <div id="map-controls">
-    <div><input type="checkbox" id="toggle_owned" checked="true" />My Capsules</div>
-    <div><input type="checkbox" id="toggle_discovered" checked="true" />My Discoveries</div>
-    <div><input type="checkbox" id="toggle_discovery_mode" />Discovery Mode</div>
-    <div><button type="button" id="capsule_list" data-toggle="modal" data-target="#modal-capsule-list">Capsules</button></div>
+    <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-success">
+            <input type="checkbox" id="toggle_discovery_mode"> Discovery Mode
+        </label>
+    </div>
+    <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-default active">
+            <input type="checkbox" id="toggle_owned" checked> My Capsules
+        </label>
+        <label class="btn btn-default active">
+            <input type="checkbox" id="toggle_discovered" checked> My Discoveries
+        </label>
+    </div>
+    <div class="btn-group">
+        <button type="button" id="capsule_list" class="btn btn-info" data-toggle="modal" data-target="#modal-capsule-list">
+            <span class="glyphicon glyphicon-list"></span> Capsules
+        </button>
+    </div>
 </div>
 <div id="map"></div>

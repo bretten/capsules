@@ -36,6 +36,13 @@ body
     width: 100%;
 }
 
+/* Controls */
+
+#map-controls
+{
+    padding-bottom: 10px;
+}
+
 /* AJAX Loading Notification */
 
 .modal-loader
