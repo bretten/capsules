@@ -306,7 +306,7 @@
             // Set the content
             gmap.markerInfoWindow.setContent(
                 '<div class="map-info-window-container">'
-                    + '<h3>' + capsule.name + '</h3>'
+                    + '<h3 class="text-format-overflow">' + capsule.name + '</h3>'
                     + '<div class="text-center">'
                         + '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-info" data-id="' + capsule.id + '" data-undiscovered="' + isUndiscovered + '">'
                             + (isUndiscovered ? 'Discover' : 'Open')

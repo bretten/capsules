@@ -24,6 +24,30 @@ body
     width: 100%;
 }
 
+/* Tables */
+
+.table-overflow
+{
+    table-layout: fixed;
+}
+
+.table-overflow td
+{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
+/* Text Formatting */
+
+.text-format-overflow
+{
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
 /**
  * Map
  */

@@ -23,7 +23,7 @@
             )
         ));
     ?>
-    <table class="table table-striped">
+    <table class="table table-striped table-overflow">
     <tr>
             <th><?php echo $this->Paginator->sort('name'); ?></th>
             <th><?php echo $this->Paginator->sort('favorite_count'); ?></th>

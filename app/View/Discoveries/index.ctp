@@ -30,7 +30,7 @@
             )
         ));
     ?>
-    <table class="table table-striped">
+    <table class="table table-striped table-overflow">
     <tr>
             <th><?php echo $this->Paginator->sort('Capsule.name', 'Name'); ?></th>
             <th><?php echo $this->Paginator->sort('favorite_count'); ?></th>
