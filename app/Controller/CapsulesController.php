@@ -269,22 +269,24 @@ class CapsulesController extends AppController {
 /**
  * delete method
  *
- * @throws NotFoundException
  * @param string $id
- * @return void
  */
     public function delete($id = null) {
+        // Do not render a view
+        $this->autoRender = false;
+        $this->layout = false;
+
         $this->Capsule->id = $id;
-        if (!$this->Capsule->exists()) {
-            throw new NotFoundException(__('Invalid capsule'));
-        }
-        $this->request->allowMethod('post', 'delete');
-        if ($this->Capsule->delete()) {
-            $this->Session->setFlash(__('The capsule has been deleted.'));
+        if (!$this->Capsule->exists() || !$this->Capsule->ownedBy($this->Auth->user('id'))) {
+            $this->response->statusCode(404);
         } else {
-            $this->Session->setFlash(__('The capsule could not be deleted. Please, try again.'));
+            $this->request->allowMethod('post', 'delete');
+            if ($this->Capsule->delete()) {
+                $this->response->statusCode(204);
+            } else {
+                $this->response->statusCode(500);
+            }
         }
-        return $this->redirect(array('action' => 'index'));
     }
 
 /**

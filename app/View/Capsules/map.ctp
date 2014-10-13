@@ -414,7 +414,7 @@
                     + '<h3>New Capsule</h3>'
                     + '<h4>You can drag this to finalize your position.  When you are ready, bury it.</h4>'
                     + '<div class="text-center">'
-                        + '<button type="button" id="capsule_list" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor">'
+                        + '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor">'
                             + "Bury Here"
                         + '</button>'
                     + '</div>'
@@ -515,6 +515,44 @@
                 // Clear out the stored coordinates
                 geoloc.coordinates = null;
             }
+        });
+
+        // Handler for confirming a Capsule deletion
+        $('#modal-capsule-info').on('click', '#capsule-delete-confirm-btn', function(e) {
+            var container = $(this).closest('.modal');
+            var id = $(this).data('id');
+            
+            if (id) {
+                // Hide the popover
+                $('#capsule-delete-btn').popover('hide');
+
+                // Send a request to delete
+                $.ajax({
+                    type: 'POST',
+                    url: "/capsules/delete/" + id,
+                    beforeSend: function(jqXHR, settings) {
+                        container.find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                    },
+                    complete: function(jqXHR, textStatus) {
+                        container.find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                    },
+                    success: function(data, textStatus, jqXHR) {
+                        // Remove the deleted Marker
+                        mapView.removeMarker(id, mapView.ownedMarkers);
+                        // Close the modal
+                        $('#modal-capsule-info').modal('hide');
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        // Close the modal
+                        $('#modal-capsule-info').modal('hide');
+                    }
+                });
+            }
+        });
+
+        // Handler for canceling a Capsule deletion
+        $('#modal-capsule-info').on('click', '#capsule-delete-cancel-btn', function(e) {
+            $('#capsule-delete-btn').popover('hide');
         });
     });
 

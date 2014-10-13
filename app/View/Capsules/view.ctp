@@ -6,6 +6,40 @@
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor" data-id="<?php echo $capsule['Capsule']['id']; ?>">
         Edit
     </button>
+    <script type="text/javascript">
+        $('#capsule-delete-btn').popover({
+            content: $('<div/>', {
+                        class: 'row'
+                    }).append(
+                        $('<div/>', {
+                            class: 'col-sm-6 text-center'
+                        }).append(
+                            $('<button/>', {
+                                id: 'capsule-delete-confirm-btn',
+                                class: 'btn btn-danger',
+                                text: 'Yes',
+                                'data-id': '<?php echo $capsule['Capsule']['id']; ?>'
+                            })
+                        )
+                    ).append(
+                        $('<div/>', {
+                            class: 'col-sm-6 text-center'
+                        }).append(
+                            $('<button/>', {
+                                id: 'capsule-delete-cancel-btn',
+                                class: 'btn btn-default',
+                                text: 'No'
+                            })
+                        )
+                    ),
+            html: true,
+            placement: 'top',
+            title: "Are you sure you want to delete this?"
+        });
+    </script>
+    <button type="button" id="capsule-delete-btn" class="btn btn-danger">
+        Delete
+    </button>
     <?php endif; ?>
 
     <?php if ($discovery) : ?>
