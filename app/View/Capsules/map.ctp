@@ -165,9 +165,9 @@
     }
 
     /**
-     * Gets the Capsule list
+     * Renders the Capsule list
      */
-    mapView.updateCapsuleList = function(href) {
+    mapView.renderCapsuleList = function(href) {
         var container;
         var uri;
         if (href === "#tab-pane-discoveries") {
@@ -191,6 +191,160 @@
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 container.html("The list could not be retrieved");
+            }
+        });
+    }
+
+    /**
+     * Renders the Capsule info
+     */
+    mapView.renderCapsuleInfo = function(container, id) {
+        // Build the request data
+        var requestData = {
+            "data[id]": id
+        }
+        // Determine if a location will be submitted in the request
+        if (typeof geoloc.coordinates !== 'undefined' && geoloc.coordinates != null && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
+            requestData["data[lat]"] = geoloc.coordinates.latitude;
+            requestData["data[lng]"] = geoloc.coordinates.longitude;
+        }
+        // Send the request
+        $.ajax({
+            type: 'POST',
+            url: "/capsules/view/",
+            data: requestData,
+            dataType: 'json',
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
+            success: function(data, textStatus, jqXHR) {
+                // Render the view
+                if (data.hasOwnProperty('view')) {
+                    container.html(data.view);
+                }
+                // Remove the Capsule from the undiscovered collection
+                if (data.hasOwnProperty('newDiscovery')) {
+                    // Remove the old Marker
+                    if (mapView.undiscoveredMarkers.hasOwnProperty(data.newDiscovery.id)) {
+                        mapView.removeMarker(data.newDiscovery.id, mapView.undiscoveredMarkers);
+                    }
+
+                    // Create the replacement Marker
+                    var marker = new google.maps.Marker({
+                        position: new google.maps.LatLng(data.newDiscovery.lat, data.newDiscovery.lng),
+                        title: data.newDiscovery.name,
+                        icon: mapView.ICON_CAPSULE_DISCOVERY,
+                        visible: $('#toggle-discovered').prop('checked'),
+                        capsuleId: data.newDiscovery.id
+                    });
+                    // Add the Marker to the Map
+                    marker.setMap(gmap.map);
+                    // Add the Marker to the collection of Markers
+                    mapView.discoveredMarkers[data.newDiscovery.id] = marker;
+                    // Add the event click listener
+                    gmap.setupMarkerInfoWindow(marker, data.newDiscovery, false /* isUndiscovered */);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                container.html("The data could not be retrieved");
+            }
+        });
+    }
+
+    /**
+     * Renders the Capsule editor
+     */
+    mapView.renderCapsuleEditor = function(container, id) {
+        // Determine the URI
+        var uri = "/capsules/edit/";
+        if (typeof id !== 'undefined') {
+            uri = uri + id;
+        }
+
+        // Fetch the view
+        $.ajax({
+            type: 'GET',
+            url: uri,
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
+            success: function(data, textStatus, jqXHR) {
+                // Render content
+                container.html(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                container.html("The data could not be retrieved");
+            }
+        });
+    }
+
+    /**
+     * Submits a request for editing a Capsule
+     */
+    mapView.submitCapsuleFormRequest = function(container, form) {
+        // Submit the form
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            dataType: 'json',
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
+            success: function(data, textStatus, jqXHR) {
+                // Render the view
+                if (data.hasOwnProperty('capsule')) {
+                    // Check if the Capsule is new
+                    var marker;
+                    if (data.capsule.hasOwnProperty('isNew') && data.capsule.isNew == true) {
+                        // Create the Marker
+                        marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(data.capsule.lat, data.capsule.lng),
+                            title: data.capsule.name,
+                            icon: mapView.ICON_CAPSULE_OWNERSHIP,
+                            visible: $('#toggle-owned').prop('checked'),
+                            capsuleId: data.capsule.id
+                        });
+                        // Add the Marker to the Map
+                        marker.setMap(gmap.map);
+                        // Add the Marker to the collection of Markers
+                        mapView.ownedMarkers[data.capsule.id] = marker;
+                        // Remove the new Capsule Marker
+                        mapView.newCapsuleMarker.setMap(null);
+                        mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
+                    } else {
+                        // Get the Marker that has already been created
+                        marker = mapView.ownedMarkers[data.capsule.id];
+                        // Update the Marker data with the data from the server
+                        marker.setTitle(data.capsule.name);
+                        // Remove the listener
+                        google.maps.event.clearListeners(marker, 'click');
+                    }
+
+                    if (typeof marker !== 'undefined') {
+                        // Add the Marker InfoWindow event listener
+                        gmap.setupMarkerInfoWindow(marker, data.capsule, false /* isUndiscovered */);
+                        google.maps.event.trigger(mapView.ownedMarkers[data.capsule.id], 'click');
+                    }
+
+                    // Open the previous modal
+                    $('#modal-capsule-info').data('id', data.capsule.id);
+                    $('#modal-capsule-info').modal('show');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                if (jqXHR.hasOwnProperty('responseText')) {
+                    container.html(jqXHR.responseText);
+                }
             }
         });
     }
@@ -218,7 +372,7 @@
         geoloc.coordinates = position.coords;
         
         // If a position update occurs, Discovery mode is on
-        $('#toggle_discovery_mode').prop('checked', true);
+        $('#toggle-discovery-mode').prop('checked', true);
         mapView.discoveryModeOn = true;
 
         // Update the user's location circle
@@ -402,8 +556,8 @@
             var latLngSW = bounds.getSouthWest();
             mapView.getMarkers(latLngNE.lat(), latLngNE.lng(), latLngSW.lat(), latLngSW.lng(), function(capsules, discoveries) {
                 // Populate the Map with Markers
-                mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle_owned').prop('checked'));
-                mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle_discovered').prop('checked'));
+                mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle-owned').prop('checked'));
+                mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle-discovered').prop('checked'));
             });
         });
         // Listener for the new Capsule Marker click event
@@ -467,12 +621,12 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // Disable Discovery Mode by default
-        $('#toggle_discovery_mode').prop('checked', false);
+        $('#toggle-discovery-mode').prop('checked', false);
 
         // Listener for toggling owned Capsules
-        $('#toggle_owned, #toggle_discovered').change(function(e) {
+        $('#toggle-owned, #toggle-discovered').change(function(e) {
             var markers;
-            if ($(this).attr('id') === "toggle_owned") {
+            if ($(this).attr('id') === "toggle-owned") {
                 markers = mapView.ownedMarkers;
             } else {
                 markers = mapView.discoveredMarkers;
@@ -489,7 +643,7 @@
         });
 
         // Listener for toggling Discovery Mode
-        $('#toggle_discovery_mode').change(function(e) {
+        $('#toggle-discovery-mode').change(function(e) {
             mapView.discoveryModeOn = $(this).prop('checked');
             if (mapView.discoveryModeOn == true) {
                 if (navigator.geolocation) {
@@ -498,7 +652,7 @@
                     // If the user has not chosen to have their position watched, turn off Discovery mode
                     setTimeout(function() {
                         if (typeof geoloc.coordinates === 'undefined' || geoloc.coordinates == null) {
-                            $('#toggle_discovery_mode').prop('checked', false);
+                            $('#toggle-discovery-mode').prop('checked', false);
                             mapView.discoveryModeOn = false;
                         }
                     }, 10000);
@@ -554,110 +708,53 @@
         $('#modal-capsule-info').on('click', '#capsule-delete-cancel-btn', function(e) {
             $('#capsule-delete-btn').popover('hide');
         });
-    });
 
-    // Listener for going to a point on the map
-    $(document).on('click', '.anchor-map-goto', function(e) {
-        $('#modal-capsule-list').modal('hide');
-        var id = $(this).attr('data-id');
-        var lat = $(this).attr('data-lat');
-        var lng = $(this).attr('data-lng');
-        gmap.map.setCenter(new google.maps.LatLng(lat, lng));
-        gmap.map.setZoom(gmap.singleFocusZoom);
-        // Show the Marker InfoWindow
-        if (mapView.ownedMarkers.hasOwnProperty(id)) {
-            google.maps.event.trigger(mapView.ownedMarkers[id], 'click');
-        } else if (mapView.discoveredMarkers.hasOwnProperty(id)) {
-            google.maps.event.trigger(mapView.discoveredMarkers[id], 'click');
-        }
-    });
-
-    // Listener for the Capsule editor form submission
-    $(document).on('submit', '#CapsuleAddForm', function(e) {
-        e.preventDefault();
-        // Reference to the form
-        var form = $(this);
-
-        // Reference to the container
-        var container = $(this).parents('.modal-body');
-
-        // Get the LatLng
-        var latLng = mapView.newCapsuleMarker.getPosition();
-        if (typeof latLng !== 'undefined') {
-            var lat = latLng.lat();
-            var lng = latLng.lng();
-
-            // Append the lat/lng inputs
-            $('<input/>', {
-                type: 'hidden',
-                name: 'data[Capsule][lat]',
-                value: lat
-            }).appendTo(form);
-            $('<input/>', {
-                type: 'hidden',
-                name: 'data[Capsule][lng]',
-                value: lng
-            }).appendTo(form);
-        }
-
-        // Submit the form
-        $.ajax({
-            type: 'POST',
-            url: form.attr('action'),
-            data: form.serialize(),
-            dataType: 'json',
-            beforeSend: function(jqXHR, settings) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
-            },
-            complete: function(jqXHR, textStatus) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
-            },
-            success: function(data, textStatus, jqXHR) {
-                // Render the view
-                if (data.hasOwnProperty('capsule')) {
-                    // Check if the Capsule is new
-                    var marker;
-                    if (data.capsule.hasOwnProperty('isNew') && data.capsule.isNew == true) {
-                        // Create the Marker
-                        marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(data.capsule.lat, data.capsule.lng),
-                            title: data.capsule.name,
-                            icon: mapView.ICON_CAPSULE_OWNERSHIP,
-                            visible: $('#toggle_owned').prop('checked'),
-                            capsuleId: data.capsule.id
-                        });
-                        // Add the Marker to the Map
-                        marker.setMap(gmap.map);
-                        // Add the Marker to the collection of Markers
-                        mapView.ownedMarkers[data.capsule.id] = marker;
-                        // Remove the new Capsule Marker
-                        mapView.newCapsuleMarker.setMap(null);
-                        mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
-                    } else {
-                        // Get the Marker that has already been created
-                        marker = mapView.ownedMarkers[data.capsule.id];
-                        // Update the Marker data with the data from the server
-                        marker.setTitle(data.capsule.name);
-                        // Remove the listener
-                        google.maps.event.clearListeners(marker, 'click');
-                    }
-
-                    if (typeof marker !== 'undefined') {
-                        // Add the Marker InfoWindow event listener
-                        gmap.setupMarkerInfoWindow(marker, data.capsule, false /* isUndiscovered */);
-                        google.maps.event.trigger(mapView.ownedMarkers[data.capsule.id], 'click');
-                    }
-
-                    // Open the previous modal
-                    $('#modal-capsule-info').data('id', data.capsule.id);
-                    $('#modal-capsule-info').modal('show');
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                if (jqXHR.hasOwnProperty('responseText')) {
-                    container.html(jqXHR.responseText);
-                }
+        // Listener for going to a point on the map
+        $('#modal-capsule-list').on('click', '.anchor-map-goto', function(e) {
+            $('#modal-capsule-list').modal('hide');
+            var id = $(this).attr('data-id');
+            var lat = $(this).attr('data-lat');
+            var lng = $(this).attr('data-lng');
+            gmap.map.setCenter(new google.maps.LatLng(lat, lng));
+            gmap.map.setZoom(gmap.singleFocusZoom);
+            // Show the Marker InfoWindow
+            if (mapView.ownedMarkers.hasOwnProperty(id)) {
+                google.maps.event.trigger(mapView.ownedMarkers[id], 'click');
+            } else if (mapView.discoveredMarkers.hasOwnProperty(id)) {
+                google.maps.event.trigger(mapView.discoveredMarkers[id], 'click');
             }
+        });
+
+        // Listener for the Capsule editor form submission
+        $('#modal-capsule-editor').on('submit', '#CapsuleAddForm', function(e) {
+            e.preventDefault();
+            // Reference to the form
+            var form = $(this);
+
+            // Reference to the container
+            var container = $(this).parents('.modal-body');
+
+            // Get the LatLng
+            var latLng = mapView.newCapsuleMarker.getPosition();
+            if (typeof latLng !== 'undefined') {
+                var lat = latLng.lat();
+                var lng = latLng.lng();
+
+                // Append the lat/lng inputs
+                $('<input/>', {
+                    type: 'hidden',
+                    name: 'data[Capsule][lat]',
+                    value: lat
+                }).appendTo(form);
+                $('<input/>', {
+                    type: 'hidden',
+                    name: 'data[Capsule][lng]',
+                    value: lng
+                }).appendTo(form);
+            }
+
+            // Submit the form request
+            mapView.submitCapsuleFormRequest(container, form);
         });
     });
 </script>
@@ -690,12 +787,12 @@
 
         // Modal Capsule list content after shown listener
         $('#modal-capsule-list').on('shown.bs.modal', function(e) {
-            mapView.updateCapsuleList($(this).find('.modal-body > .nav-tabs > li.active > a').attr('href'));
+            mapView.renderCapsuleList($(this).find('.modal-body > .nav-tabs > li.active > a').attr('href'));
         });
 
         // Lisenter for modal Capsule list tabs
         $('#modal-capsule-list a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-            mapView.updateCapsuleList($(e.target).attr('href'));
+            mapView.renderCapsuleList($(e.target).attr('href'));
         });
 
         // Handler for the content of the Capsule info modal
@@ -713,59 +810,8 @@
             if ($(this).data('undiscovered')) {
                 $(this).removeData('undiscovered');
             }
-            // Build the request data
-            var requestData = {
-                "data[id]": id
-            }
-            // Determine if a location will be submitted in the request
-            if (typeof geoloc.coordinates !== 'undefined' && geoloc.coordinates != null && typeof geoloc.coordinates.latitude !== 'undefined' && typeof geoloc.coordinates.longitude !== 'undefined') {
-                requestData["data[lat]"] = geoloc.coordinates.latitude;
-                requestData["data[lng]"] = geoloc.coordinates.longitude;
-            }
-            // Send the request
-            $.ajax({
-                type: 'POST',
-                url: "/capsules/view/",
-                data: requestData,
-                dataType: 'json',
-                beforeSend: function(jqXHR, settings) {
-                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
-                },
-                complete: function(jqXHR, textStatus) {
-                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
-                },
-                success: function(data, textStatus, jqXHR) {
-                    // Render the view
-                    if (data.hasOwnProperty('view')) {
-                        container.html(data.view);
-                    }
-                    // Remove the Capsule from the undiscovered collection
-                    if (data.hasOwnProperty('newDiscovery')) {
-                        // Remove the old Marker
-                        if (mapView.undiscoveredMarkers.hasOwnProperty(data.newDiscovery.id)) {
-                            mapView.removeMarker(data.newDiscovery.id, mapView.undiscoveredMarkers);
-                        }
-
-                        // Create the replacement Marker
-                        var marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(data.newDiscovery.lat, data.newDiscovery.lng),
-                            title: data.newDiscovery.name,
-                            icon: mapView.ICON_CAPSULE_DISCOVERY,
-                            visible: $('#toggle_discovered').prop('checked'),
-                            capsuleId: data.newDiscovery.id
-                        });
-                        // Add the Marker to the Map
-                        marker.setMap(gmap.map);
-                        // Add the Marker to the collection of Markers
-                        mapView.discoveredMarkers[data.newDiscovery.id] = marker;
-                        // Add the event click listener
-                        gmap.setupMarkerInfoWindow(marker, data.newDiscovery, false /* isUndiscovered */);
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    container.html("The data could not be retrieved");
-                }
-            });
+            // Render the Capsule info markup
+            mapView.renderCapsuleInfo(container, id);
         });
 
         // Handler for Capsule editor modal
@@ -782,30 +828,8 @@
                 id = e.relatedTarget.dataset.id;
             }
 
-            // Determine the URI
-            var uri = "/capsules/edit/";
-            if (typeof id !== 'undefined') {
-                uri = uri + id;
-            }
-
-            // Fetch the view
-            $.ajax({
-                type: 'GET',
-                url: uri,
-                beforeSend: function(jqXHR, settings) {
-                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
-                },
-                complete: function(jqXHR, textStatus) {
-                    container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
-                },
-                success: function(data, textStatus, jqXHR) {
-                    // Render content
-                    container.html(data);
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    container.html("The data could not be retrieved");
-                }
-            });
+            // Render the Capsule editor markup
+            mapView.renderCapsuleEditor(container, id);
         });
     });
 </script>
@@ -875,15 +899,15 @@
 <div id="map-controls">
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-success">
-            <input type="checkbox" id="toggle_discovery_mode" autocomplete="off"> Discovery Mode
+            <input type="checkbox" id="toggle-discovery-mode" autocomplete="off"> Discovery Mode
         </label>
     </div>
     <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-default active">
-            <input type="checkbox" id="toggle_owned" autocomplete="off" checked> My Capsules
+            <input type="checkbox" id="toggle-owned" autocomplete="off" checked> My Capsules
         </label>
         <label class="btn btn-default active">
-            <input type="checkbox" id="toggle_discovered" autocomplete="off" checked> My Discoveries
+            <input type="checkbox" id="toggle-discovered" autocomplete="off" checked> My Discoveries
         </label>
     </div>
     <div class="btn-group">
