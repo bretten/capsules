@@ -101,7 +101,7 @@
         });
     });
 </script>
-<div class="searcher">
+<div class="searcher text-center">
     <form accept-charset="utf-8" id="<?php echo $id['searcher-form']; ?>" class="form-inline" role="form">
         <?php if (isset($hasSearch) && $hasSearch === true) : ?>
         <div class="form-group">

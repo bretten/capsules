@@ -92,6 +92,15 @@ div.discovery-rater-container div
 }
 
 /**
+ * View Elements
+ */
+
+div.searcher
+{
+    margin: 10px auto;
+}
+
+/**
  * Bootstrap
  */
 

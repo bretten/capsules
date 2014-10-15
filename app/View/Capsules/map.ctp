@@ -853,7 +853,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="modal-label-capsule-list">Capsules</h4>
+                <h4 class="modal-title" id="modal-label-capsule-list">My Collection</h4>
                 <div class="modal-loader">
                     <div class="text-center">
                         <span class="glyphicon glyphicon-repeat"></span> Loading...
@@ -916,7 +916,7 @@
     </div>
     <div class="btn-group">
         <button type="button" id="capsule_list" class="btn btn-info" data-toggle="modal" data-target="#modal-capsule-list">
-            <span class="glyphicon glyphicon-list"></span> Capsules
+            <span class="glyphicon glyphicon-list"></span> My Collection
         </button>
     </div>
 </div>
