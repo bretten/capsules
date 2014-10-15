@@ -1,19 +1,39 @@
-<div class="users form">
-    <?php echo $this->Form->create('User'); ?>
-    <fieldset>
-        <legend><?php echo AuthComponent::user('username'); ?></legend>
+<div class="col-sm-12">
+    <h2><?php echo AuthComponent::user('username'); ?></h2>
+    <?php echo $this->Form->create('User', array('role' => 'form')); ?>
         <?php
-        echo $this->Form->input('email');
+        echo $this->Form->input('email', array('div' => 'form-group', 'class' => 'form-control'));
         echo $this->element('change_password', array(
             'toggle_input' => 'change_password',
-            'toggle_input_options' => array('type' => 'checkbox', 'format' => array('before', 'label', 'between', 'input', 'after', 'error')),
-            'container' => array('id' => 'change_password'),
+            'toggle_input_options' => array(
+                'type' => 'checkbox',
+                'div' => 'form-group',
+                'class' => 'checkbox',
+                'autocomplete' => 'off',
+                'format' => array('before', 'label', 'between', 'input', 'after', 'error')
+            ),
+            'container' => array(
+                'id' => 'change_password',
+                'class' => 'well well-lg'
+            ),
             'input' => 'password',
-            'input_options' => array('value' => '', 'disabled' => 'disabled'),
+            'input_options' => array(
+                'value' => '',
+                'disabled' => 'disabled',
+                'div' => 'form-group',
+                'class' => 'form-control'
+            ),
             'confirm_input' => 'confirm_password',
-            'confirm_input_options' => array('type' => 'password', 'value' => '', 'disabled' => 'disabled')
+            'confirm_input_options' => array(
+                'type' => 'password',
+                'value' => '',
+                'disabled' => 'disabled',
+                'div' => 'form-group',
+                'class' => 'form-control'
+            )
         ));
         ?>
-    </fieldset>
-    <?php echo $this->Form->end(__('Submit')); ?>
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">Save</button>
+    </div>
 </div>
