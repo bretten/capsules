@@ -264,6 +264,8 @@ class CapsulesController extends AppController {
                 $this->request->data = $this->Capsule->find('first', $options);
             }
         }
+        // Pass the Capsule name
+        $this->set('capsuleName', (($id) ? $this->Capsule->field('name', array($this->Capsule->primaryKey => $id)) : ''));
         // Use the add view
         $this->render('add');
     }

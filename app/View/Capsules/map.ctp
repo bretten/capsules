@@ -215,10 +215,10 @@
             data: requestData,
             dataType: 'json',
             beforeSend: function(jqXHR, settings) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-body > .modal-loader').show();
             },
             complete: function(jqXHR, textStatus) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-body > .modal-loader').hide();
             },
             success: function(data, textStatus, jqXHR) {
                 // Render the view
@@ -269,10 +269,10 @@
             type: 'GET',
             url: uri,
             beforeSend: function(jqXHR, settings) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-body > .modal-loader').show();
             },
             complete: function(jqXHR, textStatus) {
-                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-body > .modal-loader').hide();
             },
             success: function(data, textStatus, jqXHR) {
                 // Render content
@@ -282,6 +282,19 @@
                 container.html("The data could not be retrieved");
             }
         });
+    }
+
+    /**
+     * Clears all the content in the specified container and renders the loader
+     */
+    mapView.renderLoader = function(container) {
+        // Clear the content
+        container.html('');
+        // Build the loader markup
+        var loader = $('<div/>', {
+            class: 'modal-body'
+        }).append($('<?php echo preg_replace('/\s\s+/', '', $this->element('loader')); ?>'));
+        container.append(loader);
     }
 
     /**
@@ -782,7 +795,10 @@
 
         // Clear modal content after being hidden
         $('#modal-capsule-info, #modal-capsule-editor').on('hidden.bs.modal', function(e) {
-            $(e.target).find('.modal-dialog > .modal-content > .modal-body').html('');
+            // Get the content container
+            var container = $(e.target).find('.modal-dialog > .modal-content');
+            // Render the loader
+            mapView.renderLoader(container);
         });
 
         // Modal Capsule list content after shown listener
@@ -797,7 +813,7 @@
 
         // Handler for the content of the Capsule info modal
         $('#modal-capsule-info').on('shown.bs.modal', function(e) {
-            var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
+            var container = $(this).find('.modal-dialog > .modal-content');
             // Determine the id
             var id;
             if ($(this).data('id')) {
@@ -820,7 +836,7 @@
                 return false;
             }
 
-            var container = $(this).find('.modal-dialog > .modal-content > .modal-body');
+            var container = $(this).find('.modal-dialog > .modal-content');
 
             // Check if this is a CREATE or UPDATE
             var id;
@@ -860,30 +876,18 @@
 <div id="modal-capsule-info" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-info" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="modal-label-capsule-info">Capsule Info</h4>
-                <div class="modal-loader">
-                    <div class="text-center">
-                        <span class="glyphicon glyphicon-repeat"></span> Loading...
-                    </div>
-                </div>
+            <div class="modal-body">
+                <?php echo $this->element('loader'); ?>
             </div>
-            <div class="modal-body"></div>
         </div>
     </div>
 </div>
 <div id="modal-capsule-editor" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-label-capsule-editor" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="modal-label-capsule-editor">Capsule Editor</h4>
-                <div class="modal-loader">
-                    <div class="text-center">
-                        <span class="glyphicon glyphicon-repeat"></span> Loading...
-                    </div>
-                </div>
+            <div class="modal-body">
+                <?php echo $this->element('loader'); ?>
             </div>
-            <div class="modal-body"></div>
         </div>
     </div>
 </div>

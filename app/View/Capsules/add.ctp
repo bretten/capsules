@@ -95,13 +95,17 @@
         $(this).closest('.memoir').remove();
     });
 </script>
-<div class="capsules form">
-<?php if (isset($this->request->data['Capsule']['id']) && $this->request->data['Capsule']['id']) : ?>
-    <h2><?php echo __('Editing: ' . $this->request->data['Capsule']['name']); ?></h2>
-<?php else : ?>
-    <h2><?php echo __('New Capsule'); ?></h2>
-<?php endif; ?>
-
+<div class="modal-header">
+    <h4 class="modal-title text-format-overflow" id="modal-label-capsule-editor">
+        <?php if (isset($capsuleName) && $capsuleName) : ?>
+            <?php echo $capsuleName; ?>
+        <?php else : ?>
+            <?php echo __('New Capsule'); ?>
+        <?php endif; ?>
+    </h4>
+    <?php echo $this->element('loader'); ?>
+</div>
+<div class="modal-body">
 <?php echo $this->Form->create('Capsule', array('id' => 'CapsuleAddForm')); ?>
     <fieldset>
     <?php

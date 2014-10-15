@@ -1,7 +1,9 @@
+<div class="modal-header">
+    <h4 class="modal-title text-format-overflow" id="modal-label-capsule-info"><?php echo $capsule['Capsule']['name']; ?></h4>
+    <?php echo $this->element('loader'); ?>
+</div>
+<div class="modal-body">
 <?php if ($isOwned || $discovery) : ?>
-
-    <h1><?php echo $capsule['Capsule']['name']; ?></h1>
-
     <?php if ($isOwned) : ?>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor" data-id="<?php echo $capsule['Capsule']['id']; ?>">
         Edit
@@ -68,3 +70,4 @@
     <?php endif; ?>
 
 <?php endif; ?>
+</div>
