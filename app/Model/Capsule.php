@@ -10,6 +10,13 @@ App::uses('AppModel', 'Model');
 class Capsule extends AppModel {
 
 /**
+ * Database function for calculating the number of Discoveries
+ *
+ * @const string
+ */
+    const FIELD_DISCOVERY_COUNT = 'count(DiscoveryStat.capsule_id)';
+
+/**
  * Database function for calculating the number of Discovery favorites on a Capsule
  *
  * @const string
