@@ -51,14 +51,26 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <span class="navbar-brand">Capsules</span>
+                    <a class="navbar-brand" href="<?php echo Router::url(array('controller' => 'pages', 'action' => 'display', 'home')); ?>">
+                        <span class="glyphicon glyphicon-map-marker"></span> Capsules
+                    </a>
                 </div>
 
                 <div class="collapse navbar-collapse" id="navbar-header-collapse">
                     <ul class="nav navbar-nav navbar-right">
+                        <?php if (AuthComponent::user()) : ?>
                         <li><?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
-                        <li><?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?></li>
-                        <li><?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo AuthComponent::user('username'); ?> <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?></li>
+                                <li class="divider"></li>
+                                <li><?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?></li>
+                            </ul>
+                        </li>
+                        <?php else : ?>
+                        <li><?php echo $this->Html->link(__('Login'), array('controller' => 'users', 'action' => 'login')); ?></li>
+                        <?php endif; ?>
                     </ul>
                 </div>
 
