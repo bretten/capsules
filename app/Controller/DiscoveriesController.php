@@ -36,6 +36,7 @@ class DiscoveriesController extends AppController {
 
         $this->Discovery->Capsule->recursive = 0;
         // Add the virtual fields for favorite count and total rating
+        $this->Discovery->Capsule->virtualFields['discovery_count'] = Capsule::FIELD_DISCOVERY_COUNT;
         $this->Discovery->Capsule->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
         $this->Discovery->Capsule->virtualFields['total_rating'] = Capsule::FIELD_RATING;
         // Build the query options
@@ -62,7 +63,8 @@ class DiscoveriesController extends AppController {
                     )
                 )
             ),
-            'group' => array('Capsule.id')
+            'group' => array('Capsule.id'),
+            'limit' => 7
         );
         // Search refinement
         $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";

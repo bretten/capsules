@@ -4,6 +4,9 @@
         'evalScripts' => true,
         'before' => 'mapView.paginationUri.capsules = $(this).attr("url")'
     ));
+    $favSorted = isset($this->params['named']) && isset($this->params['named']['sort']) && $this->params['named']['sort'] === 'favorite_count';
+    $discoverySorted = isset($this->params['named']) && isset($this->params['named']['sort']) && $this->params['named']['sort'] === 'discovery_count';
+    $scoreSorted = isset($this->params['named']) && isset($this->params['named']['sort']) && $this->params['named']['sort'] === 'total_rating';
 ?>
 
 <div class="capsules index">
@@ -18,36 +21,29 @@
                 '/sort:name/direction:asc' => 'A - Z',
                 '/sort:name/direction:desc' => 'Z - A',
                 '/sort:created/direction:desc' => 'Newest first',
+                '/sort:discovery_count/direction:desc' => 'Most discoveries',
                 '/sort:favorite_count/direction:desc' => 'Most favorites',
                 '/sort:total_rating/direction:desc' => 'Best rating'
             )
         ));
     ?>
-    <table class="table table-striped table-overflow">
-    <tr>
-            <th><?php echo $this->Paginator->sort('name'); ?></th>
-            <th><?php echo $this->Paginator->sort('favorite_count'); ?></th>
-            <th><?php echo $this->Paginator->sort('total_rating'); ?></th>
-            <th><?php echo $this->Paginator->sort('created'); ?></th>
-            <th class="actions"><?php echo __('Actions'); ?></th>
-    </tr>
-    <?php foreach ($capsules as $capsule): ?>
-    <tr>
-        <td>
-            <a href="#" class="anchor-map-goto" data-id="<?php echo $capsule['Capsule']['id']; ?>" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">
-                <?php echo h($capsule['Capsule']['name']); ?>
-            </a>
-        </td>
-        <td><?php echo h($capsule['Capsule']['favorite_count']); ?>&nbsp;</td>
-        <td><?php echo h($capsule['Capsule']['total_rating']); ?>&nbsp;</td>
-        <td><?php echo h($capsule['Capsule']['created']); ?>&nbsp;</td>
-        <td class="actions">
-            <?php echo $this->Html->link(__('Edit'), array('action' => 'edit', $capsule['Capsule']['id'])); ?>
-            <?php echo $this->Form->postLink(__('Delete'), array('action' => 'delete', $capsule['Capsule']['id']), array(), __('Are you sure you want to delete # %s?', $capsule['Capsule']['id'])); ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-    </table>
+    <div class="list-group">
+        <?php foreach ($capsules as $capsule) : ?>
+        <a href="#" class="list-group-item anchor-map-goto" data-id="<?php echo $capsule['Capsule']['id']; ?>" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">
+            <span class="badge<?php echo ($favSorted) ? " alert-success" : " alert-info"; ?>">
+                <span class="glyphicon glyphicon-star"></span><?php echo $capsule['Capsule']['favorite_count']; ?>
+            </span>
+            <span class="badge<?php echo ($discoverySorted) ? " alert-success" : " alert-info"; ?>">
+                <span class="glyphicon glyphicon-map-marker"></span><?php echo $capsule['Capsule']['discovery_count']; ?>
+            </span>
+            <span class="badge<?php echo ($scoreSorted) ? " alert-success" : " alert-info"; ?>">
+                <span class="glyphicon glyphicon-fire"></span><?php echo $capsule['Capsule']['total_rating']; ?>
+            </span>
+            <h4 class="list-group-item-heading text-format-overflow"><?php echo h($capsule['Capsule']['name']); ?></h4>
+            <p class="list-group-item-text"><small><?php echo date('F j, Y, g:i a', strtotime($capsule['Capsule']['created'])); ?></small></p>
+        </a>
+        <?php endforeach; ?>
+    </div>
     <?php echo $this->element('paginator_links'); ?>
 </div>
 
