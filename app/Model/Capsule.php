@@ -135,6 +135,14 @@ class Capsule extends AppModel {
             'decimal' => array(
                 'rule' => array('decimal'),
                 'message' => 'Please enter a valid latitude.'
+            ),
+            'checkLowerBounds' => array(
+                'rule' => array('comparison', '>=', -90),
+                'message' => 'Please enter a valid latitude.'
+            ),
+            'checkUpperBounds' => array(
+                'rule' => array('comparison', '<=', 90),
+                'message' => 'Please enter a valid latitude.'
             )
         ),
         'lng' => array(
@@ -145,6 +153,14 @@ class Capsule extends AppModel {
             ),
             'decimal' => array(
                 'rule' => array('decimal'),
+                'message' => 'Please enter a valid longitude.'
+            ),
+            'checkLowerBounds' => array(
+                'rule' => array('comparison', '>=', -180),
+                'message' => 'Please enter a valid longitude.'
+            ),
+            'checkUpperBounds' => array(
+                'rule' => array('comparison', '<=', 180),
                 'message' => 'Please enter a valid longitude.'
             )
         )
