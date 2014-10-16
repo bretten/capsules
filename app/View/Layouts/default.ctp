@@ -77,8 +77,9 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
             </div>
         </nav>
         <div id="content">
-
-            <?php echo $this->Session->flash(); ?>
+            <div class="container">
+                <?php echo $this->Session->flash(); ?>
+            </div>
 
             <?php echo $this->fetch('content'); ?>
         </div>

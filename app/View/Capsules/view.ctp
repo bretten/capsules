@@ -1,4 +1,5 @@
 <div class="modal-header">
+    <?php echo $this->Session->flash(); ?>
     <h4 class="modal-title text-format-overflow" id="modal-label-capsule-info"><?php echo $capsule['Capsule']['name']; ?></h4>
     <?php echo $this->element('loader'); ?>
 </div>

@@ -96,6 +96,7 @@
     });
 </script>
 <div class="modal-header">
+    <?php echo $this->Session->flash(); ?>
     <h4 class="modal-title text-format-overflow" id="modal-label-capsule-editor">
         <?php if (isset($capsuleName) && $capsuleName) : ?>
             <?php echo $capsuleName; ?>

@@ -121,12 +121,12 @@ class CapsulesController extends AppController {
                         $this->Auth->user('id')
                     )) {
                         $isNewDiscovery = true;
-                        $this->Session->setFlash(__('Congratulations!  You have discovered a new Capsule!'));
+                        $this->Session->setFlash(__('Congratulations!  You have discovered a new Capsule!'), 'notification', array('class' => 'alert-success'));
                     } else {
-                        $this->Session->setFlash(__('There was a problem opening the Capsule.  Please try again.'));
+                        $this->Session->setFlash(__('There was a problem opening the Capsule.  Please try again.'), 'notification', array('class' => 'alert-danger'));
                     }
                 } else {
-                    $this->Session->setFlash(__('Sorry, you are not within range to open this Capsule.'));
+                    $this->Session->setFlash(__('Sorry, you are not within range to open this Capsule.'), 'notification', array('class' => 'alert-danger'));
                 }
             }
         } else {
@@ -182,7 +182,7 @@ class CapsulesController extends AppController {
  * @return void
  */
     public function edit($id = null) {
-        $this->layout = 'ajax';
+        $this->layout = null;
 
         if ($id && (!$this->Capsule->exists($id) || !$this->Capsule->ownedBy($this->Auth->user('id'), $id))) {
             throw new NotFoundException(__('Invalid capsule'));
@@ -217,7 +217,7 @@ class CapsulesController extends AppController {
                 $this->autoRender = false;
 
                 // Flash message
-                $this->Session->setFlash(__('The capsule has been saved.'));
+                $this->Session->setFlash(__('The capsule has been saved.'), 'notification', array('class' => 'alert-success'));
 
                 // Determine the ID of the INSERTed/UPDATEd Capsule
                 $capsuleId;
@@ -249,7 +249,7 @@ class CapsulesController extends AppController {
                 return;
             } else {
                 $this->response->statusCode(400);
-                $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'));
+                $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'), 'notification', array('class' => 'alert-danger'));
             }
         } else {
             if ($id) {
