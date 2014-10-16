@@ -745,7 +745,7 @@
             var form = $(this);
 
             // Reference to the container
-            var container = $(this).parents('.modal-body');
+            var container = $(this).closest('.modal-content');
 
             // Get the LatLng
             var latLng = mapView.newCapsuleMarker.getPosition();
