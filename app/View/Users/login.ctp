@@ -1,11 +1,17 @@
-<div class="users form">
-    <?php echo $this->Form->create('User'); ?>
-    <fieldset>
-        <legend><?php echo __('Login'); ?></legend>
+<div class="container">
+    <h2>Login</h2>
+    <?php echo $this->Form->create('User', array('role' => 'form')); ?>
         <?php
-        echo $this->Form->input('username');
-        echo $this->Form->input('password');
+        echo $this->Form->input('username', array(
+            'class' => 'form-control',
+            'div' => 'form-group'
+        ));
+        echo $this->Form->input('password', array(
+            'class' => 'form-control',
+            'div' => 'form-group'
+        ));
         ?>
-    </fieldset>
-    <?php echo $this->Form->end(__('Login')); ?>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </div>
 </div>

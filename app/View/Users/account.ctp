@@ -1,4 +1,4 @@
-<div class="col-sm-12">
+<div class="container">
     <h2><?php echo AuthComponent::user('username'); ?></h2>
     <?php echo $this->Form->create('User', array('role' => 'form')); ?>
         <?php
