@@ -599,7 +599,7 @@
             fillOpacity: 0.4,
             map: gmap.map,
             visible: false,
-            radius: <?php echo Configure::read('Capsule.Search.Radius'); ?> * 1609.34 // meters
+            radius: <?php echo Configure::read('Capsule.Search.Radius'); ?> // meters
         });
         // Create the listeners to handle dropping the new Capsule Marker
         gmap.markerDropListener(gmap.map, mapView.newCapsuleMarker);

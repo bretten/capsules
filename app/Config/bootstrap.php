@@ -110,7 +110,10 @@ CakeLog::config('error', array(
 /**
  * Search radius
  */
-Configure::write('Capsule.Search.Radius', 1);
+Configure::write('Capsule.Search.Radius', 1609.344); // meters
+Configure::write('Spatial.Latitude.DegreeLength', 111200); // length of a degree of latitude in meters
+Configure::write('Spatial.Latitude.MinuteLength', 1853); // length of one minute of latitude in meters
+Configure::write('Spatial.BoundingBox.Scalar', 3); // Scalar used to enlarge the spatial bounding box around a POINT in a MySQL query
 
 /**
  * Search params

@@ -215,6 +215,10 @@ class Capsule extends AppModel {
 /**
  * Returns all Capsules within the specified radius around the specified latitude and longitude.
  *
+ * Capsules are filtered by excluding those outside a bounding box and then further filtered by
+ * measuring the distance to each Capsule from the User's location to determine if it is within
+ * the radius.
+ *
  * @param $lat float
  * @param $lng float
  * @param $radius float The radius to query within in miles.
@@ -222,6 +226,9 @@ class Capsule extends AppModel {
  * @return array
  */
     public function getInRadius($lat, $lng, $radius, $query = array()) {
+        $degreeLength = Configure::read('Spatial.Latitude.DegreeLength');
+        $minuteLength = Configure::read('Spatial.Latitude.MinuteLength');
+        $scalar = Configure::read('Spatial.BoundingBox.Scalar');
         $this->virtualFields['distance'] = "
         (
             (
@@ -230,11 +237,24 @@ class Capsule extends AppModel {
                     COS($lat * PI() / 180) * COS(Capsule.lat * PI() / 180) *
                     COS(($lng - Capsule.lng) * PI() / 180)
                 ) * 180 / PI()
-            ) * 60 * 1.1515
+            ) * 60 * {$minuteLength}
         )";
 
         $append = array(
             'conditions' => array(
+                "MBRContains(
+                    LineString(
+                        Point(
+                            {$lat} + ({$scalar} * {$radius}) / {$degreeLength},
+                            {$lng} + ({$scalar} * {$radius}) / ({$degreeLength} / COS(RADIANS({$lat})))
+                        ),
+                        Point(
+                            {$lat} - ({$scalar} * {$radius}) / {$degreeLength},
+                            {$lng} - ({$scalar} * {$radius}) / ({$degreeLength} / COS(RADIANS({$lat})))
+                        )
+                    ),
+                    Capsule.point
+                )",
                 'Capsule.distance <=' => $radius
             )
         );
