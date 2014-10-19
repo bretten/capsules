@@ -390,9 +390,10 @@
 
         // Update the user's location circle
         if (!gmap.locationCircle.getVisible()) {
-            gmap.locationCircle.setVisible(true);
+            gmap.setLocationCirclesVisible(true);
         }
         gmap.locationCircle.setCenter(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
+        gmap.pingCircle.setCenter(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
 
         // Get the latitude and longitude
         mapView.getUndiscoveredMarkers(coordinates.latitude, coordinates.longitude, function (capsules) {
@@ -461,6 +462,21 @@
 
     // The user's location circle
     gmap.locationCircle;
+
+    // The circle repesenting a "ping"
+    gmap.pingCircle;
+
+    // A scalar for changing the size of the ping circle
+    gmap.pingCircleScalar = 0;
+
+    // Represents how big the ping circle show grow with each interval step
+    gmap.pingCircleStepSize = (<?php echo Configure::read('Map.UserLocation.SearchRadius'); ?> / <?php echo Configure::read('Map.UserLocation.DiscoveryRadius'); ?>) * 0.1;
+
+    // The ratio of (Search circle radius):(Discovery circle radius)
+    gmap.circleRatio = <?php echo Configure::read('Map.UserLocation.SearchRadius'); ?> / <?php echo Configure::read('Map.UserLocation.DiscoveryRadius'); ?>;
+
+    // The interval ID returned from setInterval for the ping circle
+    gmap.pingIntervalID;
 
     // The zoom level for focusing on a single Capsule
     gmap.singleFocusZoom = 18;
@@ -558,6 +574,24 @@
         });
     }
 
+    /**
+     * Sets the visibility of the User location circles
+     */
+    gmap.setLocationCirclesVisible = function(visible) {
+        if (visible) {
+            gmap.pingIntervalID = window.setInterval(function () {
+                gmap.pingCircle.setRadius(<?php echo Configure::read('Map.UserLocation.DiscoveryRadius'); ?> * gmap.pingCircleScalar);
+                gmap.pingCircleScalar = (gmap.pingCircleScalar + gmap.pingCircleStepSize) % gmap.circleRatio;
+            }, 70);
+            gmap.locationCircle.setVisible(true);
+            gmap.pingCircle.setVisible(true);
+        } else {
+            gmap.locationCircle.setVisible(false);
+            gmap.pingCircle.setVisible(false);
+            window.clearInterval(gmap.pingIntervalID);
+        }
+    }
+
     // Load the Map
     $(document).ready(function() {
         // Initialize the map
@@ -593,17 +627,40 @@
         // Create the user's location Circle
         gmap.locationCircle = new google.maps.Circle({
             strokeColor: '#A4C639',
-            strokeOpacity: 0.4,
+            strokeOpacity: 0.1,
             strokeWeight: 1,
             fillColor: '#A4C639',
-            fillOpacity: 0.4,
+            fillOpacity: 0.1,
             map: gmap.map,
             visible: false,
             radius: <?php echo Configure::read('Map.UserLocation.DiscoveryRadius'); ?> // meters
         });
+        // Create the ping Circle
+        gmap.pingCircle = new google.maps.Circle({
+            strokeColor: '#A4C639',
+            strokeOpacity: 0.2,
+            strokeWeight: 5,
+            fillOpacity: 0,
+            map: gmap.map,
+            visible: false,
+            radius: <?php echo Configure::read('Map.UserLocation.SearchRadius'); ?>, // meters
+            zIndex: 2
+        });
         // Create the listeners to handle dropping the new Capsule Marker
         gmap.markerDropListener(gmap.map, mapView.newCapsuleMarker);
         gmap.markerDropListener(gmap.locationCircle, mapView.newCapsuleMarker);
+        gmap.markerDropListener(gmap.pingCircle, mapView.newCapsuleMarker);
+        // Listener for when the zoom level is changed on the Google Map
+        google.maps.event.addListener(gmap.map, 'zoom_changed', function() {
+            // Hide the ping circle if we are too close (and it is currently shown)
+            if (gmap.pingCircle.getVisible() && gmap.map.getZoom() >= gmap.singleFocusZoom) {
+                gmap.pingCircle.setVisible(false);
+            }
+            // Show the ping circle if we are zoomed out (and it should be shown)
+            if (gmap.locationCircle.getVisible() && gmap.map.getZoom() < gmap.singleFocusZoom) {
+                gmap.pingCircle.setVisible(true);
+            }
+        });
         // Create the custom control for centering on the user location
         gmap.createControl(
             gmap.map,
@@ -676,7 +733,7 @@
                 // Stop watching for the geolocation
                 navigator.geolocation.clearWatch(geoloc.watchId);
                 // Remove the user's location circle
-                gmap.locationCircle.setVisible(false);
+                gmap.setLocationCirclesVisible(false);
                 // Remove all existing Markers
                 mapView.removeMarkers(mapView.CAPSULE_UNDISCOVERED, mapView.undiscoveredMarkers);
                 // Clear out the stored coordinates
