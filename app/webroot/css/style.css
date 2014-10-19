@@ -38,6 +38,14 @@ body
     white-space: normal;
 }
 
+/* Forms */
+
+.error-message
+{
+    color: #d9534f;
+    font-weight: bold;
+}
+
 /* Text Formatting */
 
 .text-format-overflow
