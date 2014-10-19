@@ -37,6 +37,13 @@
     mapView.discoveryModeOn;
 
     /**
+     * Resizes an element to fit to the remaing height left in the window
+     */
+    mapView.fitHeight = function(element) {
+        element.height($(window).height() - element.offset().top);
+    }
+
+    /**
      * Fetches stored Marker data
      */
     mapView.getMarkers = function(latNE, lngNE, latSW, lngSW, callback) {
@@ -690,8 +697,15 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
+        // Resize the map to fill the remaining height
+        mapView.fitHeight($('#map'));
         // Disable Discovery Mode by default
         $('#toggle-discovery-mode').prop('checked', false);
+
+        // Listener for resizing the map to fill the remaining height whenever the window is resized
+        $(window).on('resize', function(e) {
+            mapView.fitHeight($('#map'));
+        });
 
         // Listener for toggling owned Capsules
         $('#toggle-owned, #toggle-discovered').change(function(e) {
