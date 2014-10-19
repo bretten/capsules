@@ -521,10 +521,10 @@
         $(container).css({
             'margin': '5px',
             'z-index': '0',
-            'position': 'absolute',
+            //'position': 'absolute',
             'cursor': 'pointer',
-            'right': '0px',
-            'top': '0px'
+            //'right': '0px',
+            //'top': '0px'
         });
 
         // Create the outer element
@@ -562,7 +562,9 @@
         inner.innerHTML = content;
         outer.appendChild(inner);
 
-        google.maps.event.addDomListener(outer, event, callback);
+        if (event && $.isFunction(callback)) {
+            google.maps.event.addDomListener(outer, event, callback);
+        }
 
         container.index = 1;
         map.controls[position].push(container);
@@ -671,7 +673,7 @@
         // Create the custom control for centering on the user location
         gmap.createControl(
             gmap.map,
-            google.maps.ControlPosition.TOP_RIGHT, 
+            google.maps.ControlPosition.TOP_RIGHT,
             {
                 'id': 'gmap-cntrl-location',
                 'title': 'Go to My Location',
@@ -693,6 +695,32 @@
                 }
             }
         );
+        // Create the Capsule toggling controls
+        gmap.createControl(
+            gmap.map,
+            google.maps.ControlPosition.BOTTOM_CENTER,
+            {},
+            '<div id="map-controls">'
+                + '<div class="btn-group" data-toggle="buttons">'
+                    + '<label class="btn btn-success btn-sm">'
+                        + '<input type="checkbox" id="toggle-discovery-mode" autocomplete="off"> Discovery Mode'
+                    + '</label>'
+                + '</div>'
+                + '<div class="btn-group" data-toggle="buttons">'
+                    + '<label class="btn btn-default btn-sm active">'
+                        + '<input type="checkbox" id="toggle-owned" autocomplete="off" checked> My Capsules'
+                    + '</label>'
+                    + '<label class="btn btn-default btn-sm active">'
+                        + '<input type="checkbox" id="toggle-discovered" autocomplete="off" checked> My Discoveries'
+                    + '</label>'
+                + '</div>'
+                + '<div class="btn-group">'
+                    + '<button type="button" id="capsule_list" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal-capsule-list">'
+                        + '<span class="glyphicon glyphicon-list"></span> My Collection'
+                    + '</button>'
+                + '</div>'
+            + '</div>'
+        );
     });
 </script>
 <script type="text/javascript">
@@ -708,7 +736,7 @@
         });
 
         // Listener for toggling owned Capsules
-        $('#toggle-owned, #toggle-discovered').change(function(e) {
+        $(document).on('change', '#toggle-owned, #toggle-discovered', function(e) {
             var markers;
             if ($(this).attr('id') === "toggle-owned") {
                 markers = mapView.ownedMarkers;
@@ -727,7 +755,7 @@
         });
 
         // Listener for toggling Discovery Mode
-        $('#toggle-discovery-mode').change(function(e) {
+        $(document).on('change', '#toggle-discovery-mode', function(e) {
             mapView.discoveryModeOn = $(this).prop('checked');
             if (mapView.discoveryModeOn == true) {
                 if (navigator.geolocation) {
@@ -969,26 +997,6 @@
                 <h1 class="text-center">Discovering...</h1>
             </div>
         </div>
-    </div>
-</div>
-<div id="map-controls">
-    <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-success">
-            <input type="checkbox" id="toggle-discovery-mode" autocomplete="off"> Discovery Mode
-        </label>
-    </div>
-    <div class="btn-group" data-toggle="buttons">
-        <label class="btn btn-default active">
-            <input type="checkbox" id="toggle-owned" autocomplete="off" checked> My Capsules
-        </label>
-        <label class="btn btn-default active">
-            <input type="checkbox" id="toggle-discovered" autocomplete="off" checked> My Discoveries
-        </label>
-    </div>
-    <div class="btn-group">
-        <button type="button" id="capsule_list" class="btn btn-info" data-toggle="modal" data-target="#modal-capsule-list">
-            <span class="glyphicon glyphicon-list"></span> My Collection
-        </button>
     </div>
 </div>
 <div id="map"></div>
