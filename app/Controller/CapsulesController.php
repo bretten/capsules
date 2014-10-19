@@ -114,7 +114,7 @@ class CapsulesController extends AppController {
                     $this->request->data['id'],
                     $this->request->data['lat'],
                     $this->request->data['lng'],
-                    Configure::read('Capsule.Search.Radius')
+                    Configure::read('Map.UserLocation.DiscoveryRadius')
                 )) {
                     if ($discovery = $this->Capsule->Discovery->saveNew(
                         $this->request->data['id'],

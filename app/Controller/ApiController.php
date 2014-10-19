@@ -214,7 +214,7 @@ class ApiController extends AppController {
                     $this->StatelessAuth->user('id'),
                     $this->request->data['lat'],
                     $this->request->data['lng'],
-                    Configure::read('Capsule.Search.Radius')
+                    Configure::read('Map.UserLocation.SearchRadius')
                 );
                 $body = Hash::map($capsules, "{n}.Capsule", function($data) {
                     return array(
@@ -268,7 +268,7 @@ class ApiController extends AppController {
                         $this->request->data['id'],
                         $this->request->data['lat'],
                         $this->request->data['lng'],
-                        Configure::read('Capsule.Search.Radius')
+                        Configure::read('Map.UserLocation.DiscoveryRadius')
                     )) {
                         if ($insert = $this->Capsule->Discovery->saveNew(
                             $this->request->data['id'],
