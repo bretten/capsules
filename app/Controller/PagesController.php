@@ -38,6 +38,16 @@ class PagesController extends AppController {
     public $uses = array();
 
 /**
+ * beforeFilter method
+ *
+ * @return void
+ */
+    public function beforeFilter() {
+        parent::beforeFilter();
+        $this->Auth->allow(array('display'));
+    }
+
+/**
  * Displays a view
  *
  * @param mixed What page to display
@@ -62,6 +72,10 @@ class PagesController extends AppController {
         }
         if (!empty($path[$count - 1])) {
             $title_for_layout = Inflector::humanize($path[$count - 1]);
+        }
+        // Determine the layout
+        if ($page == "home") {
+            $this->layout = 'splash';
         }
         $this->set(compact('page', 'subpage', 'title_for_layout'));
 

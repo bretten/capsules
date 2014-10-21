@@ -108,6 +108,11 @@ CakeLog::config('error', array(
 ));
 
 /**
+ * Site title
+ */
+Configure::write('Layout.Title', 'Capsules');
+
+/**
  * Search radius
  */
 Configure::write('Map.UserLocation.SearchRadius', 160.9344); // The radius of the cirlce around the user's location where Capsules can be seen (meters)
