@@ -661,7 +661,8 @@
         });
         // Create the user's position Marker
         gmap.userLocationMarker = new google.maps.Marker({
-            icon: mapView.ICON_USER_LOCATION
+            icon: mapView.ICON_USER_LOCATION,
+            zIndex: google.maps.Marker.MAX_ZINDEX + 1 // Make sure it is shown above the Markers
         });
         // Create the listeners to handle dropping the new Capsule Marker
         gmap.markerDropListener(gmap.map, mapView.newCapsuleMarker);
