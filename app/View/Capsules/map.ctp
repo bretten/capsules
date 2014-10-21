@@ -13,6 +13,7 @@
     mapView.ICON_CAPSULE_DISCOVERY = "https://maps.google.com/mapfiles/ms/icons/blue-dot.png";
     mapView.ICON_CAPSULE_UNDISCOVERED = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
     mapView.ICON_CAPSULE_NEW = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+    mapView.ICON_USER_LOCATION = "https://maps.google.com/mapfiles/ms/icons/purple-dot.png";
 
     // Will hold references to the Markers
     mapView.ownedMarkers = {};
@@ -397,10 +398,11 @@
 
         // Update the user's location circle
         if (!gmap.locationCircle.getVisible()) {
-            gmap.setLocationCirclesVisible(true);
+            gmap.setUserLocationVisible(true);
         }
         gmap.locationCircle.setCenter(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
         gmap.pingCircle.setCenter(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
+        gmap.userLocationMarker.setPosition(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
 
         // Get the latitude and longitude
         mapView.getUndiscoveredMarkers(coordinates.latitude, coordinates.longitude, function (capsules) {
@@ -586,7 +588,7 @@
     /**
      * Sets the visibility of the User location circles
      */
-    gmap.setLocationCirclesVisible = function(visible) {
+    gmap.setUserLocationVisible = function(visible) {
         if (visible) {
             gmap.pingIntervalID = window.setInterval(function () {
                 gmap.pingCircle.setRadius(<?php echo Configure::read('Map.UserLocation.DiscoveryRadius'); ?> * gmap.pingCircleScalar);
@@ -594,9 +596,11 @@
             }, 70);
             gmap.locationCircle.setVisible(true);
             gmap.pingCircle.setVisible(true);
+            gmap.userLocationMarker.setMap(gmap.map);
         } else {
             gmap.locationCircle.setVisible(false);
             gmap.pingCircle.setVisible(false);
+            gmap.userLocationMarker.setMap(null);
             window.clearInterval(gmap.pingIntervalID);
         }
     }
@@ -655,10 +659,15 @@
             radius: <?php echo Configure::read('Map.UserLocation.SearchRadius'); ?>, // meters
             zIndex: 2
         });
+        // Create the user's position Marker
+        gmap.userLocationMarker = new google.maps.Marker({
+            icon: mapView.ICON_USER_LOCATION
+        });
         // Create the listeners to handle dropping the new Capsule Marker
         gmap.markerDropListener(gmap.map, mapView.newCapsuleMarker);
         gmap.markerDropListener(gmap.locationCircle, mapView.newCapsuleMarker);
         gmap.markerDropListener(gmap.pingCircle, mapView.newCapsuleMarker);
+        gmap.markerDropListener(gmap.userLocationMarker, mapView.newCapsuleMarker);
         // Listener for when the zoom level is changed on the Google Map
         google.maps.event.addListener(gmap.map, 'zoom_changed', function() {
             // Hide the ping circle if we are too close (and it is currently shown)
@@ -775,7 +784,7 @@
                 // Stop watching for the geolocation
                 navigator.geolocation.clearWatch(geoloc.watchId);
                 // Remove the user's location circle
-                gmap.setLocationCirclesVisible(false);
+                gmap.setUserLocationVisible(false);
                 // Remove all existing Markers
                 mapView.removeMarkers(mapView.CAPSULE_UNDISCOVERED, mapView.undiscoveredMarkers);
                 // Clear out the stored coordinates
