@@ -289,8 +289,6 @@ class Capsule extends AppModel {
 /**
  * Returns all Discovery Capsules within the bounded rectangle
  *
- * TODO: Rework without using sub-query.
- *
  * @param float $latNE The Northeast latitude
  * @param float $lngNE The Northeast longitude
  * @param float $latSW The Southwest latitude
@@ -302,19 +300,14 @@ class Capsule extends AppModel {
         $append = array(
             'joins' => array(
                 array(
-                    'table' => '(SELECT * FROM discoveries WHERE discoveries.user_id = ' . $userId . ')',
+                    'table' => 'discoveries',
                     'alias' => 'Discovery',
                     'type' => 'INNER',
                     'conditions' => array(
-                        'Capsule.id = Discovery.capsule_id'
-                    ),
+                        'Capsule.id = Discovery.capsule_id',
+                        'Discovery.user_id' => $userId
+                    )
                 )
-            ),
-            'fields' => array(
-                'Capsule.*', 'Discovery.*'
-            ),
-            'conditions' => array(
-                'Discovery.user_id' => $userId
             )
         );
 
@@ -327,8 +320,6 @@ class Capsule extends AppModel {
  * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
  * around the specified latitude and longitude.
  *
- * TODO: Rework without using sub-query.
- *
  * @param $userId
  * @param $lat
  * @param $lng
@@ -340,16 +331,14 @@ class Capsule extends AppModel {
         $append = array(
             'joins' => array(
                 array(
-                    'table' => '(SELECT * FROM discoveries WHERE discoveries.user_id = ' . $userId . ')',
+                    'table' => 'discoveries',
                     'alias' => 'Discovery',
                     'type' => 'LEFT',
                     'conditions' => array(
-                        'Capsule.id = Discovery.capsule_id'
-                    ),
+                        'Capsule.id = Discovery.capsule_id',
+                        'Discovery.user_id' => $userId
+                    )
                 )
-            ),
-            'fields' => array(
-                'Capsule.*', 'Discovery.*'
             ),
             'conditions' => array(
                 'Capsule.user_id !=' => $userId,
