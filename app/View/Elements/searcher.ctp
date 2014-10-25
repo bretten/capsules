@@ -101,10 +101,10 @@
         });
     });
 </script>
-<div class="searcher text-center">
-    <form accept-charset="utf-8" id="<?php echo $id['searcher-form']; ?>" class="form-inline" role="form">
+<div class="searcher text-center row">
+    <form accept-charset="utf-8" id="<?php echo $id['searcher-form']; ?>" role="form">
         <?php if (isset($hasSearch) && $hasSearch === true) : ?>
-        <div class="form-group">
+        <div class="form-group col-md-5">
             <div class="input-group">
                 <input type="text" id="<?php echo $id['search']; ?>" class="form-control" name="data[search]" value="<?php echo (isset($search) && $search) ? $search : "";?>" placeholder="Search" />
                 <span id="<?php echo $id['search-icon']; ?>" class="input-group-btn">
@@ -116,7 +116,7 @@
         </div>
         <?php endif; ?>
         <?php if (isset($sorts) && is_array($sorts) && !empty($sorts)) : ?>
-        <div class="form-group">
+        <div class="form-group col-md-3">
             <select id="<?php echo $id['sort']; ?>" class="form-control" name="data[sort]">
                 <option value="">Sort</option>
                 <?php foreach ($sorts as $value => $display) : ?>
@@ -126,7 +126,7 @@
         </div>
         <?php endif; ?>
         <?php if (isset($filters) && is_array($filters) && !empty($filters)) : ?>
-        <div class="form-group">
+        <div class="form-group col-md-3">
             <select id="<?php echo $id['filter']; ?>" class="form-control" name="data[filter]">
                 <option value="">Filter</option>
                 <?php foreach ($filters as $value => $display) : ?>
@@ -135,8 +135,10 @@
             </select>
         </div>
         <?php endif; ?>
-        <button type="button" id="<?php echo $id['clear']; ?>" class="btn btn-default">
-            <span class="glyphicon glyphicon-remove"></span> Clear
-        </button>
+        <div class="form-group col-md-1">
+            <button type="button" id="<?php echo $id['clear']; ?>" class="btn btn-default btn-block">
+                <span class="glyphicon glyphicon-remove"></span> <span class="visible-xs-inline-block visible-sm-inline-block">Clear</span>
+            </button>
+        </div>
     </form>
 </div>
