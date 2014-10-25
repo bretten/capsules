@@ -21,9 +21,9 @@
                 '/sort:Capsule.name/direction:asc' => 'A - Z',
                 '/sort:Capsule.name/direction:desc' => 'Z - A',
                 '/sort:Discovery.created/direction:desc' => 'Discovered recently',
+                '/sort:Capsule.total_rating/direction:desc' => 'Best rating',
                 '/sort:Capsule.discovery_count/direction:desc' => 'Most discoveries',
                 '/sort:Capsule.favorite_count/direction:desc' => 'Most favorites',
-                '/sort:Capsule.total_rating/direction:desc' => 'Best rating'
             ),
             'filters' => array(
                 Configure::read('Search.Filter.Favorite') => 'Favorited',
@@ -37,15 +37,17 @@
     <div class="list-group">
         <?php foreach ($discoveries as $discovery) : ?>
         <a href="#" class="list-group-item anchor-map-goto" data-id="<?php echo $discovery['Capsule']['id']; ?>" data-lat="<?php echo $discovery['Capsule']['lat']; ?>" data-lng="<?php echo $discovery['Capsule']['lng']; ?>">
-            <span class="badge<?php echo ($favSorted) ? " alert-success" : " alert-info"; ?>">
-                <span class="glyphicon glyphicon-star"></span><?php echo $discovery['Capsule']['favorite_count']; ?>
-            </span>
-            <span class="badge<?php echo ($discoverySorted) ? " alert-success" : " alert-info"; ?>">
-                <span class="glyphicon glyphicon-map-marker"></span><?php echo $discovery['Capsule']['discovery_count']; ?>
-            </span>
-            <span class="badge<?php echo ($scoreSorted) ? " alert-success" : " alert-info"; ?>">
-                <span class="glyphicon glyphicon-fire"></span><?php echo $discovery['Capsule']['total_rating']; ?>
-            </span>
+            <div class="pull-right clearfix col-md-offset-1">
+                <span class="badge<?php echo ($scoreSorted) ? " alert-success" : " alert-info"; ?>">
+                    <span class="glyphicon glyphicon-fire"></span><?php echo $discovery['Capsule']['total_rating']; ?>
+                </span>
+                <span class="badge<?php echo ($discoverySorted) ? " alert-success" : " alert-info"; ?>">
+                    <span class="glyphicon glyphicon-map-marker"></span><?php echo $discovery['Capsule']['discovery_count']; ?>
+                </span>
+                <span class="badge<?php echo ($favSorted) ? " alert-success" : " alert-info"; ?>">
+                    <span class="glyphicon glyphicon-star"></span><?php echo $discovery['Capsule']['favorite_count']; ?>
+                </span>
+            </div>
             <h4 class="list-group-item-heading text-format-overflow">
                 <?php if ($discovery['Discovery']['favorite']) : ?>
                     <span class="glyphicon glyphicon-star glyphicon-warning"></span>
