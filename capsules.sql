@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS `capsules`.`capsules` (
   `name` VARCHAR(255) NOT NULL,
   `lat` FLOAT(10,6) NOT NULL,
   `lng` FLOAT(10,6) NOT NULL,
-  `point` POINT NOT NULL,
   `etag` VARCHAR(255) NOT NULL,
   `created` DATETIME NOT NULL,
   `modified` DATETIME NOT NULL,
@@ -99,6 +98,21 @@ CREATE TABLE IF NOT EXISTS `capsules`.`discoveries` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `capsules`.`capsule_points`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `capsules`.`capsule_points` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `capsule_id` INT UNSIGNED NOT NULL,
+  `point` POINT NOT NULL,
+  `created` DATETIME NOT NULL,
+  `modified` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  SPATIAL INDEX `spatial_point_idx` (`point` ASC))
+ENGINE = MyISAM;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

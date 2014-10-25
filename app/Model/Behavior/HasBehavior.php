@@ -87,6 +87,11 @@ class HasBehavior extends ModelBehavior {
             $commit = false;
         }
 
+        // Before commit callback
+        if (!$Model->beforeCommit($data)) {
+            $commit = false;
+        }
+
         // End the transaction
         if ($commit) {
             $dataSource->commit();

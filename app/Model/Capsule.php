@@ -61,6 +61,22 @@ class Capsule extends AppModel {
     );
 
 /**
+ * hasOne associations
+ *
+ * @var array
+ */
+    public $hasOne = array(
+        'CapsulePoint' => array(
+            'className' => 'CapsulePoint',
+            'foreignKey' => 'capsule_id',
+            'conditions' => '',
+            'fields' => '',
+            'order' => '',
+            'dependent' => true
+        )
+    );
+
+/**
  * belongsTo associations
  *
  * @var array
@@ -167,6 +183,34 @@ class Capsule extends AppModel {
     );
 
 /**
+ * Before find method
+ *
+ * @param array $query The options for the query
+ * @return mixed true to continue, false to abort, or a modified $query
+ */
+    public function beforeFind($query) {
+        // Include the corresponding POINT data columns
+        if (isset($query['includePoints']) && $query['includePoints'] === true) {
+            $append = array(
+                'joins' => array(
+                    array(
+                        'table' => 'capsule_points',
+                        'alias' => 'CapsulePoint',
+                        'type' => 'INNER',
+                        'conditions' => array(
+                            'Capsule.id = CapsulePoint.capsule_id'
+                        )
+                    )
+                )
+            );
+
+            return array_merge_recursive($query, $append);
+        }
+
+        return true;
+    }
+
+/**
  * Before save method
  *
  * @param array $options Options passed from Model::save().
@@ -213,6 +257,42 @@ class Capsule extends AppModel {
     }
 
 /**
+ * Before commit callback
+ *
+ * Called before a transaction occurs
+ *
+ * @param array $data
+ * @return boolean true to continue with the transaction, false to flag for a rollback
+ */
+    public function beforeCommit($data) {
+        // Create a CapsulePoint corresponding to the latitude and longitude
+        if (isset($data[$this->name]['lat']) && isset($data[$this->name]['lng'])) {
+            $capsuleId = (isset($data[$this->name][$this->primaryKey]) && $data[$this->name][$this->primaryKey]) ? $data[$this->name][$this->primaryKey] : $this->getLastInsertID();
+            $dataSource = $this->CapsulePoint->getDataSource();
+            if ($exists = $this->CapsulePoint->created($capsuleId)) {
+                return $this->CapsulePoint->updateAll(
+                    array(
+                        'CapsulePoint.point' => "POINT(" . $data[$this->name]['lat'] . ", " . $data[$this->name]['lng'] . ")"
+                    ),
+                    array(
+                        'CapsulePoint.capsule_id' => $capsuleId
+                    )
+                );
+            } else {
+                $this->CapsulePoint->create();
+                $point = array();
+                $point[$this->CapsulePoint->name] = array(
+                    'capsule_id' => $this->getLastInsertID(),
+                    'point' => $dataSource->expression("POINT(" . $data[$this->name]['lat'] . ", " . $data[$this->name]['lng'] . ")")
+                );
+                return (boolean)$this->CapsulePoint->save($point);
+            }
+        }
+
+        return true;
+    }
+
+/**
  * Returns all Capsules within the specified radius around the specified latitude and longitude.
  *
  * Capsules are filtered by excluding those outside a bounding box and then further filtered by
@@ -241,6 +321,7 @@ class Capsule extends AppModel {
         )";
 
         $append = array(
+            'includePoints' => true,
             'conditions' => array(
                 "MBRContains(
                     LineString(
@@ -253,7 +334,7 @@ class Capsule extends AppModel {
                             {$lng} - ({$scalar} * {$radius}) / ({$degreeLength} / COS(RADIANS({$lat})))
                         )
                     ),
-                    Capsule.point
+                    CapsulePoint.point
                 )",
                 'Capsule.distance <=' => $radius
             )
@@ -276,8 +357,9 @@ class Capsule extends AppModel {
  */
     public function getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query = array()) {
         $append = array(
+            'includePoints' => true,
             'conditions' => array(
-                "MBRWITHIN(Capsule.point, MULTIPOINT(POINT($latNE, $lngNE), POINT($latSW, $lngSW)))"
+                "MBRWITHIN(CapsulePoint.point, MULTIPOINT(POINT($latNE, $lngNE), POINT($latSW, $lngSW)))"
             )
         );
 
