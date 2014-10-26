@@ -27,6 +27,7 @@
             )
         ));
     ?>
+    <?php if (is_array($capsules) && !empty($capsules)) : ?>
     <div class="list-group">
         <?php foreach ($capsules as $capsule) : ?>
         <a href="#" class="list-group-item anchor-map-goto" data-id="<?php echo $capsule['Capsule']['id']; ?>" data-lat="<?php echo $capsule['Capsule']['lat']; ?>" data-lng="<?php echo $capsule['Capsule']['lng']; ?>">
@@ -47,6 +48,11 @@
         <?php endforeach; ?>
     </div>
     <?php echo $this->element('paginator_links'); ?>
+    <?php else : ?>
+    <div class="text-center">
+        <h3>You have no Capsules! <small>Start by dropping them on the <a href="#" data-dismiss="modal">map</a>.</small></h3>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php echo $this->Js->writeBuffer(); ?>

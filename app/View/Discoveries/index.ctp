@@ -34,6 +34,7 @@
             )
         ));
     ?>
+    <?php if (is_array($discoveries) && !empty($discoveries)) : ?>
     <div class="list-group">
         <?php foreach ($discoveries as $discovery) : ?>
         <a href="#" class="list-group-item anchor-map-goto" data-id="<?php echo $discovery['Capsule']['id']; ?>" data-lat="<?php echo $discovery['Capsule']['lat']; ?>" data-lng="<?php echo $discovery['Capsule']['lng']; ?>">
@@ -68,6 +69,11 @@
         <?php endforeach; ?>
     </div>
     <?php echo $this->element('paginator_links'); ?>
+    <?php else : ?>
+    <div class="text-center">
+        <h3>You have not discovered any Capsules! <small>Get out there and <a href="#" data-dismiss="modal">explore</a>.</small></h3>
+    </div>
+    <?php endif; ?>
 </div>
 
 <?php echo $this->Js->writeBuffer(); ?>
