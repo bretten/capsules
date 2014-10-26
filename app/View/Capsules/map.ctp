@@ -407,6 +407,9 @@
      */
     geoloc.onPositionUpdate = function(position) {
         var coordinates = position.coords;
+        // See if this is the first update
+        var isFirstUpdate = (typeof geoloc.coordinates === 'undefined' || geoloc.coordinates == null) ? true : false;
+        // Keep a reference to the coordinates
         geoloc.coordinates = position.coords;
         
         // If a position update occurs, Discovery mode is on
@@ -425,6 +428,12 @@
         mapView.getUndiscoveredMarkers(coordinates.latitude, coordinates.longitude, function (capsules) {
             mapView.populateMarkers(gmap.map, mapView.undiscoveredMarkers, capsules, mapView.CAPSULE_UNDISCOVERED, mapView.discoveryModeOn, true /* removeMissing */);
         });
+
+        // If this is the first update, zoom in on the user location
+        if (isFirstUpdate) {
+            gmap.map.setCenter(new google.maps.LatLng(coordinates.latitude, coordinates.longitude));
+            gmap.map.setZoom(gmap.singleFocusZoom);
+        }
     }
 
     /**
