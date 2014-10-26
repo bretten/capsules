@@ -112,6 +112,12 @@ div.discovery-rater-container div
  * View Elements
  */
 
+div#flashMessage
+{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 div.searcher
 {
     margin: 10px auto;

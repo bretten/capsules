@@ -215,7 +215,7 @@
                 container.html(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html("The list could not be retrieved");
+                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
             }
         });
     }
@@ -274,7 +274,7 @@
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html("The data could not be retrieved");
+                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
             }
         });
     }
@@ -304,7 +304,7 @@
                 container.html(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html("The data could not be retrieved");
+                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
             }
         });
     }
@@ -382,6 +382,8 @@
             error: function(jqXHR, textStatus, errorThrown) {
                 if (jqXHR.hasOwnProperty('responseText')) {
                     container.html(jqXHR.responseText);
+                } else {
+                    container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
                 }
             }
         });
@@ -989,11 +991,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title" id="modal-label-capsule-list">My Collection</h4>
-                <div class="modal-loader">
-                    <div class="text-center">
-                        <span class="glyphicon glyphicon-repeat"></span> Loading...
-                    </div>
-                </div>
+                <?php echo $this->element('loader'); ?>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-tabs" role="tablist">
