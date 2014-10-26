@@ -100,7 +100,7 @@
     /**
      * Populates the GoogleMap with stored Markers
      */
-    mapView.populateMarkers = function(map, collection, capsules, type, visible) {
+    mapView.populateMarkers = function(map, collection, capsules, type, visible, removeMissing) {
         // Determine type specific properties
         var icon;
         if (type === mapView.CAPSULE_OWNERSHIP) {
@@ -109,6 +109,23 @@
             icon = mapView.ICON_CAPSULE_DISCOVERY;
         } else {
             icon = mapView.ICON_CAPSULE_UNDISCOVERED;
+        }
+
+        // Remove any Markers that don't appear in the server's collection
+        if (removeMissing) {
+            // TODO: This can be combined with the iteration below but at the cost of dividing up this block
+            // Build a collection of the remotes
+            var remotes = {};
+            for (var i = 0; i < capsules.length; i++) {
+                remotes[capsules[i].data.id] = capsules[i];
+            }
+            // Remove any Capsules that are not in the remote collection but are in the client collection
+            $.each(collection, function(id, capsule) {
+                // If it is not in the remote collection, remove it
+                if (!remotes.hasOwnProperty(id)) {
+                    mapView.removeMarker(id, collection);
+                }
+            });
         }
 
         // Create or update a Marker for each Capsule
@@ -406,7 +423,7 @@
 
         // Get the latitude and longitude
         mapView.getUndiscoveredMarkers(coordinates.latitude, coordinates.longitude, function (capsules) {
-            mapView.populateMarkers(gmap.map, mapView.undiscoveredMarkers, capsules, mapView.CAPSULE_UNDISCOVERED, mapView.discoveryModeOn);
+            mapView.populateMarkers(gmap.map, mapView.undiscoveredMarkers, capsules, mapView.CAPSULE_UNDISCOVERED, mapView.discoveryModeOn, true /* removeMissing */);
         });
     }
 
@@ -616,8 +633,8 @@
             var latLngSW = bounds.getSouthWest();
             mapView.getMarkers(latLngNE.lat(), latLngNE.lng(), latLngSW.lat(), latLngSW.lng(), function(capsules, discoveries) {
                 // Populate the Map with Markers
-                mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle-owned').prop('checked'));
-                mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle-discovered').prop('checked'));
+                mapView.populateMarkers(gmap.map, mapView.ownedMarkers, capsules, mapView.CAPSULE_OWNERSHIP, $('#toggle-owned').prop('checked'), true /* removeMissing */);
+                mapView.populateMarkers(gmap.map, mapView.discoveredMarkers, discoveries, mapView.CAPSULE_DISCOVERY, $('#toggle-discovered').prop('checked'), true /* removeMissing */);
             });
         });
         // Listener for the new Capsule Marker click event
