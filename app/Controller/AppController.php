@@ -40,7 +40,7 @@ class AppController extends Controller {
     public $components = array(
         'Session',
         'Auth' => array(
-            'loginRedirect' => array('controller' => 'capsules', 'action' => 'index'),
+            'loginRedirect' => array('controller' => 'capsules', 'action' => 'map'),
             'logoutRedirect' => array('controller' => 'users', 'action' => 'login'),
             'authorize' => array('Controller')
         ),
@@ -52,6 +52,22 @@ class AppController extends Controller {
             )
         )
     );
+
+/**
+ * beforeFilter method
+ *
+ * @return void
+ */
+    public function beforeFilter() {
+        parent::beforeFilter();
+        // If the User is logged in, there is no need to access the following pages
+        if ($this->Auth->loggedIn() && (
+                ($this->request->params['controller'] == 'users' && $this->request->params['action'] == 'login')
+            )
+        ) {
+            $this->redirect($this->Auth->loginRedirect);
+        }
+    }
 
 /**
  * isAuthorized method
