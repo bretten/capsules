@@ -39,7 +39,7 @@ class UsersController extends AppController {
             if ($this->Auth->login()) {
                 $this->redirect($this->Auth->redirect());
             } else {
-                $this->Session->setFlash(__('Invalid credentials.'), 'notification', array('class' => 'alert-danger'));
+                $this->Session->setFlash(__('Invalid credentials.'), 'notification', array('class' => 'alert-danger', 'dismissible' => true));
             }
         }
     }
@@ -72,10 +72,10 @@ class UsersController extends AppController {
                     'password', 'email', 'confirm_password'
                 )
             ))) {
-                $this->Session->setFlash(__('Your account has been saved.'), 'notification', array('class' => 'alert-success'));
+                $this->Session->setFlash(__('Your account has been saved.'), 'notification', array('class' => 'alert-success', 'dismissible' => true));
                 return $this->redirect(array('action' => 'account'));
             } else {
-                $this->Session->setFlash(__('Your account could not be saved. Please, try again.'), 'notification', array('class' => 'alert-danger'));
+                $this->Session->setFlash(__('Your account could not be saved. Please, try again.'), 'notification', array('class' => 'alert-danger', 'dismissible' => true));
             }
         } else {
             $options = array(
