@@ -8,6 +8,10 @@
     $id['clear'] = 'clear-' . uniqid();
     $id['searcher-form'] = 'searcher-form-' . uniqid();
     // Get the Pagination named params
+    $page = null;
+    if (isset($this->params['named']['page']) && $this->params['named']['page']) {
+        $page = "/page:" . $this->params['named']['page'];
+    }
     $sortParams = null;
     if (isset($this->params['named']['sort']) && $this->params['named']['sort']
         && isset($this->params['named']['direction']) && $this->params['named']['direction']
@@ -25,6 +29,8 @@
 
     searcher.baseUri = "/<?php echo $controller; ?>/<?php echo $action; ?>";
 
+    searcher.page = "<?php echo ((isset($page) && $page) ? $page : ""); ?>";
+
     searcher.sort = "<?php echo ((isset($sortParams) && $sortParams) ? $sortParams : ""); ?>";
 
     searcher.search = "<?php echo ((isset($search) && $search) ? $search : ""); ?>";
@@ -37,6 +43,7 @@
 
     searcher.buildUri = function() {
         return searcher.baseUri
+                + searcher.page
                 + searcher.sort
                 + "?" + searcher.QUERY_FIELD_SEARCH + "=" + searcher.search
                 + "&" + searcher.QUERY_FIELD_FILTER + "=" + searcher.filter;

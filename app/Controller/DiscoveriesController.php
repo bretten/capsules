@@ -13,7 +13,7 @@ class DiscoveriesController extends AppController {
  *
  * @var array
  */
-    public $components = array('Paginator', 'RequestHandler');
+    public $components = array('Paginator', 'RequestHandler', 'PaginatorBounding');
 
 /**
  * Helpers
@@ -63,8 +63,7 @@ class DiscoveriesController extends AppController {
                     )
                 )
             ),
-            'group' => array('Capsule.id'),
-            'limit' => 7
+            'group' => array('Capsule.id')
         );
         // Search refinement
         $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
@@ -87,6 +86,11 @@ class DiscoveriesController extends AppController {
                 $query['conditions']['Discovery.rating'] = 0;
             }
         }
+        // Make sure that the current page does not exceed the actual number of pages
+        $this->PaginatorBounding->setLimit(Configure::read('Pagination.Result.Count'));
+        $this->PaginatorBounding->checkBounds($this->Discovery->Capsule, $query);
+        // Set the pagination limit
+        $query['limit'] = Configure::read('Pagination.Result.Count');
         $this->Paginator->settings = $query;
         $this->set('discoveries', $this->Paginator->paginate('Capsule'));
         $this->set(compact('search', 'filter'));

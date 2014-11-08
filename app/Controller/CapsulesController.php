@@ -13,7 +13,7 @@ class CapsulesController extends AppController {
  *
  * @var array
  */
-    public $components = array('Paginator', 'RequestHandler');
+    public $components = array('Paginator', 'RequestHandler', 'PaginatorBounding');
 
 /**
  * Helpers
@@ -54,14 +54,18 @@ class CapsulesController extends AppController {
                     )
                 )
             ),
-            'group' => array('Capsule.id'),
-            'limit' => 7
+            'group' => array('Capsule.id')
         );
         // Search refinement
         $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
         if ($search) {
             $query['conditions']['Capsule.name LIKE'] = "%" . urldecode($search) . "%";
         }
+        // Make sure that the current page does not exceed the actual number of pages
+        $this->PaginatorBounding->setLimit(Configure::read('Pagination.Result.Count'));
+        $this->PaginatorBounding->checkBounds($this->Capsule, $query);
+        // Set the pagination limit
+        $query['limit'] = Configure::read('Pagination.Result.Count');
         $this->Paginator->settings = $query;
         $this->set('capsules', $this->Paginator->paginate());
         $this->set(compact('search'));
