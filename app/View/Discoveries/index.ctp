@@ -71,7 +71,11 @@
     <?php echo $this->element('paginator_links'); ?>
     <?php else : ?>
     <div class="text-center">
+        <?php if (isset($search) && $search) : ?>
+        <h3>Nothing! <small>There were no matches for your search terms.</small></h3>
+        <?php else : ?>
         <h3>You have not discovered any Capsules! <small>Get out there and <a href="#" data-dismiss="modal">explore</a>.</small></h3>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>

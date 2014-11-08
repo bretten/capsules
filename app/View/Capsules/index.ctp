@@ -50,7 +50,11 @@
     <?php echo $this->element('paginator_links'); ?>
     <?php else : ?>
     <div class="text-center">
+        <?php if (isset($search) && $search) : ?>
+        <h3>Nothing! <small>There were no matches for your search terms.</small></h3>
+        <?php else : ?>
         <h3>You have no Capsules! <small>Start by dropping them on the <a href="#" data-dismiss="modal">map</a>.</small></h3>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>
