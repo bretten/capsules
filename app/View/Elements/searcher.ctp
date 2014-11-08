@@ -41,6 +41,13 @@
         <?php echo ((isset($before) && $before) ? $before : ""); ?>
     }
 
+    searcher.setSearch = function() {
+        var val = $('#<?php echo $id['search']; ?>').val();
+        if (typeof val !== 'undefined') {
+            searcher.search = encodeURIComponent(val);
+        }
+    }
+
     searcher.buildUri = function() {
         return searcher.baseUri
                 + searcher.page
@@ -74,11 +81,13 @@
         searcher.before();
 
         $('#<?php echo $id['sort']; ?>').on('change', function(e) {
+            searcher.setSearch();
             searcher.sort = $(this).val();
             searcher.fetch(searcher.buildUri());
         });
         
         $('#<?php echo $id['filter']; ?>').on('change', function(e) {
+            searcher.setSearch();
             searcher.filter = $(this).val();
             searcher.fetch(searcher.buildUri());
         });
@@ -91,10 +100,7 @@
         });
 
         $('#<?php echo $id['search-icon']; ?>').on('click', function(e) {
-            var val = $('#<?php echo $id['search']; ?>').val();
-            if (typeof val !== 'undefined') {
-                searcher.search = encodeURIComponent(val);
-            }
+            searcher.setSearch();
             searcher.fetch(searcher.buildUri());
         });
 
