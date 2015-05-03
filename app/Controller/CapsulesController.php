@@ -13,7 +13,7 @@ class CapsulesController extends AppController {
  *
  * @var array
  */
-    public $components = array('Paginator', 'RequestHandler', 'PaginatorBounding');
+    public $components = array('Api', 'Paginator', 'RequestHandler', 'PaginatorBounding');
 
 /**
  * Helpers
@@ -317,66 +317,19 @@ class CapsulesController extends AppController {
         $this->autoRender = false;
         $this->layout = 'ajax';
 
-        $body = array();
+        $this->Api->points();
+    }
 
-        if ($this->request->is('post')) {
-            if (!isset($this->request->data['latNE']) || !is_numeric($this->request->data['latNE'])
-                || !isset($this->request->data['lngNE']) || !is_numeric($this->request->data['lngNE'])
-                || !isset($this->request->data['latSW']) || !is_numeric($this->request->data['latSW'])
-                || !isset($this->request->data['lngSW']) || !is_numeric($this->request->data['lngSW'])
-            ) {
-                $this->response->statusCode(400);
-            } else {
-                $capsules = $this->Capsule->getInRectangle(
-                    $this->request->data['latNE'],
-                    $this->request->data['lngNE'],
-                    $this->request->data['latSW'],
-                    $this->request->data['lngSW'],
-                    array(
-                        'conditions' => array(
-                            'Capsule.user_id' => $this->Auth->user('id')
-                        )
-                    )
-                );
-                $body['capsules'] = Hash::map($capsules, "{n}.Capsule", function($data) {
-                    return array(
-                        'data' => array(
-                            'id' => $data['id'],
-                            'name' => $data['name'],
-                            'lat' => $data['lat'],
-                            'lng' => $data['lng']
-                        )
-                    );
-                });
+/**
+ * Returns undiscovered markers to the web version of the map
+ *
+ * @return void
+ */
+    public function ping() {
+        $this->autoRender = false;
+        $this->layout = 'ajax';
 
-                $discoveries = $this->Capsule->getDiscovered(
-                    $this->Auth->user('id'),
-                    $this->request->data['latNE'],
-                    $this->request->data['lngNE'],
-                    $this->request->data['latSW'],
-                    $this->request->data['lngSW']
-                );
-                $body['discoveries'] = Hash::map($discoveries, "{n}.Capsule", function($data) {
-                    return array(
-                        'data' => array(
-                            'id' => $data['id'],
-                            'name' => $data['name'],
-                            'lat' => $data['lat'],
-                            'lng' => $data['lng']
-                        )
-                    );
-                });
-            }
-        } else {
-            $this->response->statusCode(405);
-        }
-
-        // Indicate success if the response body was built
-        if ($body) {
-            $this->response->statusCode(200);
-        }
-
-        $this->response->body(json_encode($body));
+        $this->Api->ping();
     }
 
 }

@@ -12,14 +12,14 @@ class ApiController extends AppController {
  *
  * @var array
  */
-    public $components = array('Paginator');
+    public $components = array('Api', 'Paginator');
 
 /**
  * uses
  *
  * @var array
  */
-    public $uses = array('Capsule', 'Discovery');
+    public $uses = array('Capsule', 'Discovery', 'User');
 
 /**
  * beforeFilter method
@@ -30,6 +30,41 @@ class ApiController extends AppController {
         parent::beforeFilter();
         $this->autoRender = false;
         $this->layout = false;
+        if ($this->request->params['action'] === 'authenticate') {
+            $this->Auth->authenticate = array('Basic');
+        } else {
+            $this->Auth->authenticate = array('Token');
+        }
+        // Don't require authentication when registering or authenticating
+        $this->Auth->allow(array('register', 'authenticate'));
+    }
+
+/**
+ * API method used to handle User registrations
+ *
+ * @return void
+ */
+    public function register() {
+        $this->Api->register();
+    }
+
+/**
+ * API method to handle authenticating Users.  Response body contains an authentication token
+ * to be used in future API calls.
+ *
+ * @return void
+ */
+    public function authenticate() {
+        $this->Api->authenticate();
+    }
+
+/**
+ * API method to return a User's Capsules and Discoveries
+ *
+ * @return void
+ */
+    public function points() {
+        $this->Api->points();
     }
 
 /**
@@ -202,41 +237,7 @@ class ApiController extends AppController {
  * @return void
  */
     public function ping() {
-        $body = array();
-
-        if ($this->request->is('post')) {
-            if (!isset($this->request->data['lat']) || !is_numeric($this->request->data['lat'])
-                || !isset($this->request->data['lng']) || !is_numeric($this->request->data['lng'])
-            ) {
-                $this->response->statusCode(400);
-            } else {
-                $capsules = $this->Capsule->getUndiscovered(
-                    $this->StatelessAuth->user('id'),
-                    $this->request->data['lat'],
-                    $this->request->data['lng'],
-                    Configure::read('Map.UserLocation.SearchRadius')
-                );
-                $body = Hash::map($capsules, "{n}.Capsule", function($data) {
-                    return array(
-                        'data' => array(
-                            'id' => $data['id'],
-                            'name' => $data['name'],
-                            'lat' => $data['lat'],
-                            'lng' => $data['lng']
-                        )
-                    );
-                });
-            }
-        } else {
-            $this->response->statusCode(405);
-        }
-
-        // Indicate success if the response body was built
-        if ($body) {
-            $this->response->statusCode(200);
-        }
-
-        $this->response->body(json_encode($body));
+        $this->Api->ping();
     }
 
 /**

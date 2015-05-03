@@ -43,13 +43,6 @@ class AppController extends Controller {
             'loginRedirect' => array('controller' => 'capsules', 'action' => 'map'),
             'logoutRedirect' => array('controller' => 'users', 'action' => 'login'),
             'authorize' => array('Controller')
-        ),
-        'StatelessAuth' => array(
-            'map' => array(
-                'api' => array(
-                    'ctag', 'status', 'report', 'ping', 'open', 'capsule', 'discovery'
-                )
-            )
         )
     );
 

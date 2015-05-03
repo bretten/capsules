@@ -52,24 +52,22 @@
             type: 'POST',
             url: '/capsules/points/',
             data: {'data[latNE]': latNE, 'data[lngNE]': lngNE, 'data[latSW]': latSW, 'data[lngSW]': lngSW},
+            dataType: 'json',
             success: function(data, textStatus, jqXHR) {
-                if (data.length > 0) {
-                    var data = $.parseJSON(data);
-                    // Separate the Capsules and Discoveries
-                    var capsules;
-                    if (data.hasOwnProperty('capsules') && data.capsules.length > 0) {
-                        capsules = data.capsules;
-                    } else {
-                        capsules = {};
-                    }
-                    var discoveries;
-                    if (data.hasOwnProperty('discoveries') && data.discoveries.length > 0) {
-                        discoveries = data.discoveries;
-                    } else {
-                        discoveries = {};
-                    }
-                    callback(capsules, discoveries);
+                // Separate the Capsules and Discoveries
+                var capsules;
+                if (data.hasOwnProperty("data") && data.data.hasOwnProperty("capsules") && $.isArray(data.data.capsules)) {
+                    capsules = data.data.capsules;
+                } else {
+                    capsules = {};
                 }
+                var discoveries;
+                if (data.hasOwnProperty("data") && data.data.hasOwnProperty("discoveries") && $.isArray(data.data.discoveries)) {
+                    discoveries = data.data.discoveries;
+                } else {
+                    discoveries = {};
+                }
+                callback(capsules, discoveries);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 return false;
@@ -83,12 +81,12 @@
     mapView.getUndiscoveredMarkers = function(lat, lng, callback) {
         $.ajax({
             type: 'POST',
-            url: '/api/ping/',
+            url: '/capsules/ping/',
             data: {'data[lat]': lat, 'data[lng]': lng},
+            dataType: 'json',
             success: function(data, textStatus, jqXHR) {
-                if (data.length > 0) {
-                    var capsules = $.parseJSON(data);
-                    callback(capsules);
+                if (data.hasOwnProperty("data") && data.data.hasOwnProperty("capsules")) {
+                    callback(data.data.capsules);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -117,7 +115,7 @@
             // Build a collection of the remotes
             var remotes = {};
             for (var i = 0; i < capsules.length; i++) {
-                remotes[capsules[i].data.id] = capsules[i];
+                remotes[capsules[i].id] = capsules[i];
             }
             // Remove any Capsules that are not in the remote collection but are in the client collection
             $.each(collection, function(id, capsule) {
@@ -131,31 +129,31 @@
         // Create or update a Marker for each Capsule
         $.each(capsules, function(index, capsule) {
             var marker;
-            if (!collection.hasOwnProperty(capsule.data.id)) {
+            if (!collection.hasOwnProperty(capsule.id)) {
                 // Create the Marker
                 marker = new google.maps.Marker({
-                    position: new google.maps.LatLng(capsule.data.lat, capsule.data.lng),
-                    title: capsule.data.name,
+                    position: new google.maps.LatLng(capsule.lat, capsule.lng),
+                    title: capsule.name,
                     icon: icon,
                     visible: visible,
-                    capsuleId: capsule.data.id
+                    capsuleId: capsule.id
                 });
                 // Add the Marker to the Map
                 marker.setMap(map);
                 // Add the Marker to the collection of Markers
-                collection[capsule.data.id] = marker;
+                collection[capsule.id] = marker;
             } else {
                 // Get the Marker that has already been created
-                marker = collection[capsule.data.id];
+                marker = collection[capsule.id];
                 // Update the Marker data with the data from the server
-                marker.setTitle(capsule.data.name);
+                marker.setTitle(capsule.name);
                 // Remove the listener
                 google.maps.event.clearListeners(marker, 'click');
             }
 
             if (typeof marker !== 'undefined') {
                 // Add the Marker InfoWindow event listener
-                gmap.setupMarkerInfoWindow(marker, capsule.data, ((type === mapView.CAPSULE_UNDISCOVERED) ? true : false) /* isUndiscovered */);
+                gmap.setupMarkerInfoWindow(marker, capsule, ((type === mapView.CAPSULE_UNDISCOVERED) ? true : false) /* isUndiscovered */);
             }
         });
     }

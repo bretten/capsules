@@ -22,10 +22,6 @@ class UsersController extends AppController {
  */
     public function beforeFilter() {
         parent::beforeFilter();
-        // Use Basic authentication for authenticating API calls
-        if ($this->request->params['action'] === 'authenticate') {
-            $this->Auth->authenticate = array('Basic');
-        }
         $this->Auth->allow(array('login'));
     }
 
@@ -172,45 +168,6 @@ class UsersController extends AppController {
             $this->Session->setFlash(__('The user could not be deleted. Please, try again.'));
         }
         return $this->redirect(array('action' => 'index'));
-    }
-
-    /**
-     * API method to handle authenticating Users.  Response body contains an authentication token
-     * to be used in future API calls.
-     *
-     * @return void
-     */
-    public function authenticate() {
-        $this->autoRender = false;
-        $this->layout = false;
-
-        $body = array();
-
-        if ($this->Auth->login()) {
-            // Create the User's token
-            $token = Security::hash(uniqid() . 'capsules' . $this->Auth->user('id'), null, true);
-            // Save the User's token
-            $data = array(
-                'id' => $this->Auth->user('id'),
-                'token' => $token
-            );
-            if ($this->User->save($data, array('fieldList' => array('id', 'token')))) {
-                $body['data'] = array(
-                    'token' => $token
-                );
-            } else {
-                $this->response->statusCode(500);
-            }
-        } else {
-            $this->response->statusCode(401);
-        }
-
-        // Indicate success if the response body was built
-        if ($body) {
-            $this->response->statusCode(200);
-        }
-
-        $this->response->body(json_encode($body));
     }
 
 }
