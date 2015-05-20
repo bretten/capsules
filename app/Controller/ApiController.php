@@ -246,56 +246,7 @@ class ApiController extends AppController {
  * @return void
  */
     public function open() {
-        $body = array();
-
-        if ($this->request->is('post')) {
-            if (!isset($this->request->data['id'])
-                || !isset($this->request->data['lat']) || !is_numeric($this->request->data['lat'])
-                || !isset($this->request->data['lng']) || !is_numeric($this->request->data['lng'])
-            ) {
-                $this->response->statusCode(400);
-            } elseif (!$this->Capsule->exists($this->request->data['id'])) {
-                $this->response->statusCode(404);
-            } else {
-                if ($exists = $this->Capsule->Discovery->created(
-                    $this->request->data['id'],
-                    $this->StatelessAuth->user('id')
-                )) {
-                    $body['data'] = array(
-                        'etag' => $exists['Discovery']['etag']
-                    );
-                } else {
-                    if ($this->Capsule->isReachable(
-                        $this->request->data['id'],
-                        $this->request->data['lat'],
-                        $this->request->data['lng'],
-                        Configure::read('Map.UserLocation.DiscoveryRadius')
-                    )) {
-                        if ($insert = $this->Capsule->Discovery->saveNew(
-                            $this->request->data['id'],
-                            $this->StatelessAuth->user('id')
-                        )) {
-                            $body['data'] = array(
-                                'etag' => $insert['Discovery']['etag']
-                            );
-                        } else {
-                            $this->response->statusCode(500);
-                        }
-                    } else {
-                        $this->response->statusCode(403);
-                    }
-                }
-            }
-        } else {
-            $this->response->statusCode(405);
-        }
-
-        // Indicate success if the response body was built
-        if ($body) {
-            $this->response->statusCode(200);
-        }
-
-        $this->response->body(json_encode($body));
+        $this->Api->open();
     }
 
 /**

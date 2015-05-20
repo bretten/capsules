@@ -214,12 +214,7 @@ class ApiComponent extends Component {
         );
         // Add the User's Capsules to the response body
         $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
-            return array(
-                'id' => $data['id'],
-                'name' => $data['name'],
-                'lat' => $data['lat'],
-                'lng' => $data['lng']
-            );
+            return ApiComponent::buildCapsule($data);
         });
         // Get the User's Discoveries
         $discoveries = $this->controller->Capsule->getDiscovered(
@@ -231,12 +226,7 @@ class ApiComponent extends Component {
         );
         // Add the User's Discoveries to the response
         $this->body['data']['discoveries'] = Hash::map($discoveries, "{n}.Capsule", function ($data) {
-            return array(
-                'id' => $data['id'],
-                'name' => $data['name'],
-                'lat' => $data['lat'],
-                'lng' => $data['lng']
-            );
+            return ApiComponent::buildCapsule($data);
         });
 
         // Indicate a success
@@ -275,13 +265,78 @@ class ApiComponent extends Component {
         );
         // Add them to the response
         $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function($data) {
-            return array(
-                'id' => $data['id'],
-                'name' => $data['name'],
-                'lat' => $data['lat'],
-                'lng' => $data['lng']
-            );
+            return ApiComponent::buildCapsule($data);
         });
+
+        // Indicate success
+        return $this->responseOk();
+    }
+
+/**
+ * API method to open a Capsule
+ *
+ * @return string
+ */
+    public function open() {
+        // Make sure it is a POST request
+        if (!$this->request->is('post')) {
+            // Indicate non-POST's are not allowed
+            return $this->responseNotAllowed();
+        }
+
+        // Make sure the User is authenticated
+        if (!$this->Auth->user()) {
+            // Indicate that the request was unauthenticated
+            return $this->responseUnauthenticated();
+        }
+
+        // Make sure all the request data is present
+        if (!isset($this->request->data['id'])
+            || !isset($this->request->data['lat']) || !is_numeric($this->request->data['lat'])
+            || !isset($this->request->data['lng']) || !is_numeric($this->request->data['lng'])
+        ) {
+            // Indicate a bad request
+            return $this->responseBadRequest();
+        }
+
+        // Make sure the Capsule to be opened exists
+        if (!$this->controller->Capsule->exists($this->request->data['id'])) {
+            // Indicate resource not found
+            return $this->responseNotFound();
+        }
+        // Get the Capsule
+        $capsule = $this->controller->Capsule->findById($this->request->data['id']);
+
+        // See if the User has already discovered the Capsule
+        if ($discovery = $this->controller->Capsule->Discovery->created(
+            $this->request->data['id'],
+            $this->Auth->user('id')
+        )) {
+            // Return the existing Discovery
+            $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $discovery['Discovery']);
+        } else {
+            // Make sure the User is close enough to the Capsule
+            if ($this->controller->Capsule->isReachable(
+                $this->request->data['id'],
+                $this->request->data['lat'],
+                $this->request->data['lng'],
+                Configure::read('Map.UserLocation.DiscoveryRadius')
+            )) {
+                // Attempt to save the Discovery
+                if ($insert = $this->controller->Capsule->Discovery->saveNew(
+                    $this->request->data['id'],
+                    $this->Auth->user('id')
+                )) {
+                    $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $insert['Discovery']);
+                } else {
+                    // There was a server error when trying to save the Discovery
+                    return $this->responseServerError();
+                }
+            } else {
+                // The User was too far away
+                return $this->responseForbidden();
+            }
+        }
 
         // Indicate success
         return $this->responseOk();
@@ -324,6 +379,30 @@ class ApiComponent extends Component {
     }
 
 /**
+ * Sets the status code to indicate that the user is unauthorized
+ *
+ * @return string
+ */
+    private function responseForbidden() {
+        // Indicate the user is unauthorized
+        $this->response->statusCode(403);
+        // Set the body
+        return $this->setBody();
+    }
+
+/**
+ * Sets the status code to indicate a resource was not found
+ *
+ * @return string
+ */
+    private function responseNotFound() {
+        // Indicate resource not found
+        $this->response->statusCode(404);
+        // Set the body
+        return $this->setBody();
+    }
+
+/**
  * Sets the status code to indicate that the request type is not allowed and sets the body
  *
  * @return string
@@ -354,6 +433,53 @@ class ApiComponent extends Component {
  */
     private function setBody() {
         return $this->response->body(json_encode($this->body));
+    }
+
+/**
+ * Builds a Capsule data array to be sent over the wire
+ *
+ * @param $capsule Capsule data
+ * @return array
+ */
+    public static function buildCapsule($capsule) {
+        $data = array();
+        if (isset($capsule['id'])) {
+            $data['id'] = $capsule['id'];
+        }
+        if (isset($capsule['name'])) {
+            $data['name'] = $capsule['name'];
+        }
+        if (isset($capsule['lat'])) {
+            $data['lat'] = $capsule['lat'];
+        }
+        if (isset($capsule['lng'])) {
+            $data['lng'] = $capsule['lng'];
+        }
+        if (isset($capsule['etag'])) {
+            $data['etag'] = $capsule['etag'];
+        }
+        return $data;
+    }
+
+/**
+ * Builds a Discovery data array to be sent over the wire
+ *
+ * @param $capsule Capsule data
+ * @param $discovery Discovery data
+ * @return array
+ */
+    public static function buildDiscovery($capsule, $discovery) {
+        $data = ApiComponent::buildCapsule($capsule);
+        if (isset($discovery['etag'])) {
+            $data['etag'] = $discovery['etag'];
+        }
+        if (isset($discovery['rating'])) {
+            $data['rating'] = $discovery['rating'];
+        }
+        if (isset($discovery['favorite'])) {
+            $data['favorite'] = $discovery['favorite'];
+        }
+        return $data;
     }
 
 }
