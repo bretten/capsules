@@ -570,7 +570,7 @@ class ApiComponent extends Component {
             ))) {
                 // Determine its ID
                 $capsuleId = 0;
-                if (isset($id)) {
+                if ($id) {
                     $capsuleId = $id;
                 } else {
                     $capsuleId = $this->controller->Capsule->getLastInsertId();
@@ -598,8 +598,8 @@ class ApiComponent extends Component {
             $this->controller->Capsule->id = $id;
             // Make sure the Capsule exists and belongs to the User
             if (!$this->controller->Capsule->exists() || !$this->controller->Capsule->ownedBy($this->Auth->user('id'))) {
-                // Indicate the Capsule was not found
-                return $this->responseNotFound();
+                // Indicate a success in case the Capsule was already deleted on the server
+                return $this->responseNoContent();
             }
             // Delete
             if ($this->controller->Capsule->delete()) {
