@@ -198,7 +198,8 @@ class CapsulesController extends AppController {
                 'Capsule' => array(
                     'name',
                     'point',
-                    'user_id'
+                    'user_id',
+                    'etag'
                 )
             );
             if ($id) {
