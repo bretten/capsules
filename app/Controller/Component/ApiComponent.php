@@ -564,9 +564,8 @@ class ApiComponent extends Component {
                 }
             }
             // INSERT or UPDATE a Capsule
-            if ($this->controller->Capsule->saveDiff($data, array(
-                'deep' => true, 'removeHasMany' => 'Memoir', 'associateOwner' => true,
-                'updateCtagForUser' => $this->Auth->user('id')
+            if ($this->controller->Capsule->saveAllWithUploads($data, array(
+                'deep' => true, 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
             ))) {
                 // Determine its ID
                 $capsuleId = 0;
