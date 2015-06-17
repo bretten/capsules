@@ -188,6 +188,11 @@ class CapsulesController extends AppController {
     public function edit($id = null) {
         $this->layout = null;
 
+        // Prevent editing
+        if ($id) {
+            throw new NotImplementedException(__("Currently not implemented"));
+        }
+
         if ($id && (!$this->Capsule->exists($id) || !$this->Capsule->ownedBy($this->Auth->user('id'), $id))) {
             throw new NotFoundException(__('Invalid capsule'));
         }
@@ -214,9 +219,39 @@ class CapsulesController extends AppController {
                 ));
             }
 
-            if ($this->Capsule->saveDiff($this->request->data, array(
-                'deep' => true, 'fieldList' => $fieldList,
-                'removeHasMany' => 'Memoir', 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
+            // Unset the id to prevent editing
+            // TODO Temporary until it is decided how to handle edits
+            unset($this->request->data['Capsule']['id']);
+
+            // Validate the text form inputs
+            if (!isset($this->request->query['validate']) || $this->request->query['validate'] != 'false') {
+                // Turn off autoRender
+                $this->autoRender = false;
+                // Validate only the Memoir text fields
+                $validateOnlyList = array_merge($fieldList, array(
+                    'Memoir' => array('title')
+                ));
+                // Validate
+                if ($this->Capsule->saveAll($this->request->data, array(
+                    'deep' => true, 'fieldList' => $validateOnlyList, 'validate' => 'only'
+                ))) {
+                    $this->response->statusCode(204);
+                } else {
+                    $this->response->statusCode(400);
+                    // Build the response body
+                    $body = array(
+                        'messages' => $this->Capsule->validationErrors
+                    );
+                    // Set the response
+                    $this->response->body(json_encode($body));
+                }
+                return;
+            }
+
+            // Save the Capsule
+            if ($this->Capsule->saveAllWithUploads($this->request->data, array(
+                'deep' => true, 'fieldList' => $fieldList, 'associateOwner' => true,
+                'updateCtagForUser' => $this->Auth->user('id')
             ))) {
                 // Turn off autoRender
                 $this->autoRender = false;
@@ -225,7 +260,6 @@ class CapsulesController extends AppController {
                 $this->Session->setFlash(__('The capsule has been saved.'), 'notification', array('class' => 'alert-success', 'dismissible' => true));
 
                 // Determine the ID of the INSERTed/UPDATEd Capsule
-                $capsuleId;
                 if ($id) {
                     $capsuleId = $id;
                 } else {
@@ -250,11 +284,21 @@ class CapsulesController extends AppController {
                     )
                 );
                 // Send the response
+                $this->response->statusCode(200);
                 $this->response->body(json_encode($body));
                 return;
             } else {
+                // Turn off autoRender
+                $this->autoRender = false;
+                // Indicate a bad request
                 $this->response->statusCode(400);
-                $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'), 'notification', array('class' => 'alert-danger', 'dismissible' => true));
+                // Build the response body
+                $body = array(
+                    'messages' => $this->Capsule->validationErrors
+                );
+                // Set the response
+                $this->response->body(json_encode($body));
+                return;
             }
         } else {
             if ($id) {

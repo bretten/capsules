@@ -130,6 +130,11 @@ Configure::write('Search.Filter.DownVote', 'downvote');
 Configure::write('Search.Filter.NoVote', 'novote');
 
 /**
+ * Upload limits (bytes)
+ */
+Configure::write('Upload.Limit.Image', 5120000);
+
+/**
  * Capsule and Discovery list Pagination
  */
 Configure::write('Pagination.Result.Count', 7);

@@ -213,7 +213,7 @@
                 container.html(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
+                container.html('<?php echo preg_replace('/\r|\n/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
             }
         });
     }
@@ -272,7 +272,7 @@
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
+                container.html('<?php echo preg_replace('/\r|\n/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
             }
         });
     }
@@ -302,7 +302,7 @@
                 container.html(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
+                container.html('<?php echo preg_replace('/\r|\n/', '', $this->element('modal_ajax_error', array('includeStructure' => true))); ?>');
             }
         });
     }
@@ -316,9 +316,80 @@
         // Build the loader markup
         var loader = $('<div/>', {
             class: 'modal-body'
-        }).append($('<?php echo preg_replace('/\s\s+/', '', $this->element('loader')); ?>'));
+        }).append($('<?php echo preg_replace('/\r|\n/', '', $this->element('loader')); ?>'));
         container.append(loader);
     }
+
+    /**
+     * Handles errors returned from the server when submitting the Capsule form
+     */
+    mapView.handleCapsuleFormError = function(container, form, jqXHR, textStatus, errorThrown) {
+        if (jqXHR.hasOwnProperty('responseJSON')) {
+            var json = jqXHR.responseJSON;
+            if (json.hasOwnProperty('messages')) {
+                // Display the Capsule error messages
+                if (json.messages.hasOwnProperty('name') && $.isArray(json.messages.name)) {
+                    var nameErrorContainer = form.find('#CapsuleNameError');
+                    nameErrorContainer.html(json.messages.name.join("<br>"));
+                }
+                // Display the Memoir error messages
+                if (json.messages.hasOwnProperty('Memoir')) {
+                    // Get the Memoir error messages
+                    var memoirMessages = json.messages.Memoir;
+                    if (memoirMessages.length > 0) {
+                        $.each(memoirMessages, function(index, messages) {
+                            // Memoir container
+                            var memoirContainer = form.find('div.memoir[data-id="' + index + '"]');
+                            // Title error
+                            if (messages.hasOwnProperty('title')) {
+                                var titleErrorContainer = memoirContainer.find('#Memoir' + index + 'TitleError');
+                                titleErrorContainer.html(messages.title.join("<br>"));
+                            }
+                            // Message error
+                            if (messages.hasOwnProperty('message')) {
+                                var messageErrorContainer = memoirContainer.find('#Memoir' + index + 'MessageError');
+                                messageErrorContainer.html(messages.message.join("<br>"));
+                            }
+                            // File error
+                            if (messages.hasOwnProperty('file')) {
+                                var fileErrorContainer = memoirContainer.find('#Memoir' + index + 'FileError');
+                                fileErrorContainer.html(messages.file.join("<br>"));
+                            }
+                        });
+                    }
+                }
+            }
+            return true;
+        } else {
+            container.html('<?php echo preg_replace('/\r|\n/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
+        }
+        return false;
+    };
+
+    /**
+     * Submits a request for validation of a Capsule
+     */
+    mapView.submitCapsuleFormValidationRequest = function(container, form) {
+        // Submit the form
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action') + "?validate=true",
+            data: form.find('input').not(':file').serialize(),
+            dataType: 'json',
+            beforeSend: function(jqXHR, settings) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
+            },
+            complete: function(jqXHR, textStatus) {
+                container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').hide();
+            },
+            success: function(data, textStatus, jqXHR) {
+                mapView.submitCapsuleFormRequest(container, form);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                mapView.handleCapsuleFormError(container, form, jqXHR, textStatus, errorThrown);
+            }
+        });
+    };
 
     /**
      * Submits a request for editing a Capsule
@@ -327,9 +398,11 @@
         // Submit the form
         $.ajax({
             type: 'POST',
-            url: form.attr('action'),
-            data: form.serialize(),
+            url: form.attr('action') + "?validate=false",
+            data: new FormData(form[0]),
             dataType: 'json',
+            processData: false,
+            contentType: false,
             beforeSend: function(jqXHR, settings) {
                 container.closest('.modal').find('.modal-dialog > .modal-content > .modal-header > .modal-loader').show();
             },
@@ -378,11 +451,7 @@
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                if (jqXHR.hasOwnProperty('responseText')) {
-                    container.html(jqXHR.responseText);
-                } else {
-                    container.html('<?php echo preg_replace('/\s\s+/', '', $this->element('modal_ajax_error', array('includeStructure' => false))); ?>');
-                }
+                mapView.handleCapsuleFormError(container, form, jqXHR, textStatus, errorThrown);
             }
         });
     }
@@ -888,21 +957,13 @@
                 var lat = latLng.lat();
                 var lng = latLng.lng();
 
-                // Append the lat/lng inputs
-                $('<input/>', {
-                    type: 'hidden',
-                    name: 'data[Capsule][lat]',
-                    value: lat
-                }).appendTo(form);
-                $('<input/>', {
-                    type: 'hidden',
-                    name: 'data[Capsule][lng]',
-                    value: lng
-                }).appendTo(form);
+                // Set the lat/lng values
+                form.find('#CapsuleLat').val(lat);
+                form.find('#CapsuleLng').val(lng);
             }
 
             // Submit the form request
-            mapView.submitCapsuleFormRequest(container, form);
+            mapView.submitCapsuleFormValidationRequest(container, form);
         });
     });
 </script>
