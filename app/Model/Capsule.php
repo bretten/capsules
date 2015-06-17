@@ -56,8 +56,7 @@ class Capsule extends AppModel {
         'Resource' => array(
             'etagField' => 'etag',
             'autoSave' => true
-        ),
-        'Has'
+        )
     );
 
 /**
@@ -211,37 +210,6 @@ class Capsule extends AppModel {
     }
 
 /**
- * Before save method
- *
- * @param array $options Options passed from Model::save().
- * @return boolean true to continue, false to abort the save
- */
-    public function beforeSave($options = array()) {
-        // Use the latitude and longitude values in a MySQL expression to save a POINT data type
-        if (isset($this->data[$this->alias]['lat']) && isset($this->data[$this->alias]['lng'])) {
-            $dataSource = $this->getDataSource();
-            $this->data[$this->alias]['point'] = $dataSource->expression("POINT(" . $this->data[$this->alias]['lat'] . ", " . $this->data[$this->alias]['lng'] . ")");
-        } elseif (isset($this->data['lat']) && isset($this->data['lng'])) {
-            $dataSource = $this->getDataSource();
-            $this->data['point'] = $dataSource->expression("POINT(" . $this->data['lat'] . ", " . $this->data['lng'] . ")");
-        }
-        return true;
-    }
-
-/**
- * After save callback
- *
- * @param boolean $created INSERT or UPDATE
- * @param array $options Options passed from Model::save().
- */
-    public function afterSave($created, $options = array()) {
-        // Update the Capsule ctag for the User owner
-        if (isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
-            $this->User->updateCtag('ctag_capsules', $options['updateCtagForUser']);
-        }
-    }
-
-/**
  * Before delete callback
  *
  * @param boolean $cascade
@@ -254,42 +222,6 @@ class Capsule extends AppModel {
             $userId = $this->field('user_id', array('Capsule.id' => $this->id));
             $this->User->updateCtag('ctag_capsules', $userId);
         }
-    }
-
-/**
- * Before commit callback
- *
- * Called before a transaction occurs
- *
- * @param array $data
- * @return boolean true to continue with the transaction, false to flag for a rollback
- */
-    public function beforeCommit($data) {
-        // Create a CapsulePoint corresponding to the latitude and longitude
-        if (isset($data[$this->name]['lat']) && isset($data[$this->name]['lng'])) {
-            $capsuleId = (isset($data[$this->name][$this->primaryKey]) && $data[$this->name][$this->primaryKey]) ? $data[$this->name][$this->primaryKey] : $this->getLastInsertID();
-            $dataSource = $this->CapsulePoint->getDataSource();
-            if ($exists = $this->CapsulePoint->created($capsuleId)) {
-                return $this->CapsulePoint->updateAll(
-                    array(
-                        'CapsulePoint.point' => "POINT(" . $data[$this->name]['lat'] . ", " . $data[$this->name]['lng'] . ")"
-                    ),
-                    array(
-                        'CapsulePoint.capsule_id' => $capsuleId
-                    )
-                );
-            } else {
-                $this->CapsulePoint->create();
-                $point = array();
-                $point[$this->CapsulePoint->name] = array(
-                    'capsule_id' => $this->getLastInsertID(),
-                    'point' => $dataSource->expression("POINT(" . $data[$this->name]['lat'] . ", " . $data[$this->name]['lng'] . ")")
-                );
-                return (boolean)$this->CapsulePoint->save($point);
-            }
-        }
-
-        return true;
     }
 
 /**
@@ -457,6 +389,84 @@ class Capsule extends AppModel {
         $query = array_merge_recursive($query, $append);
 
         return (boolean)$this->getInRadius($lat, $lng, $radius, $query);
+    }
+
+/**
+ * Saves a single Capsule along with its CapsulePoint and Memoirs
+ *
+ * @param array $data The data to save
+ * @param array $options Save options
+ * @return mixed True on success, otherwise false on failure
+ */
+    public function saveAllWithUploads($data = array(), $options = array()) {
+        // Handle all Memoir uploads separately from database transaction to prevent locking longer than needed
+        $memoirValidationErrors = array();
+        if (isset($data['Memoir']) && is_array($data['Memoir'])) {
+            foreach ($data['Memoir'] as $key => &$memoir) {
+                // Validate and process the upload
+                $fileData = $this->Memoir->handleImageUpload($memoir['file']);
+                // Add the file data to the Memoir so it can be saved
+                if ($fileData) {
+                    $memoir = array_merge($memoir, $fileData);
+                }
+                // Add any errors to the corresponding Memoir error array
+                $errors = $this->Memoir->getUploadValidationMessages();
+                if (!empty($errors)) {
+                    $memoirValidationErrors['Memoir'][$key]['file'] = $errors;
+                }
+            }
+        }
+
+        // Get the data source
+        $dataSource = $this->getDataSource();
+        // Begin the transaction
+        $dataSource->begin();
+        // Flag to determine if the transaction should be committed
+        $commit = true;
+
+        // Calculate the spatial data since Cake's saveAll escapes data
+        $pointData = $dataSource->query(sprintf("SELECT POINT(%s, %s) as PointData", $data['Capsule']['lat'], $data['Capsule']['lng']));
+        // Add the spatial data to be saved
+        $data['CapsulePoint'] = array(
+            'point' => $pointData[0][0]['PointData']
+        );
+        // Remove validation for the file input
+        $this->Memoir->validator()->remove('file');
+        // Save Capsule, Memoir, and CapsulePoint data
+        if (!$result = $this->saveAll($data, $options)) {
+            $commit = false;
+        }
+        // Update the Capsule ctag for the User owner
+        if ($commit && isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
+            if (!$this->User->updateCtag('ctag_capsules', $options['updateCtagForUser'])) {
+                $commit = false;
+            }
+        }
+
+        // Commit the transaction or roll it back
+        if ($commit) {
+            $dataSource->commit();
+        } else {
+            $dataSource->rollback();
+            // Delete the uploaded files
+            if (isset($data['Memoir']) && is_array($data['Memoir'])) {
+                foreach ($data['Memoir'] as $memoir) {
+                    if (isset($memoir['file_location']) && isset($memoir['file_public_name'])) {
+                        unlink($memoir['file_location'] . DS . $memoir['file_public_name']);
+                    }
+                }
+            }
+            // Add any Memoir errors to the validationErrors array
+            $this->validationErrors = Hash::merge($this->validationErrors, $memoirValidationErrors);
+            // Remove validation messages that don't need to be shown publicly
+            $this->validationErrors = Hash::remove($this->validationErrors, 'Memoir.{n}.file_location');
+            $this->validationErrors = Hash::remove($this->validationErrors, 'Memoir.{n}.file_public_name');
+            $this->validationErrors = Hash::remove($this->validationErrors, 'Memoir.{n}.file_original_name');
+            $this->validationErrors = Hash::remove($this->validationErrors, 'Memoir.{n}.file_type');
+            $this->validationErrors = Hash::remove($this->validationErrors, 'Memoir.{n}.file_size');
+        }
+
+        return $result;
     }
 
 }
