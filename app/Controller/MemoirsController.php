@@ -16,6 +16,48 @@ class MemoirsController extends AppController {
     public $components = array('Paginator');
 
 /**
+ * beforeFilter method
+ *
+ * @return void
+ */
+    public function beforeFilter() {
+        parent::beforeFilter();
+        $this->Auth->allow(array('image'));
+    }
+
+/**
+ * Serves images after the User is authenticated and the Memoir is queried from the database
+ *
+ * @param $id ID of the Memoir
+ */
+    public function image($id) {
+        $this->autoRender = false;
+        $this->layout = false;
+        // Make sure the User is authenticated
+        if (!$this->Auth->user()) {
+            $this->response->statusCode(401);
+            return;
+        }
+        // Try to find the Memoir
+        $memoir = $this->Memoir->find('first', array(
+            'conditions' => array(
+                'Memoir.id' => $id
+            )
+        ));
+        // If it does not exist, indicate it was not found
+        if (!$memoir) {
+            $this->response->statusCode(404);
+            return;
+        }
+        // Add headers to indicate an image is being served
+        header("Content-Type: " . $memoir['Memoir']['file_type']);
+        header("Content-Length: " . $memoir['Memoir']['file_size']);
+        header("Last-Modified: " . date(DATE_RFC2822, strtotime($memoir['Memoir']['modified'])));
+        // Set the image as the response body
+        readfile($memoir['Memoir']['file_location'] . DS . $memoir['Memoir']['file_public_name']);
+    }
+
+/**
  * index method
  *
  * @return void

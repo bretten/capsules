@@ -4,6 +4,22 @@
     <?php echo $this->element('loader'); ?>
 </div>
 <div class="modal-body">
+    <div class="container-fluid">
+        <?php foreach ($capsule['Memoir'] as $memoir) : ?>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>
+                        <?= $memoir['title']; ?>
+                        <small><?= $memoir['message']; ?></small>
+                    </h3>
+                    <a href="/memoirs/image/<?= $memoir['id']; ?>" class="thumbnail" target="_blank">
+                        <img class="img-responsive" src="/memoirs/image/<?= $memoir['id']; ?>"
+                             alt="<?= $memoir['title']; ?>">
+                    </a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
 <?php if ($isOwned || $discovery) : ?>
     <?php if ($isOwned) : ?>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-capsule-editor" data-id="<?php echo $capsule['Capsule']['id']; ?>">

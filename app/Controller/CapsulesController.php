@@ -94,6 +94,11 @@ class CapsulesController extends AppController {
         $capsule = $this->Capsule->find('first', array(
             'conditions' => array(
                 'Capsule.id' => $this->request->data['id']
+            ),
+            'contain' => array(
+                'Memoir' => array(
+                    'fields' => array('Memoir.id', 'Memoir.title', 'Memoir.message')
+                )
             )
         ));
 
