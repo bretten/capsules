@@ -9,6 +9,17 @@ App::uses('AppModel', 'Model');
 class Memoir extends AppModel {
 
 /**
+ * actsAs
+ *
+ * @var array
+ */
+    public $actsAs = array(
+        'HandleUpload' => array(
+            'currentModel' => 'Memoir'
+        )
+    );
+
+/**
  * belongsTo associations
  *
  * @var array
