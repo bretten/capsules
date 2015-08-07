@@ -64,6 +64,15 @@ if (!defined('APP_DIR')) {
 //define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'lib');
 
 /**
+ * Sets the Cake library folder to be the one installed by composer.
+ */
+$vendorPath = ROOT . DS . APP_DIR . DS . 'Vendor' . DS . 'cakephp' . DS . 'cakephp' . DS . 'lib';
+$dispatcher = 'Cake' . DS . 'Console' . DS . 'ShellDispatcher.php';
+if (!defined('CAKE_CORE_INCLUDE_PATH') && file_exists($vendorPath . DS . $dispatcher)) {
+    define('CAKE_CORE_INCLUDE_PATH', $vendorPath);
+}
+
+/**
  * Editing below this line should NOT be necessary.
  * Change at your own risk.
  *
