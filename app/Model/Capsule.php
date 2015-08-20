@@ -403,6 +403,10 @@ class Capsule extends AppModel {
         $memoirValidationErrors = array();
         if (isset($data['Memoir']) && is_array($data['Memoir'])) {
             foreach ($data['Memoir'] as $key => &$memoir) {
+                // Make sure the file key exists
+                if (!isset($memoir['file'])) {
+                    $memoir['file'] = array();
+                }
                 // Validate and process the upload
                 $fileData = $this->Memoir->handleImageUpload($memoir['file']);
                 // Add the file data to the Memoir so it can be saved

@@ -74,8 +74,9 @@ class HandleUploadBehavior extends ModelBehavior {
         // Clear the validation errors
         $this->validationErrors = array();
         // Check the file upload data for the required keys
-        if (!isset($fileUploadData['name']) || !isset($fileUploadData['type']) || !isset($fileUploadData['tmp_name'])
-            || !isset($fileUploadData['error']) || !isset($fileUploadData['size'])
+        if (!$fileUploadData || !isset($fileUploadData['name']) || !isset($fileUploadData['type'])
+            || !isset($fileUploadData['tmp_name']) || !isset($fileUploadData['error'])
+            || !isset($fileUploadData['size'])
         ) {
             $this->addValidationError(__("Please choose a file."));
             return false;
