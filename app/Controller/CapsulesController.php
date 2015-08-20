@@ -188,123 +188,30 @@ class CapsulesController extends AppController {
  *
  * @throws NotFoundException
  * @param string $id
- * @return void
  */
     public function edit($id = null) {
         $this->layout = null;
-
-        // Prevent editing
-        if ($id) {
-            throw new NotImplementedException(__("Currently not implemented"));
-        }
 
         if ($id && (!$this->Capsule->exists($id) || !$this->Capsule->ownedBy($this->Auth->user('id'), $id))) {
             throw new NotFoundException(__('Invalid capsule'));
         }
 
         if ($this->request->is(array('post', 'put'))) {
-            // Handle some Capsule data here to prevent form tampering
-            $fieldList = array(
-                'Capsule' => array(
-                    'name',
-                    'point',
-                    'user_id',
-                    'etag'
-                )
-            );
-            if ($id) {
-                $this->request->data['Capsule']['id'] = $id;
-                unset($this->request->data['Capsule']['lat']);
-                unset($this->request->data['Capsule']['lng']);
-            } else {
-                $fieldList = array_merge_recursive($fieldList, array(
-                    'Capsule' => array(
-                        'lat', 'lng'
-                    )
-                ));
-            }
+            // Do not render a view
+            $this->autoRender = false;
+            $this->layout = false;
 
-            // Unset the id to prevent editing
-            // TODO Temporary until it is decided how to handle edits
-            unset($this->request->data['Capsule']['id']);
+            // Let the ApiComponent handle the request
+            $this->Api->capsule($id);
 
-            // Validate the text form inputs
-            if (!isset($this->request->query['validate']) || $this->request->query['validate'] != 'false') {
-                // Turn off autoRender
-                $this->autoRender = false;
-                // Validate only the Memoir text fields
-                $validateOnlyList = array_merge($fieldList, array(
-                    'Memoir' => array('title')
-                ));
-                // Validate
-                if ($this->Capsule->saveAll($this->request->data, array(
-                    'deep' => true, 'fieldList' => $validateOnlyList, 'validate' => 'only'
-                ))) {
-                    $this->response->statusCode(204);
-                } else {
-                    $this->response->statusCode(400);
-                    // Build the response body
-                    $body = array(
-                        'messages' => $this->Capsule->validationErrors
-                    );
-                    // Set the response
-                    $this->response->body(json_encode($body));
-                }
-                return;
-            }
+            // Determine if this is a validation only request
+            $isValidation = !isset($this->request->query['validate']) || $this->request->query['validate'] != 'false';
 
-            // Save the Capsule
-            if ($this->Capsule->saveAllWithUploads($this->request->data, array(
-                'deep' => true, 'fieldList' => $fieldList, 'associateOwner' => true,
-                'updateCtagForUser' => $this->Auth->user('id')
-            ))) {
-                // Turn off autoRender
-                $this->autoRender = false;
-
-                // Flash message
+            // If the response was a success, display a success message
+            if (!$isValidation && $this->response->statusCode() >= 200 && $this->response->statusCode() <= 299) {
                 $this->Session->setFlash(__('The capsule has been saved.'), 'notification', array('class' => 'alert-success', 'dismissible' => true));
-
-                // Determine the ID of the INSERTed/UPDATEd Capsule
-                if ($id) {
-                    $capsuleId = $id;
-                } else {
-                    $capsuleId = $this->Capsule->getLastInsertID();
-                }
-
-                // Get the Capsule
-                $capsule = $this->Capsule->find('first', array(
-                    'conditions' => array(
-                        'Capsule.id' => $capsuleId
-                    )
-                ));
-
-                // Build the response body
-                $body = array(
-                    'capsule' => array(
-                        'isNew' => ($id) ? false : true,
-                        'id' => $capsule['Capsule']['id'],
-                        'lat' => $capsule['Capsule']['lat'],
-                        'lng' => $capsule['Capsule']['lng'],
-                        'name' => $capsule['Capsule']['name']
-                    )
-                );
-                // Send the response
-                $this->response->statusCode(200);
-                $this->response->body(json_encode($body));
-                return;
-            } else {
-                // Turn off autoRender
-                $this->autoRender = false;
-                // Indicate a bad request
-                $this->response->statusCode(400);
-                // Build the response body
-                $body = array(
-                    'messages' => $this->Capsule->validationErrors
-                );
-                // Set the response
-                $this->response->body(json_encode($body));
-                return;
             }
+            return;
         } else {
             if ($id) {
                 $options = array(

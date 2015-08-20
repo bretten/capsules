@@ -411,42 +411,43 @@
             },
             success: function(data, textStatus, jqXHR) {
                 // Render the view
-                if (data.hasOwnProperty('capsule')) {
+                if (data.hasOwnProperty('data') && data.data.hasOwnProperty('capsule')) {
                     // Check if the Capsule is new
                     var marker;
-                    if (data.capsule.hasOwnProperty('isNew') && data.capsule.isNew == true) {
+                    var capsuleData = data.data.capsule;
+                    if (capsuleData.hasOwnProperty('isNew') && capsuleData.isNew == true) {
                         // Create the Marker
                         marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(data.capsule.lat, data.capsule.lng),
-                            title: data.capsule.name,
+                            position: new google.maps.LatLng(capsuleData.lat, capsuleData.lng),
+                            title: capsuleData.name,
                             icon: mapView.ICON_CAPSULE_OWNERSHIP,
                             visible: $('#toggle-owned').prop('checked'),
-                            capsuleId: data.capsule.id
+                            capsuleId: capsuleData.id
                         });
                         // Add the Marker to the Map
                         marker.setMap(gmap.map);
                         // Add the Marker to the collection of Markers
-                        mapView.ownedMarkers[data.capsule.id] = marker;
+                        mapView.ownedMarkers[capsuleData.id] = marker;
                         // Remove the new Capsule Marker
                         mapView.newCapsuleMarker.setMap(null);
                         mapView.newCapsuleMarker.setAnimation(google.maps.Animation.DROP);
                     } else {
                         // Get the Marker that has already been created
-                        marker = mapView.ownedMarkers[data.capsule.id];
+                        marker = mapView.ownedMarkers[capsuleData.id];
                         // Update the Marker data with the data from the server
-                        marker.setTitle(data.capsule.name);
+                        marker.setTitle(capsuleData.name);
                         // Remove the listener
                         google.maps.event.clearListeners(marker, 'click');
                     }
 
                     if (typeof marker !== 'undefined') {
                         // Add the Marker InfoWindow event listener
-                        gmap.setupMarkerInfoWindow(marker, data.capsule, false /* isUndiscovered */);
-                        google.maps.event.trigger(mapView.ownedMarkers[data.capsule.id], 'click');
+                        gmap.setupMarkerInfoWindow(marker, capsuleData, false /* isUndiscovered */);
+                        google.maps.event.trigger(mapView.ownedMarkers[capsuleData.id], 'click');
                     }
 
                     // Open the previous modal
-                    $('#modal-capsule-info').data('id', data.capsule.id);
+                    $('#modal-capsule-info').data('id', capsuleData.id);
                     $('#modal-capsule-info').modal('show');
                 }
             },

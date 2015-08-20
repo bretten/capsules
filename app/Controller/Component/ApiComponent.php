@@ -550,32 +550,74 @@ class ApiComponent extends Component {
 
         // Vary the action based on the HTTP method
         if ($this->request->is('post')) {
-            // Build the data to save
-            $data = array(
-                'Capsule' => $this->request->data
+            // TODO Decide if editing should be allowed
+            if ($id) {
+                return $this->responseNotAllowed();
+            }
+
+            // Handle some Capsule data here to prevent form tampering
+            $fieldList = array(
+                'Capsule' => array(
+                    'name',
+                    'point',
+                    'user_id',
+                    'etag'
+                )
             );
             if ($id) {
-                $data['Capsule']['id'] = $id;
+                $this->request->data['Capsule']['id'] = $id;
+                unset($this->request->data['Capsule']['lat']);
+                unset($this->request->data['Capsule']['lng']);
                 // Make sure the Capsule exists and that it belongs to the User
                 if (!$this->controller->Capsule->exists($id)
-                    || !$this->controller->Capsule->ownedBy($this->Auth->user('id'), $id)) {
+                    || !$this->controller->Capsule->ownedBy($this->Auth->user('id'), $id)
+                ) {
                     // Indicate the Capsule was not found
                     return $this->responseNotFound();
                 }
+            } else {
+                $fieldList = array_merge_recursive($fieldList, array(
+                    'Capsule' => array(
+                        'lat', 'lng'
+                    )
+                ));
             }
-            // INSERT or UPDATE a Capsule
-            if ($this->controller->Capsule->saveAllWithUploads($data, array(
-                'deep' => true, 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
-            ))) {
-                // Determine its ID
-                $capsuleId = 0;
+
+            // Validate the text form inputs
+            if (!isset($this->request->query['validate']) || $this->request->query['validate'] != 'false') {
+                // Validate only the Memoir text fields
+                $validateOnlyList = array_merge($fieldList, array(
+                    'Memoir' => array('title')
+                ));
+                // Validate
+                if ($this->controller->Capsule->saveAll($this->request->data, array(
+                    'deep' => true, 'fieldList' => $validateOnlyList, 'validate' => 'only'
+                ))
+                ) {
+                    // Indicate no content
+                    return $this->responseNoContent();
+                } else {
+                    // Build the response body
+                    $this->body['messages'] = $this->controller->Capsule->validationErrors;
+                    // Indicate a bad request
+                    return $this->responseBadRequest();
+                }
+            }
+
+            // Save the Capsule
+            if ($this->controller->Capsule->saveAllWithUploads($this->request->data, array(
+                'deep' => true, 'fieldList' => $fieldList, 'associateOwner' => true,
+                'updateCtagForUser' => $this->Auth->user('id')
+            ))
+            ) {
+                // Determine the ID of the INSERTed/UPDATEd Capsule
                 if ($id) {
                     $capsuleId = $id;
                 } else {
-                    $capsuleId = $this->controller->Capsule->getLastInsertId();
+                    $capsuleId = $this->controller->Capsule->getLastInsertID();
                 }
 
-                // Get the new Capsule data
+                // Get the Capsule
                 $capsule = $this->controller->Capsule->find('first', array(
                     'conditions' => array(
                         'Capsule.id' => $capsuleId,
@@ -583,11 +625,24 @@ class ApiComponent extends Component {
                     ),
                     'fields' => array('Capsule.id', 'Capsule.name', 'Capsule.lat', 'Capsule.lng', 'Capsule.etag')
                 ));
-                if ($capsule) {
-                    $this->body['data']['capsule'] = $capsule['Capsule'];
-                    // Indicate a success
-                    return $this->responseOk();
-                }
+
+                // Build the response body
+                $this->body['data'] = array(
+                    'capsule' => array(
+                        'isNew' => ($id) ? false : true,
+                        'id' => $capsule['Capsule']['id'],
+                        'lat' => $capsule['Capsule']['lat'],
+                        'lng' => $capsule['Capsule']['lng'],
+                        'name' => $capsule['Capsule']['name']
+                    )
+                );
+                // Indicate a success
+                return $this->responseOk();
+            } else {
+                // Build the response body
+                $this->body['messages'] = $this->controller->Capsule->validationErrors;
+                // Indicate a bad request
+                return $this->responseBadRequest();
             }
 
             // If the POST request made it here, then something went wrong
