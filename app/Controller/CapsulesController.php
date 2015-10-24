@@ -1,5 +1,6 @@
 <?php
 App::uses('AppController', 'Controller');
+
 /**
  * Capsules Controller
  *
@@ -8,25 +9,25 @@ App::uses('AppController', 'Controller');
  */
 class CapsulesController extends AppController {
 
-/**
- * Components
- *
- * @var array
- */
+    /**
+     * Components
+     *
+     * @var array
+     */
     public $components = array('Api', 'Paginator', 'RequestHandler', 'PaginatorBounding');
 
-/**
- * Helpers
- *
- * @var array
- */
+    /**
+     * Helpers
+     *
+     * @var array
+     */
     public $helpers = array('Js');
 
-/**
- * index method
- *
- * @return void
- */
+    /**
+     * index method
+     *
+     * @return void
+     */
     public function index() {
         if (!$this->request->is('ajax')) {
             throw new MethodNotAllowedException(__('Invalid request'));
@@ -71,13 +72,13 @@ class CapsulesController extends AppController {
         $this->set(compact('search'));
     }
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * view method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function view() {
         $this->autoRender = false;
         $this->layout = 'ajax';
@@ -123,12 +124,12 @@ class CapsulesController extends AppController {
                     $this->request->data['id'],
                     $this->request->data['lat'],
                     $this->request->data['lng'],
-                    Configure::read('Map.UserLocation.DiscoveryRadius')
-                )) {
+                    Configure::read('Map.UserLocation.DiscoveryRadius'))
+                ) {
                     if ($discovery = $this->Capsule->Discovery->saveNew(
                         $this->request->data['id'],
-                        $this->Auth->user('id')
-                    )) {
+                        $this->Auth->user('id'))
+                    ) {
                         $isNewDiscovery = true;
                         $this->Session->setFlash(__('Congratulations!  You have discovered a new Capsule!'), 'notification', array('class' => 'alert-success', 'dismissible' => true));
                     } else {
@@ -164,17 +165,17 @@ class CapsulesController extends AppController {
         $this->response->body(json_encode($body));
     }
 
-/**
- * add method
- *
- * @return void
- */
+    /**
+     * add method
+     *
+     * @return void
+     */
     public function add() {
         if ($this->request->is('post')) {
             $this->Capsule->create();
             if ($this->Capsule->saveAll($this->request->data, array(
-                'deep' => true, 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')
-            ))) {
+                'deep' => true, 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')))
+            ) {
                 $this->Session->setFlash(__('The capsule has been saved.'));
                 return $this->redirect(array('action' => 'index'));
             } else {
@@ -183,12 +184,12 @@ class CapsulesController extends AppController {
         }
     }
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- */
+    /**
+     * edit method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     */
     public function edit($id = null) {
         $this->layout = null;
 
@@ -231,11 +232,11 @@ class CapsulesController extends AppController {
         $this->render('add');
     }
 
-/**
- * delete method
- *
- * @param string $id
- */
+    /**
+     * delete method
+     *
+     * @param string $id
+     */
     public function delete($id = null) {
         // Do not render a view
         $this->autoRender = false;
@@ -254,22 +255,22 @@ class CapsulesController extends AppController {
         }
     }
 
-/**
- * map method
- *
- * Displays the map
- *
- * @return void
- */
+    /**
+     * map method
+     *
+     * Displays the map
+     *
+     * @return void
+     */
     public function map() {
-    
+
     }
 
-/**
- * Internal API method to return markers to the web version of the map
- *
- * @return void
- */
+    /**
+     * Internal API method to return markers to the web version of the map
+     *
+     * @return void
+     */
     public function points() {
         $this->autoRender = false;
         $this->layout = 'ajax';
@@ -277,11 +278,11 @@ class CapsulesController extends AppController {
         $this->Api->points();
     }
 
-/**
- * Returns undiscovered markers to the web version of the map
- *
- * @return void
- */
+    /**
+     * Returns undiscovered markers to the web version of the map
+     *
+     * @return void
+     */
     public function ping() {
         $this->autoRender = false;
         $this->layout = 'ajax';

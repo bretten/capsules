@@ -13,36 +13,36 @@ App::uses('Component', 'Controller');
  */
 class PaginatorBoundingComponent extends Component {
 
-/**
- * Settings
- *
- * @var array
- */
+    /**
+     * Settings
+     *
+     * @var array
+     */
     public $settings = array(
         'limit' => 20
     );
 
-/**
- * Request object
- *
- * @var CakeRequest
- */
+    /**
+     * Request object
+     *
+     * @var CakeRequest
+     */
     public $request;
 
-/**
- * A reference to the Controller's PaginatorComponent
- *
- * @var PaginatorComponent
- */
+    /**
+     * A reference to the Controller's PaginatorComponent
+     *
+     * @var PaginatorComponent
+     */
     public $Paginator;
 
-/**
- * Constructor
- *
- * @param ComponentCollection $collection
- * @param array $settings
- * @return void
- */
+    /**
+     * Constructor
+     *
+     * @param ComponentCollection $collection
+     * @param array $settings
+     * @return void
+     */
     public function __construct(ComponentCollection $collection, $settings = array()) {
         $this->_Collection = $collection;
         $this->settings = array_merge($this->settings, $settings);
@@ -52,23 +52,23 @@ class PaginatorBoundingComponent extends Component {
         }
     }
 
-/**
- * Called before the Controller's beforeFilter
- *
- * @param Controller $controller
- * @return void
- */
+    /**
+     * Called before the Controller's beforeFilter
+     *
+     * @param Controller $controller
+     * @return void
+     */
     public function initialize(Controller $controller) {
         $this->request = $controller->request;
         $this->Paginator = $controller->Paginator;
     }
 
-/**
- * Sets the query limit of the Paginator query
- *
- * @param int $limit
- * @return void
- */
+    /**
+     * Sets the query limit of the Paginator query
+     *
+     * @param int $limit
+     * @return void
+     */
     public function setLimit($limit) {
         if (is_int($limit)) {
             $this->settings['limit'] = $limit;
@@ -77,13 +77,13 @@ class PaginatorBoundingComponent extends Component {
         }
     }
 
-/**
- * Checks to make sure that the current query's page does not exceed the actual number of pages
- *
- * @param Model $queryModel The model the query will be carried out on
- * @param array $query The query/settings that will be passed to the PaginatorComponent
- * @return void
- */
+    /**
+     * Checks to make sure that the current query's page does not exceed the actual number of pages
+     *
+     * @param Model $queryModel The model the query will be carried out on
+     * @param array $query The query/settings that will be passed to the PaginatorComponent
+     * @return void
+     */
     public function checkBounds(Model $queryModel, $query = array()) {
         // Make sure that the current page does not exceed the actual number of pages
         if (isset($this->request->params['named']['page'])) {

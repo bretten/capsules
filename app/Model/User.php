@@ -1,5 +1,6 @@
 <?php
 App::uses('AppModel', 'Model');
+
 /**
  * User Model
  *
@@ -8,11 +9,11 @@ App::uses('AppModel', 'Model');
  */
 class User extends AppModel {
 
-/**
- * actsAs
- *
- * @var array
- */
+    /**
+     * actsAs
+     *
+     * @var array
+     */
     public $actsAs = array(
         'User' => array(
             'passwordField' => 'password',
@@ -24,45 +25,45 @@ class User extends AppModel {
         )
     );
 
-/**
- * hasMany associations
- *
- * @var array
- */
-	public $hasMany = array(
-		'Capsule' => array(
-			'className' => 'Capsule',
-			'foreignKey' => 'user_id',
-			'dependent' => true,
-			'conditions' => '',
-			'fields' => '',
-			'order' => '',
-			'limit' => '',
-			'offset' => '',
-			'exclusive' => '',
-			'finderQuery' => '',
-			'counterQuery' => ''
-		),
-		'Discovery' => array(
-			'className' => 'Discovery',
-			'foreignKey' => 'user_id',
-			'dependent' => true,
-			'conditions' => '',
-			'fields' => '',
-			'order' => '',
-			'limit' => '',
-			'offset' => '',
-			'exclusive' => '',
-			'finderQuery' => '',
-			'counterQuery' => ''
-		)
-	);
+    /**
+     * hasMany associations
+     *
+     * @var array
+     */
+    public $hasMany = array(
+        'Capsule' => array(
+            'className' => 'Capsule',
+            'foreignKey' => 'user_id',
+            'dependent' => true,
+            'conditions' => '',
+            'fields' => '',
+            'order' => '',
+            'limit' => '',
+            'offset' => '',
+            'exclusive' => '',
+            'finderQuery' => '',
+            'counterQuery' => ''
+        ),
+        'Discovery' => array(
+            'className' => 'Discovery',
+            'foreignKey' => 'user_id',
+            'dependent' => true,
+            'conditions' => '',
+            'fields' => '',
+            'order' => '',
+            'limit' => '',
+            'offset' => '',
+            'exclusive' => '',
+            'finderQuery' => '',
+            'counterQuery' => ''
+        )
+    );
 
-/**
- * validate
- *
- * @var array
- */
+    /**
+     * validate
+     *
+     * @var array
+     */
     public $validate = array(
         'username' => array(
             'notEmpty' => array(
@@ -98,13 +99,13 @@ class User extends AppModel {
         )
     );
 
-/**
- * Updates the specified ctag field for the given User.
- *
- * @param string $ctag
- * @param int $userId
- * @return boolean
- */
+    /**
+     * Updates the specified ctag field for the given User.
+     *
+     * @param string $ctag
+     * @param int $userId
+     * @return boolean
+     */
     public function updateCtag($ctag, $userId) {
         return $this->updateAll(
             array('User.' . $ctag => "'" . md5(time()) . "'"),

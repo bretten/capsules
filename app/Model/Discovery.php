@@ -1,5 +1,6 @@
 <?php
 App::uses('AppModel', 'Model');
+
 /**
  * Discovery Model
  *
@@ -8,11 +9,11 @@ App::uses('AppModel', 'Model');
  */
 class Discovery extends AppModel {
 
-/**
- * actsAs
- *
- * @var array
- */
+    /**
+     * actsAs
+     *
+     * @var array
+     */
     public $actsAs = array(
         'Belongs' => array(
             'userPrimaryKey' => 'id',
@@ -24,11 +25,11 @@ class Discovery extends AppModel {
         )
     );
 
-/**
- * belongsTo associations
- *
- * @var array
- */
+    /**
+     * belongsTo associations
+     *
+     * @var array
+     */
     public $belongsTo = array(
         'Capsule' => array(
             'className' => 'Capsule',
@@ -46,11 +47,11 @@ class Discovery extends AppModel {
         )
     );
 
-/**
- * validate
- *
- * @var array
- */
+    /**
+     * validate
+     *
+     * @var array
+     */
     public $validate = array(
         'favorite' => array(
             'boolean' => array(
@@ -66,12 +67,12 @@ class Discovery extends AppModel {
         )
     );
 
-/**
- * After save callback
- *
- * @param boolean $created INSERT or UPDATE
- * @param array $options Options passed from Model::save().
- */
+    /**
+     * After save callback
+     *
+     * @param boolean $created INSERT or UPDATE
+     * @param array $options Options passed from Model::save().
+     */
     public function afterSave($created, $options = array()) {
         // Update the Capsule ctag for the User owner
         if (isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
@@ -79,12 +80,12 @@ class Discovery extends AppModel {
         }
     }
 
-/**
- * Before delete callback
- *
- * @param boolean $cascade
- * @return void
- */
+    /**
+     * Before delete callback
+     *
+     * @param boolean $cascade
+     * @return void
+     */
     public function beforeDelete($cascade = true) {
         // Update the Capsule ctag for the User
         if (isset($this->id)) {
@@ -94,13 +95,13 @@ class Discovery extends AppModel {
         }
     }
 
-/**
- * INSERTs a new Discovery given a Capsule and User.
- *
- * @param $capsuleId
- * @param $userId
- * @return mixed
- */
+    /**
+     * INSERTs a new Discovery given a Capsule and User.
+     *
+     * @param $capsuleId
+     * @param $userId
+     * @return mixed
+     */
     public function saveNew($capsuleId, $userId) {
         $data = array(
             'Discovery' => array(
@@ -112,13 +113,13 @@ class Discovery extends AppModel {
         return $this->save($data);
     }
 
-/**
- * Checks if a User has already discovered a Capsule.
- *
- * @param $capsuleId
- * @param $userId
- * @return bool
- */
+    /**
+     * Checks if a User has already discovered a Capsule.
+     *
+     * @param $capsuleId
+     * @param $userId
+     * @return bool
+     */
     public function created($capsuleId, $userId) {
         return $this->find('first', array(
             'conditions' => array(

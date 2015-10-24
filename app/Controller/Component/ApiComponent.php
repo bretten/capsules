@@ -8,54 +8,54 @@ App::uses('Component', 'Controller');
  */
 class ApiComponent extends Component {
 
-/**
- * Settings
- *
- * @var array
- */
+    /**
+     * Settings
+     *
+     * @var array
+     */
     public $settings = array();
 
-/**
- * Components
- *
- * @var array
- */
+    /**
+     * Components
+     *
+     * @var array
+     */
     public $components = array('Auth');
 
-/**
- * Request object
- *
- * @var CakeRequest
- */
+    /**
+     * Request object
+     *
+     * @var CakeRequest
+     */
     public $request;
 
-/**
- * Response object
- *
- * @var CakeResponse
- */
+    /**
+     * Response object
+     *
+     * @var CakeResponse
+     */
     public $response;
 
-/**
- * Controller
- *
- * @var Controller
- */
+    /**
+     * Controller
+     *
+     * @var Controller
+     */
     public $controller;
 
-/**
- * Array representing the response body
- *
- * @var array
- */
+    /**
+     * Array representing the response body
+     *
+     * @var array
+     */
     public $body;
 
-/**
- * Constructor
- *
- * @param ComponentCollection $collection
- * @param array $settings
- */
+    /**
+     * Constructor
+     *
+     * @param ComponentCollection $collection
+     * @param array $settings
+     */
     public function __construct(ComponentCollection $collection, $settings = array()) {
         $this->_Collection = $collection;
         $this->settings = array_merge($this->settings, $settings);
@@ -65,24 +65,24 @@ class ApiComponent extends Component {
         }
     }
 
-/**
- * Called before the Controller's beforeFilter
- *
- * @param Controller $controller
- * @return void
- */
+    /**
+     * Called before the Controller's beforeFilter
+     *
+     * @param Controller $controller
+     * @return void
+     */
     public function initialize(Controller $controller) {
         $this->controller = $controller;
         $this->request = $controller->request;
         $this->response = $controller->response;
     }
 
-/**
- * Called after the Controller's beforeFilter but before the Controller action is handled
- *
- * @param Controller $controller
- * @return void
- */
+    /**
+     * Called after the Controller's beforeFilter but before the Controller action is handled
+     *
+     * @param Controller $controller
+     * @return void
+     */
     public function startup(Controller $controller) {
         // Build the body of the response
         $this->body = array(
@@ -91,11 +91,11 @@ class ApiComponent extends Component {
         );
     }
 
-/**
- * API method to handle registering Users
- *
- * @return string
- */
+    /**
+     * API method to handle registering Users
+     *
+     * @return string
+     */
     public function register() {
         // Make sure it is a POST
         if (!$this->request->is('post')) {
@@ -104,7 +104,8 @@ class ApiComponent extends Component {
 
         // Check the request data
         if (!isset($this->request->data['username']) || !isset($this->request->data['email'])
-            || !isset($this->request->data['password']) || !isset($this->request->data['confirm_password'])) {
+            || !isset($this->request->data['password']) || !isset($this->request->data['confirm_password'])
+        ) {
             return $this->responseBadRequest();
         }
 
@@ -115,7 +116,8 @@ class ApiComponent extends Component {
             'confirmPassword' => true,
             'fieldList' => array(
                 'username', 'password', 'email', 'confirm_password', 'token'
-            )))) {
+            )))
+        ) {
             // If there were validation errors, then indicate a bad request
             if (!empty($this->controller->User->validationErrors)) {
                 // Set the validation messages in the response
@@ -141,12 +143,12 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to handle authenticating Users.  Response body contains an authentication token
- * to be used in future API calls.
- *
- * @return string
- */
+    /**
+     * API method to handle authenticating Users.  Response body contains an authentication token
+     * to be used in future API calls.
+     *
+     * @return string
+     */
     public function authenticate() {
         if (!$this->Auth->login()) {
             // Add a message
@@ -175,11 +177,11 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to return a User's Capsules and Discoveries
- *
- * @return string
- */
+    /**
+     * API method to return a User's Capsules and Discoveries
+     *
+     * @return string
+     */
     public function points() {
         // Make sure it is a POST request
         if (!$this->request->is('post')) {
@@ -233,11 +235,11 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to retrieve undiscovered Capsules in the User's radius
- *
- * @return string
- */
+    /**
+     * API method to retrieve undiscovered Capsules in the User's radius
+     *
+     * @return string
+     */
     public function ping() {
         // Make sure it is a POST request
         if (!$this->request->is('post')) {
@@ -272,11 +274,11 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to open a Capsule
- *
- * @return string
- */
+    /**
+     * API method to open a Capsule
+     *
+     * @return string
+     */
     public function open() {
         // Make sure it is a POST request
         if (!$this->request->is('post')) {
@@ -310,8 +312,8 @@ class ApiComponent extends Component {
         // See if the User has already discovered the Capsule
         if ($discovery = $this->controller->Capsule->Discovery->created(
             $this->request->data['id'],
-            $this->Auth->user('id')
-        )) {
+            $this->Auth->user('id'))
+        ) {
             // Return the existing Discovery
             $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $discovery['Discovery']);
         } else {
@@ -320,13 +322,14 @@ class ApiComponent extends Component {
                 $this->request->data['id'],
                 $this->request->data['lat'],
                 $this->request->data['lng'],
-                Configure::read('Map.UserLocation.DiscoveryRadius')
-            )) {
+                Configure::read('Map.UserLocation.DiscoveryRadius'))
+            ) {
                 // Attempt to save the Discovery
                 if ($insert = $this->controller->Capsule->Discovery->saveNew(
                     $this->request->data['id'],
                     $this->Auth->user('id')
-                )) {
+                )
+                ) {
                     $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $insert['Discovery']);
                 } else {
                     // There was a server error when trying to save the Discovery
@@ -342,12 +345,12 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to get the ctag for the specified collection
- *
- * @param string $collection Collection to get the ctag for
- * @return string
- */
+    /**
+     * API method to get the ctag for the specified collection
+     *
+     * @param string $collection Collection to get the ctag for
+     * @return string
+     */
     public function ctag($collection = null) {
         // Make sure it is a GET request
         if (!$this->request->is('get')) {
@@ -389,12 +392,12 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to retrieve the entity status on the specified collection
- *
- * @param string $collection The collection to get the entity status on
- * @return string
- */
+    /**
+     * API method to retrieve the entity status on the specified collection
+     *
+     * @param string $collection The collection to get the entity status on
+     * @return string
+     */
     public function status($collection = null) {
         // Make sure it is a GET request
         if (!$this->request->is('get')) {
@@ -458,12 +461,12 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to report on the specified collection and ids
- *
- * @param string $collection The collection to report on
- * @return string
- */
+    /**
+     * API method to report on the specified collection and ids
+     *
+     * @param string $collection The collection to report on
+     * @return string
+     */
     public function report($collection = null) {
         // Make sure it is a GET request
         if (!$this->request->is('post')) {
@@ -535,12 +538,12 @@ class ApiComponent extends Component {
         return $this->responseOk();
     }
 
-/**
- * API method to perform various actions on a single Capsule
- *
- * @param int $id
- * @return string
- */
+    /**
+     * API method to perform various actions on a single Capsule
+     *
+     * @param int $id
+     * @return string
+     */
     public function capsule($id = null) {
         // Make sure the User is authenticated
         if (!$this->Auth->user()) {
@@ -669,12 +672,12 @@ class ApiComponent extends Component {
         }
     }
 
-/**
- * API method to perform various actions on a single Discovery
- *
- * @param int $id
- * @return string
- */
+    /**
+     * API method to perform various actions on a single Discovery
+     *
+     * @param int $id
+     * @return string
+     */
     public function discovery($id = null) {
         // Make sure the User is authenticated
         if (!$this->Auth->user()) {
@@ -698,7 +701,8 @@ class ApiComponent extends Component {
             $this->request->data['id'] = $exists['Discovery']['id'];
             if ($result = $this->controller->Discovery->save($this->request->data, array(
                 'updateCtagForUser' => $this->Auth->user('id')
-            ))) {
+            ))
+            ) {
                 // Add the updated Discovery to the body
                 $this->body['data']['discovery'] = ApiComponent::buildDiscovery(array('id' => $id), $result['Discovery']);
                 // Indicate a success
@@ -713,11 +717,11 @@ class ApiComponent extends Component {
         }
     }
 
-/**
- * Sets the status code to indicate a OK success and sets the body
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate a OK success and sets the body
+     *
+     * @return string
+     */
     private function responseOk() {
         // Indicate success
         $this->response->statusCode(200);
@@ -725,11 +729,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate there is no body content
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate there is no body content
+     *
+     * @return string
+     */
     private function responseNoContent() {
         // Indicate that there is no content
         $this->response->statusCode(204);
@@ -737,11 +741,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate a bad request and sets the body
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate a bad request and sets the body
+     *
+     * @return string
+     */
     private function responseBadRequest() {
         // Indicate a bad request
         $this->response->statusCode(400);
@@ -749,11 +753,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate an unauthenticated request and sets the body
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate an unauthenticated request and sets the body
+     *
+     * @return string
+     */
     private function responseUnauthenticated() {
         // Indicate method not allowed if not POST
         $this->response->statusCode(401);
@@ -761,11 +765,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate that the user is unauthorized
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate that the user is unauthorized
+     *
+     * @return string
+     */
     private function responseForbidden() {
         // Indicate the user is unauthorized
         $this->response->statusCode(403);
@@ -773,11 +777,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate a resource was not found
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate a resource was not found
+     *
+     * @return string
+     */
     private function responseNotFound() {
         // Indicate resource not found
         $this->response->statusCode(404);
@@ -785,11 +789,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate that the request type is not allowed and sets the body
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate that the request type is not allowed and sets the body
+     *
+     * @return string
+     */
     private function responseNotAllowed() {
         // Indicate method not allowed if not POST
         $this->response->statusCode(405);
@@ -797,11 +801,11 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Sets the status code to indicate there was a server error and sets the body
- *
- * @return string
- */
+    /**
+     * Sets the status code to indicate there was a server error and sets the body
+     *
+     * @return string
+     */
     private function responseServerError() {
         // Indicate a server error
         $this->response->statusCode(500);
@@ -809,21 +813,21 @@ class ApiComponent extends Component {
         return $this->setBody();
     }
 
-/**
- * Convenience wrapper for setting the JSON body of the response
- *
- * @return string
- */
+    /**
+     * Convenience wrapper for setting the JSON body of the response
+     *
+     * @return string
+     */
     private function setBody() {
         return $this->response->body(json_encode($this->body));
     }
 
-/**
- * Builds a Capsule data array to be sent over the wire
- *
- * @param array $capsule Capsule data
- * @return array
- */
+    /**
+     * Builds a Capsule data array to be sent over the wire
+     *
+     * @param array $capsule Capsule data
+     * @return array
+     */
     public static function buildCapsule($capsule) {
         $data = array();
         if (isset($capsule['id'])) {
@@ -844,13 +848,13 @@ class ApiComponent extends Component {
         return $data;
     }
 
-/**
- * Builds a Discovery data array to be sent over the wire
- *
- * @param array $capsule Capsule data
- * @param array $discovery Discovery data
- * @return array
- */
+    /**
+     * Builds a Discovery data array to be sent over the wire
+     *
+     * @param array $capsule Capsule data
+     * @param array $discovery Discovery data
+     * @return array
+     */
     public static function buildDiscovery($capsule, $discovery) {
         $data = ApiComponent::buildCapsule($capsule);
         if (isset($discovery['etag'])) {

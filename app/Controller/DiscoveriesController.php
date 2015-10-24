@@ -1,5 +1,6 @@
 <?php
 App::uses('AppController', 'Controller');
+
 /**
  * Discoveries Controller
  *
@@ -8,25 +9,25 @@ App::uses('AppController', 'Controller');
  */
 class DiscoveriesController extends AppController {
 
-/**
- * Components
- *
- * @var array
- */
+    /**
+     * Components
+     *
+     * @var array
+     */
     public $components = array('Paginator', 'RequestHandler', 'PaginatorBounding');
 
-/**
- * Helpers
- *
- * @var array
- */
+    /**
+     * Helpers
+     *
+     * @var array
+     */
     public $helpers = array('Js');
 
-/**
- * index method
- *
- * @return void
- */
+    /**
+     * index method
+     *
+     * @return void
+     */
     public function index() {
         if (!$this->request->is('ajax')) {
             throw new MethodNotAllowedException(__('Invalid request'));
@@ -96,13 +97,13 @@ class DiscoveriesController extends AppController {
         $this->set(compact('search', 'filter'));
     }
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * view method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function view($id = null) {
         if (!$this->Discovery->exists($id)) {
             throw new NotFoundException(__('Invalid discovery'));
@@ -111,11 +112,11 @@ class DiscoveriesController extends AppController {
         $this->set('discovery', $this->Discovery->find('first', $options));
     }
 
-/**
- * add method
- *
- * @return void
- */
+    /**
+     * add method
+     *
+     * @return void
+     */
     public function add() {
         if ($this->request->is('post')) {
             $this->Discovery->create();
@@ -131,13 +132,13 @@ class DiscoveriesController extends AppController {
         $this->set(compact('capsules', 'users'));
     }
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * edit method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function edit($id = null) {
         if (!$this->Discovery->exists($id)) {
             throw new NotFoundException(__('Invalid discovery'));
@@ -158,13 +159,13 @@ class DiscoveriesController extends AppController {
         $this->set(compact('capsules', 'users'));
     }
 
-/**
- * delete method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * delete method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function delete($id = null) {
         $this->Discovery->id = $id;
         if (!$this->Discovery->exists()) {
@@ -179,11 +180,11 @@ class DiscoveriesController extends AppController {
         return $this->redirect(array('action' => 'index'));
     }
 
-/**
- * Internal API method to rate a Discovery
- *
- * @return void
- */
+    /**
+     * Internal API method to rate a Discovery
+     *
+     * @return void
+     */
     public function rate() {
         $this->autoRender = false;
         $this->layout = 'ajax';
@@ -217,11 +218,11 @@ class DiscoveriesController extends AppController {
         $this->response->body(json_encode($body));
     }
 
-/**
- * Internal API method to favorite a Discovery
- *
- * @return void
- */
+    /**
+     * Internal API method to favorite a Discovery
+     *
+     * @return void
+     */
     public function favorite() {
         $this->autoRender = false;
         $this->layout = 'ajax';

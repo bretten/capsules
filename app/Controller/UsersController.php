@@ -1,5 +1,6 @@
 <?php
 App::uses('AppController', 'Controller');
+
 /**
  * Users Controller
  *
@@ -8,28 +9,28 @@ App::uses('AppController', 'Controller');
  */
 class UsersController extends AppController {
 
-/**
- * Components
- *
- * @var array
- */
+    /**
+     * Components
+     *
+     * @var array
+     */
     public $components = array('Paginator');
 
-/**
- * beforeFilter method
- *
- * @return void
- */
+    /**
+     * beforeFilter method
+     *
+     * @return void
+     */
     public function beforeFilter() {
         parent::beforeFilter();
         $this->Auth->allow(array('login'));
     }
 
-/**
- * login method
- *
- * @return void
- */
+    /**
+     * login method
+     *
+     * @return void
+     */
     public function login() {
         if ($this->request->is('post')) {
             if ($this->Auth->login()) {
@@ -40,22 +41,22 @@ class UsersController extends AppController {
         }
     }
 
-/**
- * logout method
- *
- * @return void
- */
+    /**
+     * logout method
+     *
+     * @return void
+     */
     public function logout() {
         $this->redirect($this->Auth->logout());
     }
 
 
-/**
- * account method
- *
- * @throws NotFoundException
- * @return void
- */
+    /**
+     * account method
+     *
+     * @throws NotFoundException
+     * @return void
+     */
     public function account() {
         $this->User->id = $this->Auth->user('id');
         if (!$this->User->exists()) {
@@ -63,11 +64,11 @@ class UsersController extends AppController {
         }
         if ($this->request->is(array('post', 'put'))) {
             if ($this->User->save($this->request->data, array(
-                'confirmPassword' => (boolean) $this->request->data['User']['change_password'],
+                'confirmPassword' => (boolean)$this->request->data['User']['change_password'],
                 'fieldList' => array(
                     'password', 'email', 'confirm_password'
-                )
-            ))) {
+                )))
+            ) {
                 $this->Session->setFlash(__('Your account has been saved.'), 'notification', array('class' => 'alert-success', 'dismissible' => true));
                 return $this->redirect(array('action' => 'account'));
             } else {
@@ -83,23 +84,23 @@ class UsersController extends AppController {
         }
     }
 
-/**
- * index method
- *
- * @return void
- */
+    /**
+     * index method
+     *
+     * @return void
+     */
     public function index() {
         $this->User->recursive = 0;
         $this->set('users', $this->Paginator->paginate());
     }
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * view method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function view($id = null) {
         if (!$this->User->exists($id)) {
             throw new NotFoundException(__('Invalid user'));
@@ -108,11 +109,11 @@ class UsersController extends AppController {
         $this->set('user', $this->User->find('first', $options));
     }
 
-/**
- * add method
- *
- * @return void
- */
+    /**
+     * add method
+     *
+     * @return void
+     */
     public function add() {
         if ($this->request->is('post')) {
             $this->User->create();
@@ -125,13 +126,13 @@ class UsersController extends AppController {
         }
     }
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * edit method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function edit($id = null) {
         if (!$this->User->exists($id)) {
             throw new NotFoundException(__('Invalid user'));
@@ -149,13 +150,13 @@ class UsersController extends AppController {
         }
     }
 
-/**
- * delete method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * delete method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function delete($id = null) {
         $this->User->id = $id;
         if (!$this->User->exists()) {

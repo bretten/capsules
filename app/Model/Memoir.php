@@ -8,22 +8,22 @@ App::uses('AppModel', 'Model');
  */
 class Memoir extends AppModel {
 
-/**
- * actsAs
- *
- * @var array
- */
+    /**
+     * actsAs
+     *
+     * @var array
+     */
     public $actsAs = array(
         'HandleUpload' => array(
             'currentModel' => 'Memoir'
         )
     );
 
-/**
- * belongsTo associations
- *
- * @var array
- */
+    /**
+     * belongsTo associations
+     *
+     * @var array
+     */
     public $belongsTo = array(
         'Capsule' => array(
             'className' => 'Capsule',
@@ -34,11 +34,11 @@ class Memoir extends AppModel {
         )
     );
 
-/**
- * validate
- *
- * @var array
- */
+    /**
+     * validate
+     *
+     * @var array
+     */
     public $validate = array(
         'title' => array(
             'notEmpty' => array(

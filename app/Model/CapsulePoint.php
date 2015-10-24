@@ -1,5 +1,6 @@
 <?php
 App::uses('AppModel', 'Model');
+
 /**
  * CapsulePoint Model
  *
@@ -7,11 +8,11 @@ App::uses('AppModel', 'Model');
  */
 class CapsulePoint extends AppModel {
 
-/**
- * belongsTo associations
- *
- * @var array
- */
+    /**
+     * belongsTo associations
+     *
+     * @var array
+     */
     public $belongsTo = array(
         'Capsule' => array(
             'className' => 'Capsule',
@@ -22,13 +23,13 @@ class CapsulePoint extends AppModel {
         )
     );
 
-/**
- * Checks if a Capsule already has a CapsulePoint.
- *
- * @param $capsuleId
- * @param $userId
- * @return bool
- */
+    /**
+     * Checks if a Capsule already has a CapsulePoint.
+     *
+     * @param $capsuleId
+     * @param $userId
+     * @return bool
+     */
     public function created($capsuleId) {
         return $this->find('first', array(
             'conditions' => array(

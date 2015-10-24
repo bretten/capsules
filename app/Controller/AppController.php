@@ -32,11 +32,11 @@ App::uses('Controller', 'Controller');
  */
 class AppController extends Controller {
 
-/**
- * components
- *
- * @var array
- */
+    /**
+     * components
+     *
+     * @var array
+     */
     public $components = array(
         'Session',
         'Auth' => array(
@@ -46,28 +46,27 @@ class AppController extends Controller {
         )
     );
 
-/**
- * beforeFilter method
- *
- * @return void
- */
+    /**
+     * beforeFilter method
+     *
+     * @return void
+     */
     public function beforeFilter() {
         parent::beforeFilter();
         // If the User is logged in, there is no need to access the following pages
-        if ($this->Auth->loggedIn() && (
-                ($this->request->params['controller'] == 'users' && $this->request->params['action'] == 'login')
-            )
+        if ($this->Auth->loggedIn()
+            && ($this->request->params['controller'] == 'users' && $this->request->params['action'] == 'login')
         ) {
             $this->redirect($this->Auth->loginRedirect);
         }
     }
 
-/**
- * isAuthorized method
- *
- * @param array $user
- * @return boolean
- */
+    /**
+     * isAuthorized method
+     *
+     * @param array $user
+     * @return boolean
+     */
     public function isAuthorized($user) {
         if ($user) {
             return true;

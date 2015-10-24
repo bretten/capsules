@@ -1,5 +1,6 @@
 <?php
 App::uses('AppModel', 'Model');
+
 /**
  * Capsule Model
  *
@@ -9,25 +10,25 @@ App::uses('AppModel', 'Model');
  */
 class Capsule extends AppModel {
 
-/**
- * Database function for calculating the number of Discoveries
- *
- * @const string
- */
+    /**
+     * Database function for calculating the number of Discoveries
+     *
+     * @const string
+     */
     const FIELD_DISCOVERY_COUNT = 'count(DiscoveryStat.capsule_id)';
 
-/**
- * Database function for calculating the number of Discovery favorites on a Capsule
- *
- * @const string
- */
+    /**
+     * Database function for calculating the number of Discovery favorites on a Capsule
+     *
+     * @const string
+     */
     const FIELD_FAVORITE_COUNT = 'sum(if(DiscoveryStat.favorite >= 1, 1, 0))';
 
-/**
- * Database function for calculating the total Discovery rating on a Capsule
- *
- * @const string
- */
+    /**
+     * Database function for calculating the total Discovery rating on a Capsule
+     *
+     * @const string
+     */
     const FIELD_RATING = 'sum(
         CASE
             WHEN DiscoveryStat.rating >= 1 THEN 1
@@ -36,18 +37,18 @@ class Capsule extends AppModel {
         END
     )';
 
-/**
- * Display field
- *
- * @var string
- */
+    /**
+     * Display field
+     *
+     * @var string
+     */
     public $displayField = 'name';
 
-/**
- * actsAs
- *
- * @var array
- */
+    /**
+     * actsAs
+     *
+     * @var array
+     */
     public $actsAs = array(
         'Belongs' => array(
             'userPrimaryKey' => 'id',
@@ -59,11 +60,11 @@ class Capsule extends AppModel {
         )
     );
 
-/**
- * hasOne associations
- *
- * @var array
- */
+    /**
+     * hasOne associations
+     *
+     * @var array
+     */
     public $hasOne = array(
         'CapsulePoint' => array(
             'className' => 'CapsulePoint',
@@ -75,11 +76,11 @@ class Capsule extends AppModel {
         )
     );
 
-/**
- * belongsTo associations
- *
- * @var array
- */
+    /**
+     * belongsTo associations
+     *
+     * @var array
+     */
     public $belongsTo = array(
         'User' => array(
             'className' => 'User',
@@ -90,11 +91,11 @@ class Capsule extends AppModel {
         )
     );
 
-/**
- * hasMany associations
- *
- * @var array
- */
+    /**
+     * hasMany associations
+     *
+     * @var array
+     */
     public $hasMany = array(
         'Discovery' => array(
             'className' => 'Discovery',
@@ -124,11 +125,11 @@ class Capsule extends AppModel {
         )
     );
 
-/**
- * validate
- *
- * @var array
- */
+    /**
+     * validate
+     *
+     * @var array
+     */
     public $validate = array(
         'name' => array(
             'notEmpty' => array(
@@ -181,12 +182,12 @@ class Capsule extends AppModel {
         )
     );
 
-/**
- * Before find method
- *
- * @param array $query The options for the query
- * @return mixed true to continue, false to abort, or a modified $query
- */
+    /**
+     * Before find method
+     *
+     * @param array $query The options for the query
+     * @return mixed true to continue, false to abort, or a modified $query
+     */
     public function beforeFind($query) {
         // Include the corresponding POINT data columns
         if (isset($query['includePoints']) && $query['includePoints'] === true) {
@@ -209,12 +210,12 @@ class Capsule extends AppModel {
         return true;
     }
 
-/**
- * Before delete callback
- *
- * @param boolean $cascade
- * @return void
- */
+    /**
+     * Before delete callback
+     *
+     * @param boolean $cascade
+     * @return void
+     */
     public function beforeDelete($cascade = true) {
         // Update the Capsule ctag for the User
         if (isset($this->id)) {
@@ -224,19 +225,19 @@ class Capsule extends AppModel {
         }
     }
 
-/**
- * Returns all Capsules within the specified radius around the specified latitude and longitude.
- *
- * Capsules are filtered by excluding those outside a bounding box and then further filtered by
- * measuring the distance to each Capsule from the User's location to determine if it is within
- * the radius.
- *
- * @param $lat float
- * @param $lng float
- * @param $radius float The radius to query within in miles.
- * @param array $query
- * @return array
- */
+    /**
+     * Returns all Capsules within the specified radius around the specified latitude and longitude.
+     *
+     * Capsules are filtered by excluding those outside a bounding box and then further filtered by
+     * measuring the distance to each Capsule from the User's location to determine if it is within
+     * the radius.
+     *
+     * @param $lat float
+     * @param $lng float
+     * @param $radius float The radius to query within in miles.
+     * @param array $query
+     * @return array
+     */
     public function getInRadius($lat, $lng, $radius, $query = array()) {
         $degreeLength = Configure::read('Spatial.Latitude.DegreeLength');
         $minuteLength = Configure::read('Spatial.Latitude.MinuteLength');
@@ -277,16 +278,16 @@ class Capsule extends AppModel {
         return $this->find('all', $query);
     }
 
-/**
- * Returns all Capsules within the bounded rectangle
- *
- * @param float $latNE The Northeast latitude
- * @param float $lngNE The Northeast longitude
- * @param float $latSW The Southwest latitude
- * @param float $lngSW The Southwest longitude
- * @param array $query
- * @return array
- */
+    /**
+     * Returns all Capsules within the bounded rectangle
+     *
+     * @param float $latNE The Northeast latitude
+     * @param float $lngNE The Northeast longitude
+     * @param float $latSW The Southwest latitude
+     * @param float $lngSW The Southwest longitude
+     * @param array $query
+     * @return array
+     */
     public function getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query = array()) {
         $append = array(
             'includePoints' => true,
@@ -300,16 +301,16 @@ class Capsule extends AppModel {
         return $this->find('all', $query);
     }
 
-/**
- * Returns all Discovery Capsules within the bounded rectangle
- *
- * @param float $latNE The Northeast latitude
- * @param float $lngNE The Northeast longitude
- * @param float $latSW The Southwest latitude
- * @param float $lngSW The Southwest longitude
- * @param array $query
- * @return array
- */
+    /**
+     * Returns all Discovery Capsules within the bounded rectangle
+     *
+     * @param float $latNE The Northeast latitude
+     * @param float $lngNE The Northeast longitude
+     * @param float $latSW The Southwest latitude
+     * @param float $lngSW The Southwest longitude
+     * @param array $query
+     * @return array
+     */
     public function getDiscovered($userId, $latNE, $lngNE, $latSW, $lngSW, $query = array()) {
         $append = array(
             'joins' => array(
@@ -330,17 +331,17 @@ class Capsule extends AppModel {
         return $this->getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query);
     }
 
-/**
- * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
- * around the specified latitude and longitude.
- *
- * @param $userId
- * @param $lat
- * @param $lng
- * @param $radius
- * @param array $query
- * @return array
- */
+    /**
+     * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
+     * around the specified latitude and longitude.
+     *
+     * @param $userId
+     * @param $lat
+     * @param $lng
+     * @param $radius
+     * @param array $query
+     * @return array
+     */
     public function getUndiscovered($userId, $lat, $lng, $radius, $query = array()) {
         $append = array(
             'joins' => array(
@@ -365,17 +366,17 @@ class Capsule extends AppModel {
         return $this->getInRadius($lat, $lng, $radius, $query);
     }
 
-/**
- * Checks if the Capsule specified by the primary key is within the specified radius originating from the
- * specified latitude and longitude.
- *
- * @param $id
- * @param $lat
- * @param $lng
- * @param $radius
- * @param array $query
- * @return bool
- */
+    /**
+     * Checks if the Capsule specified by the primary key is within the specified radius originating from the
+     * specified latitude and longitude.
+     *
+     * @param $id
+     * @param $lat
+     * @param $lng
+     * @param $radius
+     * @param array $query
+     * @return bool
+     */
     public function isReachable($id, $lat, $lng, $radius, $query = array()) {
         $append = array(
             'conditions' => array(
@@ -391,13 +392,13 @@ class Capsule extends AppModel {
         return (boolean)$this->getInRadius($lat, $lng, $radius, $query);
     }
 
-/**
- * Saves a single Capsule along with its CapsulePoint and Memoirs
- *
- * @param array $data The data to save
- * @param array $options Save options
- * @return mixed True on success, otherwise false on failure
- */
+    /**
+     * Saves a single Capsule along with its CapsulePoint and Memoirs
+     *
+     * @param array $data The data to save
+     * @param array $options Save options
+     * @return mixed True on success, otherwise false on failure
+     */
     public function saveAllWithUploads($data = array(), $options = array()) {
         // Handle all Memoir uploads separately from database transaction to prevent locking longer than needed
         $memoirValidationErrors = array();

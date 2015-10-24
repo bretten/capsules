@@ -31,18 +31,18 @@ App::uses('Model', 'Model');
  */
 class AppModel extends Model {
 
-/**
- * actsAs
- *
- * @var array
- */
+    /**
+     * actsAs
+     *
+     * @var array
+     */
     public $actsAs = array('Containable');
 
-/**
- * recursive
- *
- * @var int
- */
+    /**
+     * recursive
+     *
+     * @var int
+     */
     public $recursive = -1;
 
 }

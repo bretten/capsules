@@ -1,5 +1,6 @@
 <?php
 App::uses('AppController', 'Controller');
+
 /**
  * Memoirs Controller
  *
@@ -8,28 +9,28 @@ App::uses('AppController', 'Controller');
  */
 class MemoirsController extends AppController {
 
-/**
- * Components
- *
- * @var array
- */
+    /**
+     * Components
+     *
+     * @var array
+     */
     public $components = array('Paginator');
 
-/**
- * beforeFilter method
- *
- * @return void
- */
+    /**
+     * beforeFilter method
+     *
+     * @return void
+     */
     public function beforeFilter() {
         parent::beforeFilter();
         $this->Auth->allow(array('image'));
     }
 
-/**
- * Serves images after the User is authenticated and the Memoir is queried from the database
- *
- * @param $id ID of the Memoir
- */
+    /**
+     * Serves images after the User is authenticated and the Memoir is queried from the database
+     *
+     * @param $id ID of the Memoir
+     */
     public function image($id) {
         $this->autoRender = false;
         $this->layout = false;
@@ -57,23 +58,23 @@ class MemoirsController extends AppController {
         readfile($memoir['Memoir']['file_location'] . DS . $memoir['Memoir']['file_public_name']);
     }
 
-/**
- * index method
- *
- * @return void
- */
+    /**
+     * index method
+     *
+     * @return void
+     */
     public function index() {
         $this->Memoir->recursive = 0;
         $this->set('memoirs', $this->Paginator->paginate());
     }
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * view method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function view($id = null) {
         if (!$this->Memoir->exists($id)) {
             throw new NotFoundException(__('Invalid memoir'));
@@ -82,11 +83,11 @@ class MemoirsController extends AppController {
         $this->set('memoir', $this->Memoir->find('first', $options));
     }
 
-/**
- * add method
- *
- * @return void
- */
+    /**
+     * add method
+     *
+     * @return void
+     */
     public function add() {
         if ($this->request->is('post')) {
             $this->Memoir->create();
@@ -101,13 +102,13 @@ class MemoirsController extends AppController {
         $this->set(compact('capsules'));
     }
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * edit method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function edit($id = null) {
         if (!$this->Memoir->exists($id)) {
             throw new NotFoundException(__('Invalid memoir'));
@@ -127,13 +128,13 @@ class MemoirsController extends AppController {
         $this->set(compact('capsules'));
     }
 
-/**
- * delete method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+    /**
+     * delete method
+     *
+     * @throws NotFoundException
+     * @param string $id
+     * @return void
+     */
     public function delete($id = null) {
         $this->Memoir->id = $id;
         if (!$this->Memoir->exists()) {
