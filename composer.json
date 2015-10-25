@@ -2,7 +2,7 @@
     "require": {
         "php": ">=5.2.8",
         "ext-mcrypt": "*",
-        "cakephp/cakephp": "2.5.1"
+        "cakephp/cakephp": "2.7.5"
     },
     "config": {
         "vendor-dir": "app/Vendor"
