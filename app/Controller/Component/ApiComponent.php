@@ -203,23 +203,19 @@ class ApiComponent extends Component {
         }
 
         // Get the User's Capsules
-        $capsules = $this->controller->Capsule->getInRectangle(
+        $capsules = $this->controller->Capsule->getForUser(
+            $this->Auth->user('id'),
             $this->request->data['latNE'],
             $this->request->data['lngNE'],
             $this->request->data['latSW'],
-            $this->request->data['lngSW'],
-            array(
-                'conditions' => array(
-                    'Capsule.user_id' => $this->Auth->user('id')
-                )
-            )
+            $this->request->data['lngSW']
         );
         // Add the User's Capsules to the response body
         $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
             return ApiComponent::buildCapsule($data);
         });
         // Get the User's Discoveries
-        $discoveries = $this->controller->Capsule->getDiscovered(
+        $discoveries = $this->controller->Capsule->getDiscoveredForUser(
             $this->Auth->user('id'),
             $this->request->data['latNE'],
             $this->request->data['lngNE'],
@@ -259,7 +255,7 @@ class ApiComponent extends Component {
         }
 
         // Get the User's undiscovered Capsules
-        $capsules = $this->controller->Capsule->getUndiscovered(
+        $capsules = $this->controller->Capsule->getUndiscoveredForUser(
             $this->Auth->user('id'),
             $this->request->data['lat'],
             $this->request->data['lng'],

@@ -191,23 +191,14 @@ class Capsule extends AppModel {
     public function beforeFind($query) {
         // Include the corresponding POINT data columns
         if (isset($query['includePoints']) && $query['includePoints'] === true) {
-            $append = array(
-                'joins' => array(
-                    array(
-                        'table' => 'capsule_points',
-                        'alias' => 'CapsulePoint',
-                        'type' => 'INNER',
-                        'conditions' => array(
-                            'Capsule.id = CapsulePoint.capsule_id'
-                        )
-                    )
-                )
-            );
-
-            return array_merge_recursive($query, $append);
+            $query = $this->appendCapsulePointsToQuery($query);
+        }
+        // Include statistics related to a Capsule's Discoveries
+        if (isset($query['includeDiscoveryStats']) && $query['includeDiscoveryStats'] === true) {
+            $query = $this->appendDiscoveryStatsToQuery($query);
         }
 
-        return true;
+        return $query;
     }
 
     /**
@@ -226,7 +217,77 @@ class Capsule extends AppModel {
     }
 
     /**
-     * Returns all Capsules within the specified radius around the specified latitude and longitude.
+     * Gets all Capsules for the specified User.  If the two sets of coordinates are specified, only Capsules
+     * that fall into the bounded area will be returned.
+     *
+     * @param int $userId The ID of the User to retrieve the Capsules for.
+     * @param null $latNE
+     * @param null $lngNE
+     * @param null $latSW
+     * @param null $lngSW
+     * @param array $query
+     * @return array|null
+     */
+    public function getForUser($userId, $latNE = null, $lngNE = null, $latSW = null, $lngSW = null, $query = array()) {
+        // Append to the query so that only the User's Capsule's are retrieved
+        $query = $this->appendBelongsToUserToQuery($userId, $query);
+        // If there are two sets of coordinates, then append the query parameters to get Capsules within bounded area
+        if ($latNE != null && $lngNE != null && $latSW != null && $lngSW != null) {
+            $query = $this->appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query);
+        }
+
+        return $this->find('all', $query);
+    }
+
+    /**
+     * Gets all discovered Capsules for the specified User.  If the two sets of coordinates are specified, only Capsules
+     * within the bounded area will be returned.
+     *
+     * @param int $userId The ID of the User to retrieve the discovered Capsules for.
+     * @param null $latNE
+     * @param null $lngNE
+     * @param null $latSW
+     * @param null $lngSW
+     * @param array $query
+     * @return array|null
+     */
+    public function getDiscoveredForUser($userId, $latNE = null, $lngNE = null, $latSW = null, $lngSW = null,
+                                         $query = array()) {
+        // Build query to get Discoveries for the specified User
+        $query = $this->appendDiscoveriesForUserToQuery($userId, $query);
+        // If there are two sets of coordinates, then append the query parameters to get Capsules within bounded area
+        if ($latNE != null && $lngNE != null && $latSW != null && $lngSW != null) {
+            $query = $this->appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query);
+        }
+
+        return $this->find('all', $query);
+    }
+
+    /**
+     * Gets undiscovered Capsules for the specified User.  If a set of coordinates and a radius are specified, only
+     * Capsules that fall into the bounded area will be returned.
+     *
+     * @param int $userId The ID of the User to retrieve the discovered Capsules for.
+     * @param null $lat
+     * @param null $lng
+     * @param null $radius
+     * @param array $query
+     * @return array|null
+     */
+    public function getUndiscoveredForUser($userId, $lat = null, $lng = null, $radius = null, $query = array()) {
+        // Build query to get undiscovered Capsules for the specified User
+        $query = $this->appendUndiscoveredForUserToQuery($userId, $query);
+        // If there are coordinates and a radius, append the query to get Capsules only within the bounded area
+        if ($lat != null && $lng != null && $radius != null) {
+            $query = $this->appendInRadiusToQuery($lat, $lng, $radius, $query);
+        }
+
+        return $this->find('all', $query);
+    }
+
+    /**
+     * Appends parameters to the query that returns all Capsules within the specified radius around the specified
+     * latitude and longitude.
      *
      * Capsules are filtered by excluding those outside a bounding box and then further filtered by
      * measuring the distance to each Capsule from the User's location to determine if it is within
@@ -238,7 +299,7 @@ class Capsule extends AppModel {
      * @param array $query
      * @return array
      */
-    public function getInRadius($lat, $lng, $radius, $query = array()) {
+    private function appendInRadiusToQuery($lat, $lng, $radius, $query = array()) {
         $degreeLength = Configure::read('Spatial.Latitude.DegreeLength');
         $minuteLength = Configure::read('Spatial.Latitude.MinuteLength');
         $scalar = Configure::read('Spatial.BoundingBox.Scalar');
@@ -273,13 +334,11 @@ class Capsule extends AppModel {
             )
         );
 
-        $query = array_merge_recursive($query, $append);
-
-        return $this->find('all', $query);
+        return array_merge_recursive($query, $append);
     }
 
     /**
-     * Returns all Capsules within the bounded rectangle
+     * Appends parameters to the query that returns all Capsules within the bounded rectangle
      *
      * @param float $latNE The Northeast latitude
      * @param float $lngNE The Northeast longitude
@@ -288,7 +347,7 @@ class Capsule extends AppModel {
      * @param array $query
      * @return array
      */
-    public function getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query = array()) {
+    private function appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query = array()) {
         $append = array(
             'includePoints' => true,
             'conditions' => array(
@@ -296,23 +355,38 @@ class Capsule extends AppModel {
             )
         );
 
-        $query = array_merge_recursive($query, $append);
-
-        return $this->find('all', $query);
+        return array_merge_recursive($query, $append);
     }
 
     /**
-     * Returns all Discovery Capsules within the bounded rectangle
+     * Appends parameters to the query that will only retrieve Capsules owned by the User.
      *
-     * @param float $latNE The Northeast latitude
-     * @param float $lngNE The Northeast longitude
-     * @param float $latSW The Southwest latitude
-     * @param float $lngSW The Southwest longitude
+     * @param int $userId The ID of the User that owns the Capsules
      * @param array $query
      * @return array
      */
-    public function getDiscovered($userId, $latNE, $lngNE, $latSW, $lngSW, $query = array()) {
+    private function appendBelongsToUserToQuery($userId, $query = array()) {
         $append = array(
+            'conditions' => array(
+                'Capsule.user_id' => $userId
+            )
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
+     * Appends parameters to the query that will return only Capsules discovered by the specified User.
+     *
+     * @param int $userId ID of the User to return Discoveries for
+     * @param array $query
+     * @return array
+     */
+    private function appendDiscoveriesForUserToQuery($userId, $query = array()) {
+        $append = array(
+            'fields' => array(
+                'Capsule.*', 'Discovery.*'
+            ),
             'joins' => array(
                 array(
                     'table' => 'discoveries',
@@ -326,23 +400,18 @@ class Capsule extends AppModel {
             )
         );
 
-        $query = array_merge_recursive($query, $append);
-
-        return $this->getInRectangle($latNE, $lngNE, $latSW, $lngSW, $query);
+        return array_merge_recursive($query, $append);
     }
 
     /**
-     * Retrieves all Capsules that have not been discovered by the specified User, within the specified radius
-     * around the specified latitude and longitude.
+     * Appends parameters to the query that will return only Capsules that have not been discovered by the specified
+     * User.
      *
-     * @param $userId
-     * @param $lat
-     * @param $lng
-     * @param $radius
+     * @param int $userId ID of the User to return the undiscovered Capsules for
      * @param array $query
      * @return array
      */
-    public function getUndiscovered($userId, $lat, $lng, $radius, $query = array()) {
+    private function appendUndiscoveredForUserToQuery($userId, $query = array()) {
         $append = array(
             'joins' => array(
                 array(
@@ -361,35 +430,66 @@ class Capsule extends AppModel {
             )
         );
 
-        $query = array_merge_recursive($query, $append);
-
-        return $this->getInRadius($lat, $lng, $radius, $query);
+        return array_merge_recursive($query, $append);
     }
 
     /**
-     * Checks if the Capsule specified by the primary key is within the specified radius originating from the
-     * specified latitude and longitude.
+     * Appends parameters to the query that will create a JOIN with the Discovery table to find a Capsule's Discovery
+     * statistics.
      *
-     * @param $id
-     * @param $lat
-     * @param $lng
-     * @param $radius
      * @param array $query
-     * @return bool
+     * @return array
      */
-    public function isReachable($id, $lat, $lng, $radius, $query = array()) {
+    private function appendDiscoveryStatsToQuery($query = array()) {
+        // Add the virtual fields for favorite count and total rating
+        $this->virtualFields['discovery_count'] = Capsule::FIELD_DISCOVERY_COUNT;
+        $this->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
+        $this->virtualFields['total_rating'] = Capsule::FIELD_RATING;
+        // Build the query options
         $append = array(
-            'conditions' => array(
-                'Capsule.id' => $id
-            ),
-            'fields' => array(
-                'Capsule.id'
+            'joins' => array(
+                array(
+                    'table' => 'discoveries',
+                    'alias' => 'DiscoveryStat',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.id = DiscoveryStat.capsule_id',
+                    )
+                )
             )
         );
 
+        // Merge the queries
         $query = array_merge_recursive($query, $append);
 
-        return (boolean)$this->getInRadius($lat, $lng, $radius, $query);
+        // Group the results by the Capsule primary key
+        // NOTE: Needs to be done after merging queries or else a null entry will be added to the group array
+        $query['group'] = array('Capsule.id');
+
+        return $query;
+    }
+
+    /**
+     * Appends parameters to the query that will join the Capsule table with the CapsulePoint table.
+     *
+     * @param array $query
+     * @return array
+     */
+    private function appendCapsulePointsToQuery($query = array()) {
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => 'capsule_points',
+                    'alias' => 'CapsulePoint',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'Capsule.id = CapsulePoint.capsule_id'
+                    )
+                )
+            )
+        );
+
+        return array_merge_recursive($query, $append);
     }
 
     /**
