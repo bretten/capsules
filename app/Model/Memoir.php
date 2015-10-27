@@ -41,8 +41,8 @@ class Memoir extends AppModel {
      */
     public $validate = array(
         'title' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a title.',
                 'required' => true
             ),
@@ -52,36 +52,36 @@ class Memoir extends AppModel {
             )
         ),
         'file' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please choose a file.',
                 'required' => true
             )
         ),
         'file_location' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a file location.',
                 'required' => true
             )
         ),
         'file_public_name' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a file name.',
                 'required' => true
             )
         ),
         'file_original_name' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a file name.',
                 'required' => true
             )
         ),
         'file_type' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a file type.',
                 'required' => true
             ),
@@ -91,8 +91,8 @@ class Memoir extends AppModel {
             )
         ),
         'file_size' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a file size.',
                 'required' => true
             ),

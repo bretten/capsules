@@ -66,8 +66,8 @@ class User extends AppModel {
      */
     public $validate = array(
         'username' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a username.',
             ),
             'isUnique' => array(
@@ -88,8 +88,8 @@ class User extends AppModel {
             )
         ),
         'password' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a password.',
             ),
             'minLength' => array(

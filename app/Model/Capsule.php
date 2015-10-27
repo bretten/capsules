@@ -132,8 +132,8 @@ class Capsule extends AppModel {
      */
     public $validate = array(
         'name' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a name.',
                 'required' => true
             ),
@@ -143,8 +143,8 @@ class Capsule extends AppModel {
             )
         ),
         'lat' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a latitude.',
                 'required' => true
             ),
@@ -162,8 +162,8 @@ class Capsule extends AppModel {
             )
         ),
         'lng' => array(
-            'notEmpty' => array(
-                'rule' => 'notEmpty',
+            'notBlank' => array(
+                'rule' => 'notBlank',
                 'message' => 'Please enter a longitude.',
                 'required' => true
             ),
