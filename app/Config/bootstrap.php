@@ -135,6 +135,14 @@ Configure::write('Search.Filter.NoVote', 'novote');
 Configure::write('Upload.Limit.Image', 5120000);
 
 /**
- * Capsule and Discovery list Pagination
+ * Load libraries
  */
-Configure::write('Pagination.Result.Count', 7);
+spl_autoload_register(function ($class) {
+    foreach (App::path('Lib') as $base) {
+        $path = $base . str_replace('\\', DS, $class) . '.php';
+        if (file_exists($path)) {
+            include $path;
+            return;
+        }
+    }
+});
