@@ -147,11 +147,17 @@ class ApiComponent extends Component {
         }
         // Get the Memoir
         $memoir = $this->Capsule->Memoir->getById($id);
-        // If no Memoir exists or it is not discovered by the User, indicate no resource found
-        if (!$memoir || !isset($memoir['Memoir']) || !isset($memoir['Memoir']['capsule_id'])
-            || !$this->Capsule->Discovery->isDiscoveredByUser($memoir['Memoir']['capsule_id'], $this->Auth->user('id'))
-        ) {
+        // If no Memoir exists or if there is no Capsule ID, indicate no resource found
+        if (!$memoir || !isset($memoir['Memoir']) || !isset($memoir['Memoir']['capsule_id'])) {
             throw new NotFoundException();
+        }
+        // Also indicate no resource found if the User does not own the Capsule and have not discovered it
+        if (!$this->Capsule->ownedBy($this->Auth->user('id'), $memoir['Memoir']['capsule_id'])) {
+            if (!$this->Capsule->Discovery->isDiscoveredByUser($memoir['Memoir']['capsule_id'],
+                $this->Auth->user('id'))
+            ) {
+                throw new NotFoundException();
+            }
         }
 
         // Add headers to indicate an image is being served
