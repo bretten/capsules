@@ -68,6 +68,24 @@ class Discovery extends AppModel {
     );
 
     /**
+     * Field list for updating a Discovery
+     *
+     * @var array
+     */
+    public $fieldListUpdate = array(
+        'favorite', 'rating'
+    );
+
+    /**
+     * List of fields to be returned when querying the Discovery table
+     *
+     * @var array
+     */
+    public $fieldListProjection = array(
+        'Discovery.id', 'Discovery.user_id', 'Discovery.favorite', 'Discovery.rating', 'Discovery.created'
+    );
+
+    /**
      * After save callback
      *
      * @param boolean $created INSERT or UPDATE
@@ -114,14 +132,31 @@ class Discovery extends AppModel {
     }
 
     /**
-     * Checks if a User has already discovered a Capsule.
+     * Gets the Discovery given the Capsule and User ID
      *
-     * @param $capsuleId
-     * @param $userId
-     * @return bool
+     * @param mixed $capsuleId The ID of the Capsule
+     * @param mixed $userId The ID of the User
+     * @return array|null The Discovery data if a matching row is found, otherwise null
      */
-    public function created($capsuleId, $userId) {
+    public function getByCapsuleIdForUser($capsuleId, $userId) {
         return $this->find('first', array(
+            'conditions' => array(
+                'Discovery.capsule_id' => $capsuleId,
+                'Discovery.user_id' => $userId
+            ),
+            'fields' => $this->fieldListProjection
+        ));
+    }
+
+    /**
+     * Determines if a User has discovered the specified Capsule
+     *
+     * @param mixed $capsuleId The ID of the Capsule
+     * @param mixed $userId The ID of the User
+     * @return bool True if the User has discovered the Capsule, otherwise false
+     */
+    public function isDiscoveredByUser($capsuleId, $userId) {
+        return (bool)$this->find('count', array(
             'conditions' => array(
                 'Discovery.capsule_id' => $capsuleId,
                 'Discovery.user_id' => $userId
@@ -129,6 +164,28 @@ class Discovery extends AppModel {
             'recursive' => -1,
             'callbacks' => false
         ));
+    }
+
+    /**
+     * Creates many Discovery rows for the specified User with the specified Capsule IDs
+     *
+     * @param mixed $userId The ID of the User to create the Discoveries for
+     * @param array $capsuleIds The Capsule IDs
+     * @return mixed True on success, otherwise false
+     */
+    public function createMany($userId, $capsuleIds = array()) {
+        // Build the data array
+        $data = array();
+        foreach ($capsuleIds as $capsuleId) {
+            $data[] = array(
+                'Discovery' => array(
+                    'capsule_id' => $capsuleId,
+                    'user_id' => $userId
+                )
+            );
+        }
+
+        return $this->saveAll($data, array('atomic' => true));
     }
 
 }

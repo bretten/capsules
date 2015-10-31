@@ -183,6 +183,26 @@ class Capsule extends AppModel {
     );
 
     /**
+     * Field list for creating a new Capsule
+     *
+     * @var array
+     */
+    public $fieldListCreate = array(
+        'Capsule' => array('name', 'point', 'user_id', 'etag', 'lat', 'lng'),
+        'Memoir' => array('title')
+    );
+
+    /**
+     * List of fields to be returned when querying the Capsule table
+     *
+     * @var array
+     */
+    public $fieldListProjection = array(
+        'Capsule.id', 'Capsule.user_id', 'Capsule.name', 'Capsule.lat', 'Capsule.lng', 'Capsule.created',
+        'Capsule.discovery_count', 'Capsule.favorite_count', 'Capsule.total_rating'
+    );
+
+    /**
      * Before find method
      *
      * @param array $query The options for the query
@@ -217,10 +237,56 @@ class Capsule extends AppModel {
     }
 
     /**
+     * Gets the Capsule for the given ID
+     *
+     * @param mixed $id The ID of the Capsule to retrieve
+     * @return array|null The Capsule data if a matching row is found, otherwise null
+     */
+    public function getById($id) {
+        $query = array(
+            'conditions' => array(
+                'Capsule.id' => $id
+            ),
+            'contain' => array(
+                'Memoir' => array(
+                    'fields' => $this->Memoir->fieldListProjection
+                )
+            ),
+            'fields' => $this->fieldListProjection
+        );
+        $query = $this->appendDiscoveryStatsToQuery($query);
+        return $this->find('first', $query);
+    }
+
+    /**
+     * Gets the Capsule given an ID only if it belongs to the specified User ID
+     *
+     * @param mixed $id The ID of the Capsule to retrieve
+     * @param mixed $userId The ID of the User that should own the Capsule
+     * @return array|null The Capsule data if a matching row is found, otherwise null
+     */
+    public function getByIdForUser($id, $userId) {
+        $query = array(
+            'conditions' => array(
+                'Capsule.id' => $id,
+                'Capsule.user_id' => $userId
+            ),
+            'contain' => array(
+                'Memoir' => array(
+                    'fields' => $this->Memoir->fieldListProjection
+                )
+            ),
+            'fields' => $this->fieldListProjection
+        );
+        $query = $this->appendDiscoveryStatsToQuery($query);
+        return $this->find('first', $query);
+    }
+
+    /**
      * Gets all Capsules for the specified User.  If the two sets of coordinates are specified, only Capsules
      * that fall into the bounded area will be returned.
      *
-     * @param int $userId The ID of the User to retrieve the Capsules for.
+     * @param mixed $userId The ID of the User to retrieve the Capsules for.
      * @param null $latNE
      * @param null $lngNE
      * @param null $latSW
@@ -231,6 +297,8 @@ class Capsule extends AppModel {
     public function getForUser($userId, $latNE = null, $lngNE = null, $latSW = null, $lngSW = null, $query = array()) {
         // Append to the query so that only the User's Capsule's are retrieved
         $query = $this->appendBelongsToUserToQuery($userId, $query);
+        // Specify the fields that will be returned in the query
+        $query = $this->appendCapsuleProjectionToQuery($query);
         // If there are two sets of coordinates, then append the query parameters to get Capsules within bounded area
         if ($latNE != null && $lngNE != null && $latSW != null && $lngSW != null) {
             $query = $this->appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query);
@@ -243,7 +311,7 @@ class Capsule extends AppModel {
      * Gets all discovered Capsules for the specified User.  If the two sets of coordinates are specified, only Capsules
      * within the bounded area will be returned.
      *
-     * @param int $userId The ID of the User to retrieve the discovered Capsules for.
+     * @param mixed $userId The ID of the User to retrieve the discovered Capsules for.
      * @param null $latNE
      * @param null $lngNE
      * @param null $latSW
@@ -255,6 +323,9 @@ class Capsule extends AppModel {
                                          $query = array()) {
         // Build query to get Discoveries for the specified User
         $query = $this->appendDiscoveriesForUserToQuery($userId, $query);
+        // Specify the fields that will be returned in the query
+        $query = $this->appendCapsuleProjectionToQuery($query);
+        $query = $this->appendDiscoveryProjectionToQuery($query);
         // If there are two sets of coordinates, then append the query parameters to get Capsules within bounded area
         if ($latNE != null && $lngNE != null && $latSW != null && $lngSW != null) {
             $query = $this->appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query);
@@ -267,7 +338,7 @@ class Capsule extends AppModel {
      * Gets undiscovered Capsules for the specified User.  If a set of coordinates and a radius are specified, only
      * Capsules that fall into the bounded area will be returned.
      *
-     * @param int $userId The ID of the User to retrieve the discovered Capsules for.
+     * @param mixed $userId The ID of the User to retrieve the discovered Capsules for.
      * @param null $lat
      * @param null $lng
      * @param null $radius
@@ -277,6 +348,8 @@ class Capsule extends AppModel {
     public function getUndiscoveredForUser($userId, $lat = null, $lng = null, $radius = null, $query = array()) {
         // Build query to get undiscovered Capsules for the specified User
         $query = $this->appendUndiscoveredForUserToQuery($userId, $query);
+        // Specify the fields that will be returned in the query
+        $query = $this->appendCapsuleProjectionToQuery($query);
         // If there are coordinates and a radius, append the query to get Capsules only within the bounded area
         if ($lat != null && $lng != null && $radius != null) {
             $query = $this->appendInRadiusToQuery($lat, $lng, $radius, $query);
@@ -361,7 +434,7 @@ class Capsule extends AppModel {
     /**
      * Appends parameters to the query that will only retrieve Capsules owned by the User.
      *
-     * @param int $userId The ID of the User that owns the Capsules
+     * @param mixed $userId The ID of the User that owns the Capsules
      * @param array $query
      * @return array
      */
@@ -378,15 +451,12 @@ class Capsule extends AppModel {
     /**
      * Appends parameters to the query that will return only Capsules discovered by the specified User.
      *
-     * @param int $userId ID of the User to return Discoveries for
+     * @param mixed $userId ID of the User to return Discoveries for
      * @param array $query
      * @return array
      */
     private function appendDiscoveriesForUserToQuery($userId, $query = array()) {
         $append = array(
-            'fields' => array(
-                'Capsule.*', 'Discovery.*'
-            ),
             'joins' => array(
                 array(
                     'table' => 'discoveries',
@@ -407,7 +477,7 @@ class Capsule extends AppModel {
      * Appends parameters to the query that will return only Capsules that have not been discovered by the specified
      * User.
      *
-     * @param int $userId ID of the User to return the undiscovered Capsules for
+     * @param mixed $userId ID of the User to return the undiscovered Capsules for
      * @param array $query
      * @return array
      */
@@ -493,6 +563,34 @@ class Capsule extends AppModel {
     }
 
     /**
+     * Appends the Capsule projection to the query
+     *
+     * @param array $query The query to append to
+     * @return array The updated query
+     */
+    private function appendCapsuleProjectionToQuery($query = array()) {
+        $append = array(
+            'fields' => $this->fieldListProjection
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
+     * Appends the Discovery projection to the query
+     *
+     * @param array $query The query to append to
+     * @return array The updated query
+     */
+    private function appendDiscoveryProjectionToQuery($query = array()) {
+        $append = array(
+            'fields' => $this->Discovery->fieldListProjection
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
      * Saves a single Capsule along with its CapsulePoint and Memoirs
      *
      * @param array $data The data to save
@@ -530,11 +628,16 @@ class Capsule extends AppModel {
         $commit = true;
 
         // Calculate the spatial data since Cake's saveAll escapes data
-        $pointData = $dataSource->query(sprintf("SELECT POINT(%s, %s) as PointData", $data['Capsule']['lat'], $data['Capsule']['lng']));
-        // Add the spatial data to be saved
-        $data['CapsulePoint'] = array(
-            'point' => $pointData[0][0]['PointData']
-        );
+        if (isset($data['Capsule']) && isset($data['Capsule']['lat']) && isset($data['Capsule']['lng'])
+            && is_numeric($data['Capsule']['lat']) && is_numeric($data['Capsule']['lng'])
+        ) {
+            $pointData = $dataSource->query(sprintf("SELECT POINT(%s, %s) as PointData", $data['Capsule']['lat'],
+                $data['Capsule']['lng']));
+            // Add the spatial data to be saved
+            $data['CapsulePoint'] = array(
+                'point' => $pointData[0][0]['PointData']
+            );
+        }
         // Remove validation for the file input
         $this->Memoir->validator()->remove('file');
         // Save Capsule, Memoir, and CapsulePoint data

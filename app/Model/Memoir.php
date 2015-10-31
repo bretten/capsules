@@ -109,4 +109,29 @@ class Memoir extends AppModel {
         )
     );
 
+    /**
+     * List of fields to be returned when querying the Memoir table
+     *
+     * @var array
+     */
+    public $fieldListProjection = array(
+        'Memoir.id', 'Memoir.title', 'Memoir.message', 'Memoir.file_location',
+        'Memoir.file_public_name', 'Memoir.file_type', 'Memoir.file_size', 'Memoir.modified'
+    );
+
+    /**
+     * Gets the Memoir by ID
+     *
+     * @param mixed $id The ID of the Memoir to retrieve
+     * @return array|null The Memoir data if a matching row is found, otherwise null
+     */
+    public function getById($id) {
+        return $this->find('first', array(
+            'conditions' => array(
+                'Memoir.id' => $id
+            ),
+            'files' => $this->fieldListProjection
+        ));
+    }
+
 }

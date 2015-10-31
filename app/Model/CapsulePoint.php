@@ -23,21 +23,4 @@ class CapsulePoint extends AppModel {
         )
     );
 
-    /**
-     * Checks if a Capsule already has a CapsulePoint.
-     *
-     * @param $capsuleId
-     * @param $userId
-     * @return bool
-     */
-    public function created($capsuleId) {
-        return $this->find('first', array(
-            'conditions' => array(
-                'CapsulePoint.capsule_id' => $capsuleId
-            ),
-            'recursive' => -1,
-            'callbacks' => false
-        ));
-    }
-
 }
