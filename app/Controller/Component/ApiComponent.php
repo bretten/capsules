@@ -3,17 +3,12 @@
 App::uses('Component', 'Controller');
 
 /**
- * Contains common API methods that can be used in controllers that rely on
- * Cake's authentication or the StatelessAuthComponent's authentication
+ * Contains common API methods
+ *
+ * @property AuthComponent $Auth
+ * @author Brett Namba
  */
 class ApiComponent extends Component {
-
-    /**
-     * Settings
-     *
-     * @var array
-     */
-    public $settings = array();
 
     /**
      * Components
@@ -23,20 +18,6 @@ class ApiComponent extends Component {
     public $components = array('Auth');
 
     /**
-     * Request object
-     *
-     * @var CakeRequest
-     */
-    public $request;
-
-    /**
-     * Response object
-     *
-     * @var CakeResponse
-     */
-    public $response;
-
-    /**
      * Controller
      *
      * @var Controller
@@ -44,26 +25,18 @@ class ApiComponent extends Component {
     public $controller;
 
     /**
-     * Array representing the response body
+     * Capsule model
      *
-     * @var array
+     * @var Capsule
      */
-    public $body;
+    public $Capsule;
 
     /**
-     * Constructor
+     * The number of entity resources to return when paging results
      *
-     * @param ComponentCollection $collection
-     * @param array $settings
+     * @var int
      */
-    public function __construct(ComponentCollection $collection, $settings = array()) {
-        $this->_Collection = $collection;
-        $this->settings = array_merge($this->settings, $settings);
-        $this->_set($settings);
-        if (!empty($this->components)) {
-            $this->_componentMap = ComponentCollection::normalizeObjectArray($this->components);
-        }
-    }
+    private static $objectLimit = 10;
 
     /**
      * Called before the Controller's beforeFilter
@@ -73,796 +46,610 @@ class ApiComponent extends Component {
      */
     public function initialize(Controller $controller) {
         $this->controller = $controller;
-        $this->request = $controller->request;
-        $this->response = $controller->response;
+        if (isset($controller->Capsule) && $controller->Capsule instanceof Capsule) {
+            $this->Capsule = $controller->Capsule;
+        } else {
+            $this->Capsule = ClassRegistry::init("Capsule");
+        }
     }
 
     /**
-     * Called after the Controller's beforeFilter but before the Controller action is handled
+     * Gets a Capsule by the specified ID.  Will determine if the Capsule is owned by the User.  If it is not
+     * owned by the User, it will determine if the User has discovered it.
      *
-     * @param Controller $controller
-     * @return void
+     * @param mixed $id The ID of the Capsule
      */
-    public function startup(Controller $controller) {
-        // Build the body of the response
-        $this->body = array(
-            'data' => array(),
-            'messages' => array()
-        );
-    }
-
-    /**
-     * API method to handle registering Users
-     *
-     * @return string
-     */
-    public function register() {
-        // Make sure it is a POST
-        if (!$this->request->is('post')) {
-            return $this->responseNotAllowed();
-        }
-
-        // Check the request data
-        if (!isset($this->request->data['username']) || !isset($this->request->data['email'])
-            || !isset($this->request->data['password']) || !isset($this->request->data['confirm_password'])
-        ) {
-            return $this->responseBadRequest();
-        }
-
-        // Create the User's token
-        $this->request->data['token'] = Security::hash(uniqid() . 'capsules', null, true);
-        // Save the User's token
-        if (!$this->controller->User->save($this->request->data, array(
-            'confirmPassword' => true,
-            'fieldList' => array(
-                'username', 'password', 'email', 'confirm_password', 'token'
-            )))
-        ) {
-            // If there were validation errors, then indicate a bad request
-            if (!empty($this->controller->User->validationErrors)) {
-                // Set the validation messages in the response
-                foreach ($this->controller->User->validationErrors as $field => $messages) {
-                    foreach ((array)$messages as $message) {
-                        $this->body['messages'][] = __($message);
-                    }
-                }
-                // Indicate a bad request
-                return $this->responseBadRequest();
-            } else {
-                // Indicate a server error
-                return $this->responseServerError();
-            }
-        }
-
-        // Add the token to the response
-        $this->body['data'] = array(
-            'token' => $this->request->data['token']
-        );
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to handle authenticating Users.  Response body contains an authentication token
-     * to be used in future API calls.
-     *
-     * @return string
-     */
-    public function authenticate() {
-        if (!$this->Auth->login()) {
-            // Add a message
-            $this->body['messages'][] = __("The username or password was incorrect.");
-            // Indicate unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Create the User's token
-        $token = Security::hash(uniqid() . 'capsules' . $this->Auth->user('id'), null, true);
-        // Save the User's token
-        $data = array(
-            'id' => $this->Auth->user('id'),
-            'token' => $token
-        );
-        if (!$this->controller->User->save($data, array('fieldList' => array('id', 'token')))) {
-            // Since the token is generated server side, there is no chance for validation errors from a bad request
-            // As a result, indicate a server error
-            return $this->responseServerError();
-        }
-
-        // Add the token to the request body
-        $this->body['data'] = array('token' => $token);
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to return a User's Capsules and Discoveries
-     *
-     * @return string
-     */
-    public function points() {
-        // Make sure it is a POST request
-        if (!$this->request->is('post')) {
-            return $this->responseNotAllowed();
-        }
-
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            return $this->responseUnauthenticated();
-        }
-
-        // Make sure all the request data is present
-        if (!isset($this->request->data['latNE']) || !is_numeric($this->request->data['latNE'])
-            || !isset($this->request->data['lngNE']) || !is_numeric($this->request->data['lngNE'])
-            || !isset($this->request->data['latSW']) || !is_numeric($this->request->data['latSW'])
-            || !isset($this->request->data['lngSW']) || !is_numeric($this->request->data['lngSW'])
-        ) {
-            return $this->responseBadRequest();
-        }
-
-        // Get the User's Capsules
-        $capsules = $this->controller->Capsule->getForUser(
-            $this->Auth->user('id'),
-            $this->request->data['latNE'],
-            $this->request->data['lngNE'],
-            $this->request->data['latSW'],
-            $this->request->data['lngSW']
-        );
-        // Add the User's Capsules to the response body
-        $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
-            return ApiComponent::buildCapsule($data);
-        });
-        // Get the User's Discoveries
-        $discoveries = $this->controller->Capsule->getDiscoveredForUser(
-            $this->Auth->user('id'),
-            $this->request->data['latNE'],
-            $this->request->data['lngNE'],
-            $this->request->data['latSW'],
-            $this->request->data['lngSW']
-        );
-        // Add the User's Discoveries to the response
-        $this->body['data']['discoveries'] = Hash::map($discoveries, "{n}.Capsule", function ($data) {
-            return ApiComponent::buildCapsule($data);
-        });
-
-        // Indicate a success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to retrieve undiscovered Capsules in the User's radius
-     *
-     * @return string
-     */
-    public function ping() {
-        // Make sure it is a POST request
-        if (!$this->request->is('post')) {
-            return $this->responseNotAllowed();
-        }
-
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            return $this->responseUnauthenticated();
-        }
-
-        if (!isset($this->request->data['lat']) || !is_numeric($this->request->data['lat'])
-            || !isset($this->request->data['lng']) || !is_numeric($this->request->data['lng'])
-        ) {
-            // Indicate a bad request
-            return $this->responseBadRequest();
-        }
-
-        // Get the User's undiscovered Capsules
-        $capsules = $this->controller->Capsule->getUndiscoveredForUser(
-            $this->Auth->user('id'),
-            $this->request->data['lat'],
-            $this->request->data['lng'],
-            Configure::read('Map.UserLocation.SearchRadius')
-        );
-        // Add them to the response
-        $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
-            return ApiComponent::buildCapsule($data);
-        });
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to open a Capsule
-     *
-     * @return string
-     */
-    public function open() {
-        // Make sure it is a POST request
-        if (!$this->request->is('post')) {
-            // Indicate non-POST's are not allowed
-            return $this->responseNotAllowed();
-        }
-
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Make sure all the request data is present
-        if (!isset($this->request->data['id'])
-            || !isset($this->request->data['lat']) || !is_numeric($this->request->data['lat'])
-            || !isset($this->request->data['lng']) || !is_numeric($this->request->data['lng'])
-        ) {
-            // Indicate a bad request
-            return $this->responseBadRequest();
-        }
-
-        // Make sure the Capsule to be opened exists
-        if (!$this->controller->Capsule->exists($this->request->data['id'])) {
-            // Indicate resource not found
-            return $this->responseNotFound();
+    public function getCapsule($id) {
+        // Make sure an ID was specified
+        if (!$id) {
+            throw new BadRequestException();
         }
         // Get the Capsule
-        $capsule = $this->controller->Capsule->findById($this->request->data['id']);
+        $capsule = $this->Capsule->getById($id);
+        // If the Capsule could not be found, indicate resource not found
+        if (!$capsule) {
+            throw new NotFoundException();
+        }
 
-        // See if the User has already discovered the Capsule
-        if ($discovery = $this->controller->Capsule->Discovery->created(
-            $this->request->data['id'],
-            $this->Auth->user('id'))
+        // See if the User owns the Capsule
+        $isOwned = $this->Auth->user('id') == $capsule['Capsule']['user_id'];
+
+        // If the Capsule is not owned, see if it is discovered by the User
+        $discovery = null;
+        if (!$isOwned) {
+            $discovery = $this->Capsule->Discovery->getByCapsuleIdForUser($id, $this->Auth->user('id'));
+            // If the User does not own the Capsule or has not discovered it, indicate resource not found
+            if (!$discovery) {
+                throw new NotFoundException();
+            }
+        }
+
+        $this->controller->set('capsule', $capsule);
+        $this->controller->set('discovery', $discovery);
+        $this->controller->set('isOwned', $isOwned);
+    }
+
+    /**
+     * Gets all of the Capsules for the authenticated User.  The Capsules can be filtered by page or by bounding
+     * rectangle if query parameters are added to the HTTP request.
+     *
+     * @param CakeRequest $request The current HTTP request
+     */
+    public function getUserCapsules(CakeRequest $request) {
+        // Query
+        $query = array(
+            'includeDiscoveryStats' => true
+        );
+        // Parse pagination query parameters
+        $query = $this->parsePagination($request->query, $query);
+        // Parse the bounding rectangle data
+        $data = $this->parseBoundingRectangle($request->query);
+
+        // Get the Capsules
+        $capsules = $this->Capsule->getForUser($this->Auth->user('id'), $data['latNE'], $data['lngNE'], $data['latSW'],
+            $data['lngSW'], $query);
+
+        $this->controller->set('capsules', $capsules);
+    }
+
+    /**
+     * Gets all of the Capsule discoveries for the authenticated User.  They can be filtered by page or by
+     * bounding rectangle if query parameters are added to the HTTP request.
+     *
+     * @param CakeRequest $request The current HTTP request
+     */
+    public function getUserDiscoveries(CakeRequest $request) {
+        // Query
+        $query = array(
+            'includeDiscoveryStats' => true
+        );
+        // Parse pagination query parameters
+        $query = $this->parsePagination($request->query, $query);
+        // Parse the bounding rectangle data
+        $data = $this->parseBoundingRectangle($request->query);
+
+        // Get the Capsule discoveries
+        $capsules = $this->Capsule->getDiscoveredForUser($this->Auth->user('id'), $data['latNE'], $data['lngNE'],
+            $data['latSW'], $data['lngSW'], $query);
+
+        $this->controller->set('capsules', $capsules);
+    }
+
+    /**
+     * Serves the file associated with the Memoir as the response
+     *
+     * @param mixed $id ID of the Memoir
+     */
+    public function getMemoirFile($id) {
+        // Make sure an ID was specified
+        if (!$id) {
+            throw new BadRequestException();
+        }
+        // Get the Memoir
+        $memoir = $this->Capsule->Memoir->getById($id);
+        // If no Memoir exists or it is not discovered by the User, indicate no resource found
+        if (!$memoir || !isset($memoir['Memoir']) || !isset($memoir['Memoir']['capsule_id'])
+            || !$this->Capsule->Discovery->isDiscoveredByUser($memoir['Memoir']['capsule_id'], $this->Auth->user('id'))
         ) {
-            // Return the existing Discovery
-            $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $discovery['Discovery']);
+            throw new NotFoundException();
+        }
+
+        // Add headers to indicate an image is being served
+        header("Content-Type: " . $memoir['Memoir']['file_type']);
+        header("Content-Length: " . $memoir['Memoir']['file_size']);
+        header("Last-Modified: " . date(DATE_RFC2822, strtotime($memoir['Memoir']['modified'])));
+        // Set the image as the response body
+        readfile($memoir['Memoir']['file_location'] . DS . $memoir['Memoir']['file_public_name']);
+        return;
+    }
+
+    /**
+     * Discovers all Capsules for the authenticated User in a bounding circle around the latitude and longitude
+     * specified in the HTTP request.
+     *
+     * @param CakeRequest $request The current HTTP request
+     */
+    public function discoverAllInRadius(CakeRequest $request) {
+        // Parse the latitude and longitude
+        $data = $this->parseBoundingCircle($request->data);
+        // Make sure the latitude and longitude values exist
+        if ($data['lat'] == null || $data['lng'] == null) {
+            throw new BadRequestException();
+        }
+        // Query
+        $query = array(
+            'includeDiscoveryStats' => true
+        );
+        // Get all Capsules within the radius
+        $capsules = $this->Capsule->getUndiscoveredForUser($this->Auth->user('id'), $data['lat'], $data['lng'],
+            Configure::read('Map.UserLocation.SearchRadius'), $query);
+
+        // See if there are any Capsules to discover
+        if (empty($capsules)) {
+            // Indicate a no content response
+            $this->sendNoContentResponse();
+            return;
         } else {
-            // Make sure the User is close enough to the Capsule
-            if ($this->controller->Capsule->isReachable(
-                $this->request->data['id'],
-                $this->request->data['lat'],
-                $this->request->data['lng'],
-                Configure::read('Map.UserLocation.DiscoveryRadius'))
+            // Discover all the Capsules within the radius for the specified User
+            if ($this->Capsule->Discovery->createMany($this->Auth->user('id'),
+                Hash::extract($capsules, '{n}.Capsule.id'))
             ) {
-                // Attempt to save the Discovery
-                if ($insert = $this->controller->Capsule->Discovery->saveNew(
-                    $this->request->data['id'],
-                    $this->Auth->user('id')
-                )
-                ) {
-                    $this->body['data']['discovery'] = ApiComponent::buildDiscovery($capsule['Capsule'], $insert['Discovery']);
-                } else {
-                    // There was a server error when trying to save the Discovery
-                    return $this->responseServerError();
-                }
+                $this->controller->set('capsules', $capsules);
+                return;
             } else {
-                // The User was too far away
-                return $this->responseForbidden();
+                // See if there were validation errors or if an internal error occurred
+                $this->handleSaveError($this->Capsule->Discovery);
+                return;
             }
         }
-
-        // Indicate success
-        return $this->responseOk();
     }
 
     /**
-     * API method to get the ctag for the specified collection
+     * Handles a POST request for a single Capsule resource.  If a validation query parameter was specified
+     * in the HTTP request then the Capsule will only be validated.  Otherwise, it will be created.
      *
-     * @param string $collection Collection to get the ctag for
-     * @return string
+     * @param CakeRequest $request The current HTTP request
      */
-    public function ctag($collection = null) {
-        // Make sure it is a GET request
-        if (!$this->request->is('get')) {
-            // Indicate that the request method is not allowed
-            return $this->responseNotAllowed();
-        }
+    public function postCapsule(CakeRequest $request) {
+        // Check for the validation flag in the request query parameters
+        $isValidationRequest = $this->parseValidationFlag($request->query);
 
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Make sure the collection was specified
-        if (!$collection) {
-            // Indicate a bad request
-            return $this->responseBadRequest();
-        }
-
-        // Get the ctag based on which collection
-        $ctag = "";
-        switch ($collection) {
-            case "capsules":
-                $ctag = $this->controller->User->field('ctag_capsules', array('User.id' => $this->Auth->user('id')));
-                break;
-            case "discoveries":
-                $ctag = $this->controller->User->field('ctag_discoveries', array('User.id' => $this->Auth->user('id')));
-                break;
-            default:
-                // Unrecognized collection, so indicate a bad request
-                return $this->responseBadRequest();
-                break;
-        }
-
-        // Add the ctag to the response body
-        $this->body['data']['ctag'] = $ctag;
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to retrieve the entity status on the specified collection
-     *
-     * @param string $collection The collection to get the entity status on
-     * @return string
-     */
-    public function status($collection = null) {
-        // Make sure it is a GET request
-        if (!$this->request->is('get')) {
-            // Indicate that the request method is not allowed
-            return $this->responseNotAllowed();
-        }
-
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Make sure the collection was specified
-        if (!$collection) {
-            // Indicate a bad request
-            return $this->responseBadRequest();
-        }
-
-        // Determine which collection to get status on
-        switch ($collection) {
-            case "capsules":
-                $capsules = $this->controller->Capsule->find('all', array(
-                    'conditions' => array(
-                        'Capsule.user_id' => $this->Auth->user('id')
-                    ),
-                    'fields' => array('Capsule.id', 'Capsule.etag')
-                ));
-                // Add them to the response
-                $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
-                    return ApiComponent::buildCapsule($data);
-                });
-                break;
-            case "discoveries":
-                $discoveries = $this->controller->Capsule->find('all', array(
-                    'joins' => array(
-                        array(
-                            'table' => 'discoveries',
-                            'alias' => 'Discovery',
-                            'type' => 'INNER',
-                            'conditions' => array(
-                                'Capsule.id = Discovery.capsule_id',
-                                'Discovery.user_id' => $this->Auth->user('id')
-                            )
-                        )
-                    ),
-                    'fields' => array('Capsule.id', 'Discovery.etag')
-                ));
-                // Add them to the response
-                $this->body['data']['discoveries'] = Hash::map($discoveries, "{n}", function ($data) {
-                    return ApiComponent::buildDiscovery($data['Capsule'], $data['Discovery']);
-                });
-                break;
-            default:
-                // Unrecognized collection, so indicate a bad request
-                return $this->responseBadRequest();
-                break;
-        }
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to report on the specified collection and ids
-     *
-     * @param string $collection The collection to report on
-     * @return string
-     */
-    public function report($collection = null) {
-        // Make sure it is a GET request
-        if (!$this->request->is('post')) {
-            // Indicate that the request method is not allowed
-            return $this->responseNotAllowed();
-        }
-
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Make sure the collection was specified
-        if (!$collection || !isset($this->request->data['id'])) {
-            // Indicate a bad request
-            return $this->responseBadRequest();
-        }
-
-        // Determine which collection to report on
-        switch ($collection) {
-            case "capsules":
-                $capsules = $this->controller->Capsule->find('all', array(
-                    'conditions' => array(
-                        'Capsule.id' => $this->request->data['id'],
-                        'Capsule.user_id' => $this->Auth->user('id')
-                    ),
-                    'fields' => array('Capsule.id', 'Capsule.name', 'Capsule.lat', 'Capsule.lng', 'Capsule.etag')
-                ));
-                // Add them to the response
-                $this->body['data']['capsules'] = Hash::map($capsules, "{n}.Capsule", function ($data) {
-                    return ApiComponent::buildCapsule($data);
-                });
-                break;
-            case "discoveries":
-                $discoveries = $this->controller->Capsule->find('all', array(
-                    'conditions' => array(
-                        'Capsule.id' => $this->request->data['id'],
-                        'Discovery.user_id' => $this->Auth->user('id')
-                    ),
-                    'joins' => array(
-                        array(
-                            'table' => 'discoveries',
-                            'alias' => 'Discovery',
-                            'type' => 'INNER',
-                            'conditions' => array(
-                                'Capsule.id = Discovery.capsule_id',
-                                'Discovery.user_id' => $this->Auth->user('id')
-                            )
-                        )
-                    ),
-                    'fields' => array(
-                        'Capsule.id', 'Capsule.name', 'Capsule.lat', 'Capsule.lng',
-                        'Discovery.favorite', 'Discovery.rating', 'Discovery.etag'
-                    )
-                ));
-                // Add them to the response
-                $this->body['data']['discoveries'] = Hash::map($discoveries, "{n}", function ($data) {
-                    return ApiComponent::buildDiscovery($data['Capsule'], $data['Discovery']);
-                });
-                break;
-            default:
-                // Unrecognized collection, so indicate a bad request
-                return $this->responseBadRequest();
-                break;
-        }
-
-        // Indicate success
-        return $this->responseOk();
-    }
-
-    /**
-     * API method to perform various actions on a single Capsule
-     *
-     * @param int $id
-     * @return string
-     */
-    public function capsule($id = null) {
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
-
-        // Vary the action based on the HTTP method
-        if ($this->request->is('post')) {
-            // TODO Decide if editing should be allowed
-            if ($id) {
-                return $this->responseNotAllowed();
-            }
-
-            // Handle some Capsule data here to prevent form tampering
-            $fieldList = array(
-                'Capsule' => array(
-                    'name',
-                    'point',
-                    'user_id',
-                    'etag'
-                )
-            );
-            if ($id) {
-                $this->request->data['Capsule']['id'] = $id;
-                unset($this->request->data['Capsule']['lat']);
-                unset($this->request->data['Capsule']['lng']);
-                // Make sure the Capsule exists and that it belongs to the User
-                if (!$this->controller->Capsule->exists($id)
-                    || !$this->controller->Capsule->ownedBy($this->Auth->user('id'), $id)
-                ) {
-                    // Indicate the Capsule was not found
-                    return $this->responseNotFound();
-                }
-            } else {
-                $fieldList = array_merge_recursive($fieldList, array(
-                    'Capsule' => array(
-                        'lat', 'lng'
-                    )
-                ));
-            }
-
-            // Validate the text form inputs
-            if (!isset($this->request->query['validate']) || $this->request->query['validate'] != 'false') {
-                // Validate only the Memoir text fields
-                $validateOnlyList = array_merge($fieldList, array(
-                    'Memoir' => array('title')
-                ));
-                // Validate
-                if ($this->controller->Capsule->saveAll($this->request->data, array(
-                    'deep' => true, 'fieldList' => $validateOnlyList, 'validate' => 'only'
-                ))
-                ) {
-                    // Indicate no content
-                    return $this->responseNoContent();
-                } else {
-                    // Build the response body
-                    $this->body['messages'] = $this->controller->Capsule->validationErrors;
-                    // Indicate a bad request
-                    return $this->responseBadRequest();
-                }
-            }
-
-            // Save the Capsule
-            if ($this->controller->Capsule->saveAllWithUploads($this->request->data, array(
-                'deep' => true, 'fieldList' => $fieldList, 'associateOwner' => true,
-                'updateCtagForUser' => $this->Auth->user('id')
-            ))
-            ) {
-                // Determine the ID of the INSERTed/UPDATEd Capsule
-                if ($id) {
-                    $capsuleId = $id;
-                } else {
-                    $capsuleId = $this->controller->Capsule->getLastInsertID();
-                }
-
-                // Get the Capsule
-                $capsule = $this->controller->Capsule->find('first', array(
-                    'conditions' => array(
-                        'Capsule.id' => $capsuleId,
-                        'Capsule.user_id' => $this->Auth->user('id')
-                    ),
-                    'fields' => array('Capsule.id', 'Capsule.name', 'Capsule.lat', 'Capsule.lng', 'Capsule.etag')
-                ));
-
-                // Build the response body
-                $this->body['data'] = array(
-                    'capsule' => array(
-                        'isNew' => ($id) ? false : true,
-                        'id' => $capsule['Capsule']['id'],
-                        'lat' => $capsule['Capsule']['lat'],
-                        'lng' => $capsule['Capsule']['lng'],
-                        'name' => $capsule['Capsule']['name']
-                    )
-                );
-                // Indicate a success
-                return $this->responseOk();
-            } else {
-                // Build the response body
-                $this->body['messages'] = $this->controller->Capsule->validationErrors;
-                // Indicate a bad request
-                return $this->responseBadRequest();
-            }
-
-            // If the POST request made it here, then something went wrong
-            return $this->responseServerError();
-        } else if ($this->request->is('delete')) {
-            // DELETE a Capsule
-            $this->controller->Capsule->id = $id;
-            // Make sure the Capsule exists and belongs to the User
-            if (!$this->controller->Capsule->exists() || !$this->controller->Capsule->ownedBy($this->Auth->user('id'))) {
-                // Indicate a success in case the Capsule was already deleted on the server
-                return $this->responseNoContent();
-            }
-            // Delete
-            if ($this->controller->Capsule->delete()) {
-                // Indicate a success (no response body)
-                return $this->responseNoContent();
-            } else {
-                // Indicate a server error
-                return $this->responseServerError();
-            }
+        // If the validation was flag, just validate, otherwise attempt to create the Capsule
+        if ($isValidationRequest) {
+            $this->validateCapsule($request);
         } else {
-            // The HTTP method is not allowed, so indicate that in the response
-            return $this->responseNotAllowed();
+            $this->createCapsule($request);
         }
     }
 
     /**
-     * API method to perform various actions on a single Discovery
+     * Validates the Capsule and associated Memoir data.  On success, an HTTP "no content" code will be sent.
+     * Otherwise, the validation error messages will be sent as a JSON response.
      *
-     * @param int $id
-     * @return string
+     * @param CakeRequest $request The current HTTP request
      */
-    public function discovery($id = null) {
-        // Make sure the User is authenticated
-        if (!$this->Auth->user()) {
-            // Indicate that the request was unauthenticated
-            return $this->responseUnauthenticated();
-        }
+    public function validateCapsule(CakeRequest $request) {
+        // Parse the Capsule data
+        $data = $this->parseCapsuleData($request->data);
+        // Parse the Memoir data
+        $data = $this->parseMemoirData($request->data, $data);
 
-        // Vary the action based on the HTTP method
-        if ($this->request->is('post')) {
-            // Make sure an ID is specified
-            if (!$id) {
-                // Indicate a bad request
-                return $this->responseBadRequest();
-            }
-            // Make sure the User has discovered this Capsule
-            if (!$exists = $this->controller->Discovery->created($id, $this->Auth->user('id'))) {
-                // Indicate the resource was not found
-                return $this->responseNotFound();
-            }
-            // UPDATE the Discovery
-            $this->request->data['id'] = $exists['Discovery']['id'];
-            if ($result = $this->controller->Discovery->save($this->request->data, array(
-                'updateCtagForUser' => $this->Auth->user('id')
-            ))
-            ) {
-                // Add the updated Discovery to the body
-                $this->body['data']['discovery'] = ApiComponent::buildDiscovery(array('id' => $id), $result['Discovery']);
-                // Indicate a success
-                return $this->responseOk();
-            }
-
-            // If the POST request made it here, then something went wrong
-            return $this->responseServerError();
+        // Validate
+        if ($this->Capsule->saveAll($data, array('deep' => true, 'fieldList' => $this->Capsule->fieldListCreate,
+            'validate' => 'only'))
+        ) {
+            // Indicate a no content response
+            $this->sendNoContentResponse();
+            return;
         } else {
-            // The HTTP method is not allowed, so indicate that in the response
-            return $this->responseNotAllowed();
+            // See if there were validation errors or if an internal error occurred
+            $this->handleSaveError($this->Capsule);
+            return;
         }
     }
 
     /**
-     * Sets the status code to indicate a OK success and sets the body
+     * Attempts to save the Capsule and Memoir data in the HTTP request.  If successful, the capsule data will
+     * be returned.
      *
-     * @return string
+     * @param CakeRequest $request The current HTTP request
      */
-    private function responseOk() {
-        // Indicate success
-        $this->response->statusCode(200);
-        // Set the body
-        return $this->setBody();
+    public function createCapsule(CakeRequest $request) {
+        // Parse the Capsule data
+        $data = $this->parseCapsuleData($request->data);
+        // Parse the Memoir data
+        $data = $this->parseMemoirData($request->data, $data);
+
+        // Save
+        if ($this->Capsule->saveAllWithUploads($data,
+            array('deep' => true, 'fieldList' => $this->Capsule->fieldListCreate, 'associateOwner' => true,
+                'updateCtagForUser' => $this->Auth->user('id')))
+        ) {
+            // Get the ID of the new Capsule
+            $capsuleId = $this->Capsule->getLastInsertID();
+            // Get the Capsule
+            $capsule = $this->Capsule->getByIdForUser($capsuleId, $this->Auth->user('id'));
+
+            $this->controller->set('capsule', $capsule);
+            return;
+        } else {
+            // See if there were validation errors or if an internal error occurred
+            $this->handleSaveError($this->Capsule);
+            return;
+        }
     }
 
     /**
-     * Sets the status code to indicate there is no body content
+     * Updates the Discovery specified by the ID
      *
-     * @return string
+     * @param mixed $id The ID of the Discovery to update
+     * @param CakeRequest $request The current HTTP request
+     * @throws Exception
      */
-    private function responseNoContent() {
+    public function updateDiscovery($id, CakeRequest $request) {
+        // Make sure an ID was specified
+        if (!$id) {
+            throw new BadRequestException();
+        }
+        // Set the ID
+        $this->Capsule->Discovery->id = $id;
+        // Make sure the Discovery exists and that it is owned by the User
+        if (!$this->Capsule->Discovery->exists() || !$this->Capsule->Discovery->ownedBy($this->Auth->user('id'))) {
+            // Throw a not found even if it exists but is not owned by the User so that users cannot guess IDs
+            throw new NotFoundException();
+        }
+
+        // Parse the request
+        $data = $this->parseDiscoveryData($request->data);
+
+        // Save
+        if ($this->Capsule->Discovery->save($data, array('fieldList' => $this->Capsule->Discovery->fieldListUpdate))) {
+            // Indicate a no content response
+            $this->sendNoContentResponse();
+            return;
+        } else {
+            // See if there were validation errors or if an internal error occurred
+            $this->handleSaveError($this->Capsule->Discovery);
+            return;
+        }
+    }
+
+    /**
+     * Creates a User with the data from the HTTP request and returns the authentication token in the response
+     *
+     * @param CakeRequest $request The current HTTP request
+     */
+    public function createUser(CakeRequest $request) {
+        // Parse the User data
+        $data = $this->parseUserData($request->data);
+
+        // Save
+        if ($this->Capsule->User->save($data, array(
+            'confirmPassword' => true, 'fieldList' => $this->Capsule->User->fieldListCreate,
+            'assignNewAuthToken' => true))
+        ) {
+            // Get the newly created User's authentication token
+            $token = $this->Capsule->User->getAuthTokenForUser($this->Capsule->User->getLastInsertID());
+
+            $this->controller->set('token', $token);
+            return;
+        } else {
+            // See if there were validation errors or if an internal error occurred
+            $this->handleSaveError($this->Capsule->User);
+            return;
+        }
+    }
+
+    /**
+     * Attempts to delete the Capsule specified by the ID
+     *
+     * @param mixed $id The ID of the Capsule to delete
+     */
+    public function deleteCapsule($id) {
+        // Make sure the ID exists
+        if (!$id) {
+            throw new BadRequestException();
+        }
+        // Set the ID
+        $this->Capsule->id = $id;
+        // Make sure the Capsule exists and that it belongs to the authenticated User
+        if (!$this->Capsule->exists() || !$this->Capsule->ownedBy($this->Auth->user('id'))) {
+            throw new NotFoundException();
+        }
+
+        // Attempt to delete the Capsule
+        if ($this->Capsule->delete()) {
+            // Indicate a no content response
+            $this->sendNoContentResponse();
+            return;
+        } else {
+            throw new InternalErrorException();
+        }
+    }
+
+    /**
+     * Authenticates a User and returns a new authentication token in the HTTP response
+     */
+    public function authenticate() {
+        // Make sure the User authenticates
+        if (!$this->Auth->login()) {
+            throw new UnauthorizedException();
+        }
+
+        // Save a new authentication token for the User
+        if ($this->Capsule->User->setNewAuthToken($this->Auth->user('id'))) {
+            // Get the newly created User's authentication token
+            $this->controller->set('token', $this->Capsule->User->getAuthTokenForUser($this->Auth->user('id')));
+            return;
+        } else {
+            throw new InternalErrorException();
+        }
+    }
+
+    /**
+     * Parses the validation flag out of the HTTP request parameters and determines if it was set to true
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @return bool True if the validation flag was sent and set to true, otherwise false
+     */
+    private function parseValidationFlag(array $requestParams) {
+        return isset($requestParams['validate']) && $requestParams['validate'] == 'true';
+    }
+
+    /**
+     * Parses the Capsule data from the HTTP request parameters
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data to append the Capsule data to
+     * @return array The data array with the newly appended data
+     */
+    private function parseCapsuleData(array $requestParams, array $data = array()) {
+        if (!isset($data['Capsule'])) {
+            $data['Capsule'] = array();
+        }
+        if (isset($requestParams['Capsule']['name'])) {
+            $data['Capsule']['name'] = $requestParams['Capsule']['name'];
+        }
+        if (isset($requestParams['Capsule']['lat'])) {
+            $data['Capsule']['lat'] = $requestParams['Capsule']['lat'];
+        }
+        if (isset($requestParams['Capsule']['lng'])) {
+            $data['Capsule']['lng'] = $requestParams['Capsule']['lng'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Parses the Memoir data from the HTTP request parameters
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data to append the Memoir data to
+     * @return array The data array with the newly appended data
+     */
+    private function parseMemoirData(array $requestParams, array $data = array()) {
+        if (!isset($data['Memoir'])) {
+            $data['Memoir'] = array();
+        }
+        if (isset($requestParams['Memoir']) && is_array($requestParams['Memoir'])) {
+            foreach ($requestParams['Memoir'] as $key => $memoir) {
+                if (!is_numeric($key)) {
+                    continue;
+                }
+                if (!isset($data['Memoir'][$key])) {
+                    $data['Memoir'][$key] = array();
+                }
+                if (isset($memoir['title'])) {
+                    $data['Memoir'][$key]['title'] = $memoir['title'];
+                }
+                if (isset($memoir['message'])) {
+                    $data['Memoir'][$key]['message'] = $memoir['message'];
+                }
+                if (isset($memoir['file'])) {
+                    $data['Memoir'][$key]['file'] = $memoir['file'];
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Parses the Discovery data from the HTTP request parameters
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data to append the Discovery data to
+     * @return array The data array with the newly appended data
+     */
+    private function parseDiscoveryData(array $requestParams, array $data = array()) {
+        if (isset($requestParams['favorite']) && is_numeric($requestParams['favorite'])) {
+            $data['favorite'] = $requestParams['favorite'] != 1 ? 0 : 1;
+        }
+        if (isset($requestParams['rating']) && is_numeric($requestParams['rating'])) {
+            if ($requestParams['rating'] >= 1) {
+                $data['rating'] = 1;
+            } else if ($requestParams['rating'] <= -1) {
+                $data['rating'] = -1;
+            } else {
+                $data['rating'] = 0;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Parses the User data from the HTTP request parameters
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data to append the User data to
+     * @return array The data array with the newly appended data
+     */
+    private function parseUserData(array $requestParams, array $data = array()) {
+        if (isset($requestParams['username'])) {
+            $data['username'] = $requestParams['username'];
+        }
+        if (isset($requestParams['email'])) {
+            $data['email'] = $requestParams['email'];
+        }
+        if (isset($requestParams['password'])) {
+            $data['password'] = $requestParams['password'];
+        }
+        if (isset($requestParams['confirm_password'])) {
+            $data['confirm_password'] = $requestParams['confirm_password'];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Looks for any pagination related HTTP query parameters.  If they exist it will parse them and append
+     * them to the database query array
+     *
+     * @param array $requestParams The HTTP request query parameters
+     * @param array $query The database query array
+     * @return array The database query with the pagination parameters appended
+     */
+    private function parsePagination(array $requestParams, array $query = array()) {
+        // Parse the page
+        if (isset($requestParams['page']) && is_numeric($requestParams['page'])) {
+            $query['page'] = $requestParams['page'];
+            // Add the object limit
+            $query['limit'] = ApiComponent::$objectLimit;
+        }
+        // Parse the sort order
+        if (isset($requestParams['order']) && is_numeric($requestParams['order'])) {
+            $query['order'] = \Capsules\Http\RequestContract::getCapsuleOrderBySortKey($requestParams['order']);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Looks for any bounding circle related parameters in the HTTP request parameters.  If they are found, they
+     * will be appended to the data array.
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data array to append to
+     * @return array The data array with the appended parameters
+     */
+    private function parseBoundingCircle(array $requestParams, array $data = array()) {
+        // Parse the latitude
+        if (isset($requestParams['lat']) && is_numeric($requestParams['lat'])) {
+            $data['lat'] = $requestParams['lat'];
+        } else {
+            $data['lat'] = null;
+        }
+        // Parse the longitude
+        if (isset($requestParams['lng']) && is_numeric($requestParams['lng'])) {
+            $data['lng'] = $requestParams['lng'];
+        } else {
+            $data['lng'] = null;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Looks for any bounding rectangle related parameters in the HTTP request parameters.  If they are found, they
+     * will be appended to the data array.
+     *
+     * @param array $requestParams The HTTP request parameters
+     * @param array $data The data array to append to
+     * @return array The data array with the appended parameters
+     */
+    private function parseBoundingRectangle(array $requestParams, array $data = array()) {
+        $spatialValues = array('latNE', 'lngNE', 'latSW', 'lngSW');
+        foreach ($spatialValues as $spatialValue) {
+            if (isset($requestParams[$spatialValue]) && is_numeric($requestParams[$spatialValue])) {
+                $data[$spatialValue] = $requestParams[$spatialValue];
+            } else {
+                $data[$spatialValue] = null;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Should be used on a Model after a save attempt is made.  If any validation errors were found, it will create
+     * a HTTP response containing the validation messages.  Otherwise, since cause of the failed save was not
+     * due to validation, throw an exception indicating a server error.
+     *
+     * @param Model $model The Model to check for validation errors
+     */
+    private function handleSaveError(Model $model) {
+        // Check for validation errors
+        if (isset($model->validationErrors) && !empty($model->validationErrors)) {
+            // Send a HTTP response containing the validation errors
+            $this->sendValidationErrorResponse($model->validationErrors);
+        } else {
+            throw new InternalErrorException();
+        }
+    }
+
+    /**
+     * Overrides the View, sets the HTTP response code to indicate no content, and sets an empty response body
+     */
+    private function sendNoContentResponse() {
         // Indicate that there is no content
-        $this->response->statusCode(204);
-        // Set the body
-        return $this->setBody();
+        $this->setStatusCodeNoContent();
+        // Override the view with empty content
+        $this->overrideView(null);
     }
 
     /**
-     * Sets the status code to indicate a bad request and sets the body
+     * Overrides the View, sets the HTTP response code to indicate a bad request, and sets the response body
+     * to contain the specified validation error messages
      *
-     * @return string
+     * @param array $validationMessages An array of validation error messages
      */
-    private function responseBadRequest() {
+    private function sendValidationErrorResponse(array $validationMessages = array()) {
         // Indicate a bad request
-        $this->response->statusCode(400);
-        // Set the body
-        return $this->setBody();
+        $this->setStatusCodeBadRequest();
+        // Build the response body
+        $responseBody = array(
+            'name' => 'Bad Request',
+            'message' => 'Bad Request',
+            'url' => $this->controller->request->here(),
+            'messages' => $validationMessages
+        );
+        // Override the view with the response body
+        $this->overrideView($responseBody, /* jsonEncodeResponse */
+            true);
     }
 
     /**
-     * Sets the status code to indicate an unauthenticated request and sets the body
+     * Overrides the View by telling the Controller not to auto render the View.  The response body parameter is used
+     * as the actual HTTP response body and will be JSON encoded if indicated to do so.
      *
-     * @return string
+     * @param string $responseBody The HTTP response body
+     * @param bool|true $jsonEncodeResponse Whether or not to encode the HTTP response in JSON
      */
-    private function responseUnauthenticated() {
-        // Indicate method not allowed if not POST
-        $this->response->statusCode(401);
-        // Set the body
-        return $this->setBody();
+    private function overrideView($responseBody, $jsonEncodeResponse = true) {
+        $this->controller->autoRender = false;
+        $this->controller->layout = false;
+
+        if ($jsonEncodeResponse && is_array($responseBody)) {
+            $this->controller->response->type('json');
+            $responseBody = json_encode($responseBody);
+        }
+
+        $this->controller->response->body($responseBody);
     }
 
     /**
-     * Sets the status code to indicate that the user is unauthorized
-     *
-     * @return string
+     * Sets the HTTP response status code to indicate "No content".
      */
-    private function responseForbidden() {
-        // Indicate the user is unauthorized
-        $this->response->statusCode(403);
-        // Set the body
-        return $this->setBody();
+    private function setStatusCodeNoContent() {
+        $this->controller->response->statusCode(204);
     }
 
     /**
-     * Sets the status code to indicate a resource was not found
-     *
-     * @return string
+     * Sets the HTTP status code to indicate "Bad request".
      */
-    private function responseNotFound() {
-        // Indicate resource not found
-        $this->response->statusCode(404);
-        // Set the body
-        return $this->setBody();
-    }
-
-    /**
-     * Sets the status code to indicate that the request type is not allowed and sets the body
-     *
-     * @return string
-     */
-    private function responseNotAllowed() {
-        // Indicate method not allowed if not POST
-        $this->response->statusCode(405);
-        // Set the body
-        return $this->setBody();
-    }
-
-    /**
-     * Sets the status code to indicate there was a server error and sets the body
-     *
-     * @return string
-     */
-    private function responseServerError() {
-        // Indicate a server error
-        $this->response->statusCode(500);
-        // Set the body
-        return $this->setBody();
-    }
-
-    /**
-     * Convenience wrapper for setting the JSON body of the response
-     *
-     * @return string
-     */
-    private function setBody() {
-        return $this->response->body(json_encode($this->body));
-    }
-
-    /**
-     * Builds a Capsule data array to be sent over the wire
-     *
-     * @param array $capsule Capsule data
-     * @return array
-     */
-    public static function buildCapsule($capsule) {
-        $data = array();
-        if (isset($capsule['id'])) {
-            $data['id'] = $capsule['id'];
-        }
-        if (isset($capsule['name'])) {
-            $data['name'] = $capsule['name'];
-        }
-        if (isset($capsule['lat'])) {
-            $data['lat'] = $capsule['lat'];
-        }
-        if (isset($capsule['lng'])) {
-            $data['lng'] = $capsule['lng'];
-        }
-        if (isset($capsule['etag'])) {
-            $data['etag'] = $capsule['etag'];
-        }
-        return $data;
-    }
-
-    /**
-     * Builds a Discovery data array to be sent over the wire
-     *
-     * @param array $capsule Capsule data
-     * @param array $discovery Discovery data
-     * @return array
-     */
-    public static function buildDiscovery($capsule, $discovery) {
-        $data = ApiComponent::buildCapsule($capsule);
-        if (isset($discovery['etag'])) {
-            $data['etag'] = $discovery['etag'];
-        }
-        if (isset($discovery['rating'])) {
-            $data['rating'] = $discovery['rating'];
-        }
-        if (isset($discovery['favorite'])) {
-            $data['favorite'] = $discovery['favorite'];
-        }
-        return $data;
+    private function setStatusCodeBadRequest() {
+        $this->controller->response->statusCode(400);
     }
 
 }

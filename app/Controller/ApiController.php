@@ -4,7 +4,7 @@ App::uses('AppController', 'Controller');
 /**
  * API Controller
  *
- * @property PaginatorComponent $Paginator
+ * @property ApiComponent $Api
  */
 class ApiController extends AppController {
 
@@ -13,7 +13,14 @@ class ApiController extends AppController {
      *
      * @var array
      */
-    public $components = array('Api', 'Paginator');
+    public $components = array('Api', 'RequestHandler');
+
+    /**
+     * Helpers
+     *
+     * @var array
+     */
+    public $helpers = array('JsonResponse');
 
     /**
      * uses
@@ -23,115 +30,199 @@ class ApiController extends AppController {
     public $uses = array('Capsule', 'Discovery', 'User');
 
     /**
+     * The current HTTP method for this request
+     *
+     * @var string
+     */
+    private $currentHttpMethod;
+
+    /**
+     * The message to display when aN HTTP method has not been implemented
+     *
+     * @var string
+     */
+    private static $NOT_IMPLEMENTED_MESSAGE = "Not implemented";
+
+    /**
      * beforeFilter method
      *
      * @return void
      */
     public function beforeFilter() {
         parent::beforeFilter();
-        $this->autoRender = false;
-        $this->layout = false;
-        if ($this->request->params['action'] === 'authenticate') {
+        // Get the HTTP method type
+        $this->currentHttpMethod = strtoupper(trim($this->request->method()));
+        // Determine the authentication type
+        if ($this->request->params['action'] == "token" && $this->currentHttpMethod == "GET") {
+            // Only use non-token authentication when authenticating Users since they may not have a valid token
             $this->Auth->authenticate = array('Basic');
         } else {
+            // Force authentication by token for all other API methods
             $this->Auth->authenticate = array('Token');
         }
-        // Don't require authentication when registering or authenticating
-        $this->Auth->allow(array('register', 'authenticate'));
+        // Set the view path
+        $this->setViewPath($this->request->params['action'], strtolower($this->currentHttpMethod));
     }
 
     /**
-     * API method used to handle User registrations
-     *
-     * @return void
+     * API method to handle different HTTP methods on a collection of Capsule resources
      */
-    public function register() {
-        $this->Api->register();
+    public function capsules() {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                $this->checkAuthentication();
+                $this->Api->getUserCapsules($this->request);
+                break;
+            case "POST":
+            case "PUT":
+            case "DELETE":
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
     }
 
     /**
-     * API method to handle authenticating Users.  Response body contains an authentication token
-     * to be used in future API calls.
-     *
-     * @return void
+     * API method to handle different HTTP methods on a collection of Discovery Capsule resources
      */
-    public function authenticate() {
-        $this->Api->authenticate();
+    public function discoveries() {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                $this->checkAuthentication();
+                $this->Api->getUserDiscoveries($this->request);
+                break;
+            case "POST":
+                $this->checkAuthentication();
+                $this->Api->discoverAllInRadius($this->request);
+                break;
+            case "PUT":
+            case "DELETE":
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
     }
 
     /**
-     * API method to return a User's Capsules and Discoveries
+     * API method to handle different HTTP methods on a Capsule resource
      *
-     * @return void
-     */
-    public function points() {
-        $this->Api->points();
-    }
-
-    /**
-     * API method to retrieve a collection's ctag
-     *
-     * @param string $collection
-     * @return void
-     */
-    public function ctag($collection = null) {
-        $this->Api->ctag($collection);
-    }
-
-    /**
-     * API method to retrieve etags for a collection
-     *
-     * @param string $collection
-     * @return void
-     */
-    public function status($collection = null) {
-        $this->Api->status($collection);
-    }
-
-    /**
-     * API method to retrieve data for specified resources
-     *
-     * @param string $collection
-     * @return void
-     */
-    public function report($collection = null) {
-        $this->Api->report($collection);
-    }
-
-    /**
-     * API method to retrieve undiscovered Capsules in the User's radius.
-     *
-     * @return void
-     */
-    public function ping() {
-        $this->Api->ping();
-    }
-
-    /**
-     * API function to "open"/"discover" a Capsule.
-     *
-     * @return void
-     */
-    public function open() {
-        $this->Api->open();
-    }
-
-    /**
-     * API method to handle POST, GET, DELETE on a single Capsule
-     *
-     * @return void
+     * @param mixed $id The ID of the Capsule
      */
     public function capsule($id = null) {
-        $this->Api->capsule($id);
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                $this->checkAuthentication();
+                $this->Api->getCapsule($id);
+                break;
+            case "POST":
+                $this->checkAuthentication();
+                if ($id == null) {
+                    $this->Api->postCapsule($this->request);
+                    break;
+                }
+            case "PUT":
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+            case "DELETE":
+                $this->checkAuthentication();
+                $this->Api->deleteCapsule($id);
+                break;
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
     }
 
     /**
-     * API method to handle POST, GET, DELETE on a single Discovery
+     * API method to handle different HTTP methods on a Discovery resource
      *
-     * @return void
+     * @param mixed $id The ID of the Discovery
      */
     public function discovery($id = null) {
-        $this->Api->discovery($id);
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+            case "POST":
+                $this->checkAuthentication();
+                $this->Api->updateDiscovery($id, $this->request);
+                break;
+            case "PUT":
+            case "DELETE":
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
+    }
+
+    /**
+     * API method to handle different HTTP methods on a Memoir resource
+     *
+     * @param mixed $id The ID of the Memoir
+     */
+    public function memoir($id = null) {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                $this->checkAuthentication();
+                $this->Api->getMemoirFile($id);
+                break;
+            case "POST":
+            case "PUT":
+            case "DELETE":
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
+    }
+
+    /**
+     * API method to handle different HTTP methods on a User resource
+     *
+     * @param mixed $id The ID of the User
+     */
+    public function user($id = null) {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+            case "POST":
+                if ($id == null) {
+                    $this->Auth->allow('user');
+                    $this->Api->createUser($this->request);
+                    break;
+                }
+            case "PUT":
+            case "DELETE":
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
+    }
+
+    /**
+     * API method to handle different HTTP methods on an authentication token
+     */
+    public function token() {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                $this->Api->authenticate();
+                break;
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
+    }
+
+    /**
+     * Checks if the User has been authenticated.  If the user is not authenticated, send a response
+     * indicating they need to be authenticated.
+     */
+    private function checkAuthentication() {
+        if (!$this->Auth->user()) {
+            throw new UnauthorizedException();
+        }
+    }
+
+    /**
+     * Based on the ApiController action and the HTTP method of the current request, will determine which
+     * view file to render since it is possible for a single action to render different view files depending
+     * on the HTTP method.
+     *
+     * @param string $action The controller action
+     * @param string $httpMethod The HTTP method of the current request
+     */
+    private function setViewPath($action, $httpMethod) {
+        $this->viewPath = $this->name . DS . $action . DS . $httpMethod;
     }
 
 }
