@@ -36,7 +36,7 @@ class ApiComponent extends Component {
      *
      * @var int
      */
-    private static $objectLimit = 10;
+    public static $objectLimit = 5;
 
     /**
      * Called before the Controller's beforeFilter
@@ -98,10 +98,15 @@ class ApiComponent extends Component {
     public function getUserCapsules(CakeRequest $request) {
         // Query
         $query = array(
-            'includeDiscoveryStats' => true
+            'includeDiscoveryStats' => true,
+            'includeMemoirs' => true
         );
         // Parse pagination query parameters
         $query = $this->parsePagination($request->query, $query);
+        // Parse the filter query parameter
+        $query = $this->parseFilter($request->query, $query);
+        // Parse the search terms query parameter
+        $query = $this->parseSearch($request->query, $query);
         // Parse the bounding rectangle data
         $data = $this->parseBoundingRectangle($request->query);
 
@@ -121,10 +126,15 @@ class ApiComponent extends Component {
     public function getUserDiscoveries(CakeRequest $request) {
         // Query
         $query = array(
-            'includeDiscoveryStats' => true
+            'includeDiscoveryStats' => true,
+            'includeMemoirs' => true
         );
         // Parse pagination query parameters
         $query = $this->parsePagination($request->query, $query);
+        // Parse the filter query parameter
+        $query = $this->parseFilter($request->query, $query);
+        // Parse the search terms query parameter
+        $query = $this->parseSearch($request->query, $query);
         // Parse the bounding rectangle data
         $data = $this->parseBoundingRectangle($request->query);
 
@@ -518,14 +528,61 @@ class ApiComponent extends Component {
      */
     private function parsePagination(array $requestParams, array $query = array()) {
         // Parse the page
-        if (isset($requestParams['page']) && is_numeric($requestParams['page'])) {
-            $query['page'] = $requestParams['page'];
+        if (isset($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_PAGE])
+            && is_numeric($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_PAGE])
+        ) {
+            $query['page'] = $requestParams[\Capsules\Http\RequestContract::PARAM_NAME_PAGE];
             // Add the object limit
             $query['limit'] = ApiComponent::$objectLimit;
         }
         // Parse the sort order
-        if (isset($requestParams['order']) && is_numeric($requestParams['order'])) {
-            $query['order'] = \Capsules\Http\RequestContract::getCapsuleOrderBySortKey($requestParams['order']);
+        if (isset($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SORT])
+            && is_numeric($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SORT])
+        ) {
+            $query['order'] = \Capsules\Http\RequestContract::getCapsuleOrderBySortKey(
+                $requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SORT]);
+        } else {
+            $query['order'] = \Capsules\Http\RequestContract::getCapsuleOrderBySortKey(
+                \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_NAME_ASC);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Parses the filter HTTP query parameter from the HTTP request and appends it to the database
+     * query array
+     *
+     * @param array $requestParams The HTTP request query parameters
+     * @param array $query The database query array
+     * @return array The updated database query array
+     */
+    private function parseFilter(array $requestParams, array $query = array()) {
+        // Parse the filter
+        if (isset($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_FILTER])
+            && is_numeric($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_FILTER])
+        ) {
+            $query = \Capsules\Http\RequestContract::appendCapsuleFilterToQuery(
+                $requestParams[\Capsules\Http\RequestContract::PARAM_NAME_FILTER], $query);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Parses the search term HTTP query parameter from the HTTP request and appends it to the database query
+     * array
+     *
+     * @param array $requestParams The HTTP request query parameters
+     * @param array $query The database query array
+     * @return array The updated database query array
+     */
+    private function parseSearch(array $requestParams, array $query = array()) {
+        // Parse search keywords
+        if (isset($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SEARCH])
+            && $requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SEARCH]
+        ) {
+            $query['searchString'] = trim(urldecode($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_SEARCH]));
         }
 
         return $query;

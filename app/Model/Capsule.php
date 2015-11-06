@@ -183,13 +183,26 @@ class Capsule extends AppModel {
     );
 
     /**
+     * Field list for validating a Capsule
+     *
+     * @var array
+     */
+    public $fieldListValidate = array(
+        'Capsule' => array('name', 'point', 'user_id', 'etag', 'lat', 'lng'),
+        'Memoir' => array('title')
+    );
+
+    /**
      * Field list for creating a new Capsule
      *
      * @var array
      */
     public $fieldListCreate = array(
         'Capsule' => array('name', 'point', 'user_id', 'etag', 'lat', 'lng'),
-        'Memoir' => array('title')
+        'Memoir' => array(
+            'title', 'capsule_id', 'message', 'file_location', 'file_public_name', 'file_original_name', 'file_type',
+            'file_size'
+        )
     );
 
     /**
@@ -216,6 +229,14 @@ class Capsule extends AppModel {
         // Include statistics related to a Capsule's Discoveries
         if (isset($query['includeDiscoveryStats']) && $query['includeDiscoveryStats'] === true) {
             $query = $this->appendDiscoveryStatsToQuery($query);
+        }
+        // Include Memoirs
+        if (isset($query['includeMemoirs']) && $query['includeMemoirs'] === true) {
+            $query = $this->appendMemoirsToQuery($query);
+        }
+        // Filter by search terms
+        if (isset($query['searchString']) && $query['searchString']) {
+            $query = $this->appendSearchToQuery($query['searchString'], $query);
         }
 
         return $query;
@@ -504,6 +525,31 @@ class Capsule extends AppModel {
     }
 
     /**
+     * Appends parameters to the query that will return a Capsule's Memoir along with the Capsule.
+     *
+     * @param array $query
+     * @return array
+     */
+    private function appendMemoirsToQuery($query = array()) {
+        // Append
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => 'memoirs',
+                    'alias' => 'Memoir',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.id = Memoir.capsule_id'
+                    )
+                )
+            ),
+            'fields' => $this->Memoir->fieldListProjection
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
      * Appends parameters to the query that will create a JOIN with the Discovery table to find a Capsule's Discovery
      * statistics.
      *
@@ -586,6 +632,37 @@ class Capsule extends AppModel {
         $append = array(
             'fields' => $this->Discovery->fieldListProjection
         );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
+     * Appends parameters to the query that will add the specified search terms to the WHERE clause as wildcard
+     * comparisons with the text based fields of Capsules and Memoirs.
+     *
+     * @param string $searchString The search string
+     * @param array $query
+     * @return array
+     */
+    private function appendSearchToQuery($searchString = "", $query = array()) {
+        // Split the string by spaces
+        $keywords = explode(" ", $searchString);
+        // Surround all keywords with wildcards
+        array_walk($keywords, function (&$value, $key) {
+            $value = "%$value%";
+        });
+        // Build the query to append
+        $append = array(
+            'conditions' => array(
+                'OR' => array()
+            )
+        );
+        // Add keywords to WHERE clause
+        foreach ($keywords as $keyword) {
+            $append['conditions']['OR'][] = array('Capsule.name LIKE' => $keyword);
+            $append['conditions']['OR'][] = array('Memoir.title LIKE' => $keyword);
+            $append['conditions']['OR'][] = array('Memoir.message LIKE' => $keyword);
+        }
 
         return array_merge_recursive($query, $append);
     }
