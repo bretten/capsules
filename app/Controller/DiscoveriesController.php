@@ -5,6 +5,7 @@ App::uses('AppController', 'Controller');
  * Discoveries Controller
  *
  * @property Discovery $Discovery
+ * @property ApiComponent $Api
  * @property PaginatorComponent $Paginator
  */
 class DiscoveriesController extends AppController {
@@ -14,7 +15,7 @@ class DiscoveriesController extends AppController {
      *
      * @var array
      */
-    public $components = array('Paginator', 'RequestHandler', 'PaginatorBounding');
+    public $components = array('Api', 'Paginator', 'RequestHandler', 'PaginatorBounding');
 
     /**
      * Helpers
@@ -29,72 +30,17 @@ class DiscoveriesController extends AppController {
      * @return void
      */
     public function index() {
-        if (!$this->request->is('ajax')) {
-            throw new MethodNotAllowedException(__('Invalid request'));
-        }
-
-        $this->layout = 'ajax';
-
-        $this->Discovery->Capsule->recursive = 0;
-        // Add the virtual fields for favorite count and total rating
-        $this->Discovery->Capsule->virtualFields['discovery_count'] = Capsule::FIELD_DISCOVERY_COUNT;
-        $this->Discovery->Capsule->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
-        $this->Discovery->Capsule->virtualFields['total_rating'] = Capsule::FIELD_RATING;
-        // Build the query options
-        $query = array(
-            'fields' => array(
-                'Capsule.*', 'Discovery.*'
-            ),
-            'joins' => array(
-                array(
-                    'table' => 'discoveries',
-                    'alias' => 'Discovery',
-                    'type' => 'LEFT',
-                    'conditions' => array(
-                        'Capsule.id = Discovery.capsule_id',
-                        'Discovery.user_id' => $this->Auth->user('id')
-                    )
-                ),
-                array(
-                    'table' => 'discoveries',
-                    'alias' => 'DiscoveryStat',
-                    'type' => 'INNER',
-                    'conditions' => array(
-                        'Discovery.capsule_id = DiscoveryStat.capsule_id'
-                    )
-                )
-            ),
-            'group' => array('Capsule.id')
-        );
-        // Search refinement
-        $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
-        if ($search) {
-            $query['conditions']['Capsule.name LIKE'] = "%" . urldecode($search) . "%";
-        }
-        // Filter refinement
-        $filter = (isset($this->request->query['filter']) && $this->request->query['filter']) ? $this->request->query['filter'] : "";
-        if ($filter) {
-            if ($filter == Configure::read('Search.Filter.Favorite')) {
-                $query['conditions']['Discovery.favorite >='] = 1;
-            }
-            if ($filter == Configure::read('Search.Filter.UpVote')) {
-                $query['conditions']['Discovery.rating >='] = 1;
-            }
-            if ($filter == Configure::read('Search.Filter.DownVote')) {
-                $query['conditions']['Discovery.rating <='] = -1;
-            }
-            if ($filter == Configure::read('Search.Filter.NoVote')) {
-                $query['conditions']['Discovery.rating'] = 0;
-            }
-        }
-        // Make sure that the current page does not exceed the actual number of pages
-        $this->PaginatorBounding->setLimit(Configure::read('Pagination.Result.Count'));
-        $this->PaginatorBounding->checkBounds($this->Discovery->Capsule, $query);
-        // Set the pagination limit
-        $query['limit'] = Configure::read('Pagination.Result.Count');
-        $this->Paginator->settings = $query;
-        $this->set('discoveries', $this->Paginator->paginate('Capsule'));
-        $this->set(compact('search', 'filter'));
+        // Get the Capsules
+        $capsules = $this->Discovery->Capsule->getDiscoveredForUser($this->Auth->user('id'), null, null, null, null,
+            array(
+                'includeDiscoveryStats' => true,
+                'includeMemoirs' => true,
+                'page' => 1,
+                'limit' => ApiComponent::$objectLimit,
+                'order' => \Capsules\Http\RequestContract::getCapsuleOrderBySortKey(
+                    \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_NAME_ASC)
+            ));
+        $this->set('capsules', $capsules);
     }
 
     /**

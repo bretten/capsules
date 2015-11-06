@@ -59,6 +59,8 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
                 <div class="collapse navbar-collapse" id="navbar-header-collapse">
                     <ul class="nav navbar-nav navbar-right">
                         <?php if (AuthComponent::user()) : ?>
+                        <li><?php echo $this->Html->link(__('Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?></li>
+                        <li><?php echo $this->Html->link(__('Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?></li>
                         <li><?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo AuthComponent::user('username'); ?> <span class="caret"></span></a>

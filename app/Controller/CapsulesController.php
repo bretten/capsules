@@ -5,6 +5,7 @@ App::uses('AppController', 'Controller');
  * Capsules Controller
  *
  * @property Capsule $Capsule
+ * @property ApiComponent $Api
  * @property PaginatorComponent $Paginator
  */
 class CapsulesController extends AppController {
@@ -29,47 +30,16 @@ class CapsulesController extends AppController {
      * @return void
      */
     public function index() {
-        if (!$this->request->is('ajax')) {
-            throw new MethodNotAllowedException(__('Invalid request'));
-        }
-
-        $this->layout = 'ajax';
-
-        $this->Capsule->recursive = 0;
-        // Add the virtual fields for favorite count and total rating
-        $this->Capsule->virtualFields['discovery_count'] = Capsule::FIELD_DISCOVERY_COUNT;
-        $this->Capsule->virtualFields['favorite_count'] = Capsule::FIELD_FAVORITE_COUNT;
-        $this->Capsule->virtualFields['total_rating'] = Capsule::FIELD_RATING;
-        // Build the query options
-        $query = array(
-            'conditions' => array(
-                'Capsule.user_id' => $this->Auth->user('id')
-            ),
-            'joins' => array(
-                array(
-                    'table' => 'discoveries',
-                    'alias' => 'DiscoveryStat',
-                    'type' => 'LEFT',
-                    'conditions' => array(
-                        'Capsule.id = DiscoveryStat.capsule_id',
-                    )
-                )
-            ),
-            'group' => array('Capsule.id')
-        );
-        // Search refinement
-        $search = (isset($this->request->query['search']) && $this->request->query['search']) ? $this->request->query['search'] : "";
-        if ($search) {
-            $query['conditions']['Capsule.name LIKE'] = "%" . urldecode($search) . "%";
-        }
-        // Make sure that the current page does not exceed the actual number of pages
-        $this->PaginatorBounding->setLimit(Configure::read('Pagination.Result.Count'));
-        $this->PaginatorBounding->checkBounds($this->Capsule, $query);
-        // Set the pagination limit
-        $query['limit'] = Configure::read('Pagination.Result.Count');
-        $this->Paginator->settings = $query;
-        $this->set('capsules', $this->Paginator->paginate());
-        $this->set(compact('search'));
+        // Get the Capsules
+        $capsules = $this->Capsule->getForUser($this->Auth->user('id'), null, null, null, null, array(
+            'includeDiscoveryStats' => true,
+            'includeMemoirs' => true,
+            'page' => 1,
+            'limit' => ApiComponent::$objectLimit,
+            'order' => \Capsules\Http\RequestContract::getCapsuleOrderBySortKey(
+                \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_NAME_ASC)
+        ));
+        $this->set('capsules', $capsules);
     }
 
     /**
