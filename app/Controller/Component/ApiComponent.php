@@ -251,7 +251,7 @@ class ApiComponent extends Component {
         $data = $this->parseMemoirData($request->data, $data);
 
         // Validate
-        if ($this->Capsule->saveAll($data, array('deep' => true, 'fieldList' => $this->Capsule->fieldListCreate,
+        if ($this->Capsule->saveAll($data, array('deep' => true, 'fieldList' => $this->Capsule->fieldListValidate,
             'validate' => 'only'))
         ) {
             // Indicate a no content response
