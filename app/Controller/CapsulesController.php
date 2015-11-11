@@ -141,17 +141,7 @@ class CapsulesController extends AppController {
      * @return void
      */
     public function add() {
-        if ($this->request->is('post')) {
-            $this->Capsule->create();
-            if ($this->Capsule->saveAll($this->request->data, array(
-                'deep' => true, 'associateOwner' => true, 'updateCtagForUser' => $this->Auth->user('id')))
-            ) {
-                $this->Session->setFlash(__('The capsule has been saved.'));
-                return $this->redirect(array('action' => 'index'));
-            } else {
-                $this->Session->setFlash(__('The capsule could not be saved. Please, try again.'));
-            }
-        }
+
     }
 
     /**
