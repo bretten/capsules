@@ -113,6 +113,8 @@ class ApiComponent extends Component {
         // Get the Capsules
         $capsules = $this->Capsule->getForUser($this->Auth->user('id'), $data['latNE'], $data['lngNE'], $data['latSW'],
             $data['lngSW'], $query);
+        // Set the Capsule ID as the keys in the array
+        $capsules = Hash::combine($capsules, "{n}.Capsule.id", "{n}");
 
         $this->controller->set('capsules', $capsules);
     }
@@ -141,6 +143,8 @@ class ApiComponent extends Component {
         // Get the Capsule discoveries
         $capsules = $this->Capsule->getDiscoveredForUser($this->Auth->user('id'), $data['latNE'], $data['lngNE'],
             $data['latSW'], $data['lngSW'], $query);
+        // Set the Capsule ID as the keys in the array
+        $capsules = Hash::combine($capsules, "{n}.Capsule.id", "{n}");
 
         $this->controller->set('capsules', $capsules);
     }
@@ -228,6 +232,9 @@ class ApiComponent extends Component {
             if ($this->Capsule->Discovery->createMany($this->Auth->user('id'),
                 Hash::extract($capsules, '{n}.Capsule.id'))
             ) {
+                // Set the Capsule ID as the keys in the array
+                $capsules = Hash::combine($capsules, "{n}.Capsule.id", "{n}");
+
                 $this->controller->set('capsules', $capsules);
                 return;
             } else {
