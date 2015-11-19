@@ -1,86 +1,65 @@
 /**
- * Pseudo-representation of a Collection class.
+ * Represents a collection.  This collection stores its items inside of an object and provides methods to
+ * add, remove, or get them.
  *
  * @author https://github.com/bretten
  */
-function Collection() {
-    // Holds the collection of objects
-    this.objects = [];
-}
-
-/**
- * Sets the collection of objects.
- *
- * @param {Array}
- */
-Collection.prototype.setSet = function(objects) {
-    this.objects = objects;
-}
-
-/**
- * Gets the collection of objects.
- *
- * @returns {Array}
- */
-Collection.prototype.getSet = function() {
-    return this.objects;
-}
-
-/**
- * Adds an object to the collection.
- *
- * @param object
- * @returns {boolean}
- */
-Collection.prototype.add = function(object) {
-    if ((this.exists(object.id) > -1)) {
-        return false;
+var Collection = function (objects) {
+    if (!objects || objects.length < 1) {
+        this.objects = {};
+    } else {
+        this.objects = objects;
     }
-    this.objects.push(object);
-    return true;
-}
+};
 
 /**
- * Removes an object from the collection by id.
+ * The internal object representing the collection
  *
- * @param object
- * @returns {boolean}
+ * @type {{}}
  */
-Collection.prototype.remove = function(id) {
-    var i = this.exists(id);
-    if (i > -1) {
-        this.objects.splice(i, 1);
-        return true;
-    }
-    return false;
-}
+Collection.prototype.objects = {};
 
 /**
- * Gets an object by id.
+ * Adds an object to the collection with the specified key
  *
- * @param id
- * @returns {*}
+ * @param key The key to store the object with
+ * @param object The object to store
  */
-Collection.prototype.get = function(id) {
-    for (var i = 0; i < this.objects.length; i++) {
-        if (id == this.objects[i].getID()) {
-            return this.objects[i];
-        }
-    }
-    return false;
-}
+Collection.prototype.add = function (key, object) {
+    this.objects[key] = object;
+};
 
 /**
- * Checks if an object exists in the internal collection array.
+ * Removes an item from the collection with the specified key
  *
- * @param item
- * @returns {number}
+ * @param key The key corresponding to the item to remove
  */
-Collection.prototype.exists = function(item) {
-    for (var i = 0; i < this.objects.length; i++) {
-        if (item == this.objects[i].getID()) {
-            return i;
-        }
+Collection.prototype.remove = function (key) {
+    if (this.objects.hasOwnProperty(key)) {
+        this.objects[key] = undefined;
     }
-    return -1;
-}
+};
+
+/**
+ * Gets the object with the specified key
+ *
+ * @param key The key corresponding to the item to get
+ * @returns {*} The object if found, otherwise null
+ */
+Collection.prototype.get = function (key) {
+    if (this.objects.hasOwnProperty(key) && this.objects[key] != undefined) {
+        return this.objects[key];
+    } else {
+        return null;
+    }
+};
+
+/**
+ * Checks if the specified key exists and that the key is associated with an object
+ *
+ * @param key The key to check
+ * @returns {boolean} True if the key and corresponding object exist, otherwise false
+ */
+Collection.prototype.hasKey = function (key) {
+    return this.objects.hasOwnProperty(key) && this.objects[key] != undefined;
+};
