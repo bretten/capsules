@@ -185,7 +185,7 @@ class Discovery extends AppModel {
             );
         }
 
-        return $this->saveAll($data, array('atomic' => true));
+        return $this->saveAll($data, array('atomic' => true, 'updateCtagForUser' => true));
     }
 
 }
