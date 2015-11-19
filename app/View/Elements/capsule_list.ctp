@@ -9,7 +9,7 @@ if (!isset($containerId)) {
         // Get the selectors
         var capsuleModal = $('#modal-capsule');
         var capsuleModalContentContainer = capsuleModal.find('#modal-capsule-content');
-        var capsuleModalLoadingIndicator = capsuleModal.find('.loadingIndicator');
+        var capsuleModalLoadingIndicator = capsuleModal.find('.loading-indicator');
 
         // Open the Capsule modal
         $(document).on('click', '.capsule-list-item', function (e) {
