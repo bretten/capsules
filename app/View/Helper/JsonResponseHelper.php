@@ -95,4 +95,13 @@ class JsonResponseHelper extends AppHelper {
         $this->data['token'] = $token;
     }
 
+    /**
+     * Adds the collection tags to the data array
+     *
+     * @param string $ctag User's ctag data
+     */
+    public function addCtagToData($ctag = "") {
+        $this->data['ctag'] = $ctag;
+    }
+
 }

@@ -180,6 +180,24 @@ class ApiComponent extends Component {
     }
 
     /**
+     * Gets the User collection tag for Capsules
+     */
+    public function getCtagCapsules() {
+        $ctag = $this->Capsule->User->getCtagCapsules($this->Auth->user('id'));
+
+        $this->controller->set('ctag', $ctag);
+    }
+
+    /**
+     * Gets the User collection tag for Discoveries
+     */
+    public function getCtagDiscoveries() {
+        $ctag = $this->Capsule->User->getCtagDiscoveries($this->Auth->user('id'));
+
+        $this->controller->set('ctag', $ctag);
+    }
+
+    /**
      * Discovers all Capsules for the authenticated User in a bounding circle around the latitude and longitude
      * specified in the HTTP request.
      *

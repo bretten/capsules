@@ -122,6 +122,30 @@ class User extends AppModel {
     }
 
     /**
+     * Gets the specified User's collection tag for Capsules
+     *
+     * @param mixed $id The ID of the User
+     * @return string The collection tag
+     */
+    public function getCtagCapsules($id) {
+        $this->id = $id;
+
+        return $this->field('ctag_capsules');
+    }
+
+    /**
+     * Gets the specified User's collection tag for Discoveries
+     *
+     * @param mixed $id The ID of the User
+     * @return string The collection tag
+     */
+    public function getCtagDiscoveries($id) {
+        $this->id = $id;
+
+        return $this->field('ctag_discoveries');
+    }
+
+    /**
      * Gets the authentication token for the specified User
      *
      * @param mixed $id The ID of the User to get the authentication token for

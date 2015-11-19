@@ -204,6 +204,28 @@ class ApiController extends AppController {
     }
 
     /**
+     * API method to handle different HTTP methods on a collection tag
+     *
+     * @param string $type The type of collection tag
+     */
+    public function ctag($type = "") {
+        switch ($this->currentHttpMethod) {
+            case "GET":
+                if ($this->response->type() == 'application/json') {
+                    if ($type == "capsules") {
+                        $this->Api->getCtagCapsules();
+                        break;
+                    } else if ($type == "discoveries") {
+                        $this->Api->getCtagDiscoveries();
+                        break;
+                    }
+                }
+            default:
+                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+        }
+    }
+
+    /**
      * Checks if the User has been authenticated.  If the user is not authenticated, send a response
      * indicating they need to be authenticated.
      */
