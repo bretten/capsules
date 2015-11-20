@@ -62,7 +62,7 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
                         <li><?php echo $this->Html->link(__('Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?></li>
                         <li><?php echo $this->Html->link(__('Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?></li>
                         <li><?php echo $this->Html->link(__('Bury a Capsule'), array('controller' => 'capsules', 'action' => 'add')); ?></li>
-                        <li><?php echo $this->Html->link(__('Map'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
+                        <li><?php echo $this->Html->link(__('Find a Capsule'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo AuthComponent::user('username'); ?> <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
