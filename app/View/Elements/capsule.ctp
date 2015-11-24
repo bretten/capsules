@@ -1,7 +1,22 @@
 <div class="modal-header">
     <?php echo $this->Session->flash(); ?>
-    <h4 class="modal-title text-format-overflow"
-        id="modal-label-capsule-info"><?php echo $capsule['Capsule']['name']; ?></h4>
+    <div class="row">
+        <div class="col-md-8">
+            <h4 class="modal-title text-format-overflow"
+                id="modal-label-capsule-info"><?php echo $capsule['Capsule']['name']; ?></h4>
+        </div>
+        <div class="col-md-4 pull-right">
+            <?php if ($discovery) : ?>
+                <?php
+                echo $this->element('discovery_rater', array(
+                    'id' => $discovery['Discovery']['id'],
+                    'rating' => $discovery['Discovery']['rating'],
+                    'favorite' => $discovery['Discovery']['favorite']
+                ));
+                ?>
+            <?php endif; ?>
+        </div>
+    </div>
     <?php echo $this->element('loader'); ?>
 </div>
 <div class="modal-body">
@@ -61,22 +76,5 @@
         <button type="button" id="capsule-delete-btn" class="btn btn-danger">
             Delete
         </button>
-    <?php endif; ?>
-
-    <?php if ($discovery) : ?>
-        <script type="text/javascript" src="/js/discovery_rater.js"></script>
-    <?php
-    echo $this->element('discovery_rater', array(
-        'id' => $discovery['Discovery']['id'],
-        'rating' => isset($discovery['Discovery']['rating']) ? $discovery['Discovery']['rating'] : 0
-    ));
-    ?>
-        <script type="text/javascript" src="/js/discovery_favorite_toggle.js"></script>
-        <?php
-        echo $this->element('discovery_favorite_toggle', array(
-            'id' => $discovery['Discovery']['id'],
-            'favorite' => isset($discovery['Discovery']['favorite']) ? $discovery['Discovery']['favorite'] : false
-        ));
-        ?>
     <?php endif; ?>
 </div>
