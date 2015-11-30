@@ -718,6 +718,8 @@ class Capsule extends AppModel {
             $data['CapsulePoint'] = array(
                 'point' => $pointData[0][0]['PointData']
             );
+        } else {
+            $commit = false;
         }
         // Remove validation for the file input
         $this->Memoir->validator()->remove('file');
