@@ -677,6 +677,10 @@ class Capsule extends AppModel {
     public function saveAllWithUploads($data = array(), $options = array()) {
         // Handle all Memoir uploads separately from database transaction to prevent locking longer than needed
         $memoirValidationErrors = array();
+        // Only allow one Memoir to be saved, but future versions may allow many Memoirs to a single Capsule
+        $data['Memoir'] = array(
+            $data['Memoir'][0]
+        );
         if (isset($data['Memoir']) && is_array($data['Memoir'])) {
             foreach ($data['Memoir'] as $key => &$memoir) {
                 // Make sure the file key exists
