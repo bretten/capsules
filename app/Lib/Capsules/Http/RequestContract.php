@@ -51,11 +51,6 @@ class RequestContract {
     const CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC = 3;
 
     /**
-     * Sort key for sorting unopened Discovery Capsules first, then by name, A-Z
-     */
-    const CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC = 4;
-
-    /**
      * Filter key for filtering Capsules that have been set as favorites
      */
     const CAPSULE_FILTER_KEY_FAVORITES = 0;
@@ -71,9 +66,14 @@ class RequestContract {
     const CAPSULE_FILTER_KEY_DOWN_VOTES = 2;
 
     /**
-     * Filter key for filtering capsules that have not been rated
+     * Filter key for filtering Capsules that have not been rated
      */
     const CAPSULE_FILTER_KEY_NO_VOTES = 3;
+
+    /**
+     * Filter key for filtering Capsules that have not been opened
+     */
+    const CAPSULE_FILTER_KEY_UNOPENED = 4;
 
     /**
      * Mapping of Capsule sort keys corresponding to ORDER clauses
@@ -84,8 +84,7 @@ class RequestContract {
         RequestContract::CAPSULE_SORT_KEY_NAME_ASC => 'Capsule.name ASC',
         RequestContract::CAPSULE_SORT_KEY_RATING_DESC => 'Capsule.total_rating DESC',
         RequestContract::CAPSULE_SORT_KEY_DISCOVERY_COUNT_DESC => 'Capsule.discovery_count DESC',
-        RequestContract::CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC => 'Capsule.favorite_count DESC',
-        RequestContract::CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC => 'Discovery.opened ASC, Capsule.name ASC'
+        RequestContract::CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC => 'Capsule.favorite_count DESC'
     );
 
     /**
@@ -98,7 +97,8 @@ class RequestContract {
         RequestContract::CAPSULE_FILTER_KEY_FAVORITES => array('Discovery.favorite >=' => 1),
         RequestContract::CAPSULE_FILTER_KEY_UP_VOTES => array('Discovery.rating >=' => 1),
         RequestContract::CAPSULE_FILTER_KEY_DOWN_VOTES => array('Discovery.rating <=' => -1),
-        RequestContract::CAPSULE_FILTER_KEY_NO_VOTES => array('Discovery.rating' => 0)
+        RequestContract::CAPSULE_FILTER_KEY_NO_VOTES => array('Discovery.rating' => 0),
+        RequestContract::CAPSULE_FILTER_KEY_UNOPENED => array('Discovery.opened' => false)
     );
 
     /**

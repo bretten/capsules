@@ -38,7 +38,7 @@ class DiscoveriesController extends AppController {
                 'page' => 1,
                 'limit' => ApiComponent::$objectLimit,
                 'order' => \Capsules\Http\RequestContract::getCapsuleOrderBySortKey(
-                    \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC)
+                    \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_NAME_ASC)
             ));
         $this->set('capsules', $capsules);
     }
