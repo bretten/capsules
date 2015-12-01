@@ -258,6 +258,36 @@ class Capsule extends AppModel {
     }
 
     /**
+     * Overrides parent's exists() method. Checks to see if the Capsule row exists and that it has not been
+     * soft-deleted
+     *
+     * @param mixed $id The ID of the Capsule to check
+     * @return bool True if the Capsule exists and has not been soft-deleted, otherwise false
+     */
+    public function exists($id = null) {
+        if ($id === null) {
+            $id = $this->getID();
+        }
+
+        if ($id === false) {
+            return false;
+        }
+
+        if ($this->useTable === false) {
+            return false;
+        }
+
+        return (bool)$this->find('count', array(
+            'conditions' => array(
+                'Capsule.id' => $id,
+                'Capsule.deleted' => false
+            ),
+            'recursive' => -1,
+            'callbacks' => false
+        ));
+    }
+
+    /**
      * Gets the Capsule for the given ID
      *
      * @param mixed $id The ID of the Capsule to retrieve
@@ -275,6 +305,9 @@ class Capsule extends AppModel {
             ),
             'fields' => $this->fieldListProjection
         );
+        // Exclude Capsules that have been soft-deleted
+        $query = $this->appendSoftDeleteExclusionToQuery($query);
+        // Get the Discovery stats
         $query = $this->appendDiscoveryStatsToQuery($query);
         return $this->find('first', $query);
     }
@@ -299,6 +332,9 @@ class Capsule extends AppModel {
             ),
             'fields' => $this->fieldListProjection
         );
+        // Exclude Capsules that have been soft-deleted
+        $query = $this->appendSoftDeleteExclusionToQuery($query);
+        // Get the Discovery stats
         $query = $this->appendDiscoveryStatsToQuery($query);
         return $this->find('first', $query);
     }
@@ -318,6 +354,8 @@ class Capsule extends AppModel {
     public function getForUser($userId, $latNE = null, $lngNE = null, $latSW = null, $lngSW = null, $query = array()) {
         // Append to the query so that only the User's Capsule's are retrieved
         $query = $this->appendBelongsToUserToQuery($userId, $query);
+        // Exclude Capsules that have been soft-deleted
+        $query = $this->appendSoftDeleteExclusionToQuery($query);
         // Specify the fields that will be returned in the query
         $query = $this->appendCapsuleProjectionToQuery($query);
         // If there are two sets of coordinates, then append the query parameters to get Capsules within bounded area
@@ -344,6 +382,8 @@ class Capsule extends AppModel {
                                          $query = array()) {
         // Build query to get Discoveries for the specified User
         $query = $this->appendDiscoveriesForUserToQuery($userId, $query);
+        // Exclude Capsules that have been soft-deleted
+        $query = $this->appendSoftDeleteExclusionToQuery($query);
         // Specify the fields that will be returned in the query
         $query = $this->appendCapsuleProjectionToQuery($query);
         $query = $this->appendDiscoveryProjectionToQuery($query);
@@ -369,6 +409,8 @@ class Capsule extends AppModel {
     public function getUndiscoveredForUser($userId, $lat = null, $lng = null, $radius = null, $query = array()) {
         // Build query to get undiscovered Capsules for the specified User
         $query = $this->appendUndiscoveredForUserToQuery($userId, $query);
+        // Exclude Capsules that have been soft-deleted
+        $query = $this->appendSoftDeleteExclusionToQuery($query);
         // Specify the fields that will be returned in the query
         $query = $this->appendCapsuleProjectionToQuery($query);
         // If there are coordinates and a radius, append the query to get Capsules only within the bounded area
@@ -463,6 +505,22 @@ class Capsule extends AppModel {
         $append = array(
             'conditions' => array(
                 'Capsule.user_id' => $userId
+            )
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
+     * Appends parameters to the query that will exclude any Capsules that have been soft-deleted.
+     *
+     * @param array $query
+     * @return array
+     */
+    private function appendSoftDeleteExclusionToQuery($query = array()) {
+        $append = array(
+            'conditions' => array(
+                'Capsule.deleted' => false
             )
         );
 
@@ -758,6 +816,19 @@ class Capsule extends AppModel {
         }
 
         return $result;
+    }
+
+    /**
+     * Soft-deletes the specified Capsule
+     *
+     * @param mixed $id The ID of the Capsule to be soft-deleted
+     * @return array|bool True on success, otherwise false
+     */
+    public function softDelete($id) {
+        // Set the ID
+        $this->id = $id;
+        // Save
+        return $this->saveField('deleted', true);
     }
 
 }

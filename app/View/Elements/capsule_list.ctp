@@ -10,6 +10,7 @@ if (!isset($containerId)) {
         var capsuleModal = $('#modal-capsule');
         var capsuleModalContentContainer = capsuleModal.find('#modal-capsule-content');
         var capsuleModalLoadingIndicator = capsuleModal.find('.loading-indicator');
+        var capsuleContainer = $('#<?= $containerId; ?>');
 
         // Open the Capsule modal
         $(document).on('click', '.capsule-list-item', function (e) {
@@ -37,6 +38,42 @@ if (!isset($containerId)) {
                     capsuleModalContentContainer.html('<?= preg_replace('/\r|\n/', '', $this->element('modal_error_content')); ?>');
                 }
             });
+        });
+
+        // Listener for clicking on the Capsule delete element
+        $(document).on('click', '.capsule-delete-anchor', function(e) {
+            // Get the ID
+            var capsuleId = $(this).data('id');
+            // Send the DELETE request
+            $.ajax({
+                type: 'DELETE',
+                url: "/api/capsule/" + capsuleId,
+                beforeSend: function (jqXHR, settings) {
+                    // Show the loading indicator
+                    capsuleModalLoadingIndicator.removeClass("hidden");
+                },
+                complete: function (jqXHR, textStatus) {
+                    // Hide the loading indicator
+                    capsuleModalLoadingIndicator.addClass("hidden");
+                },
+                success: function (data, textStatus, jqXHR) {
+                    // Close the modal
+                    capsuleModal.modal('hide');
+                    // Trigger the Capsule deleted event
+                    $(document).trigger('capsule:delete', [capsuleId]);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    capsuleModalContentContainer.html('<?= preg_replace('/\r|\n/', '', $this->element('modal_error_content')); ?>');
+                }
+            });
+        });
+
+        // Listener for a successful Capsule delete
+        $(document).on('capsule:delete', function(e, capsuleId) {
+            // Get the corresponding list item
+            var listItem = capsuleContainer.find('.capsule-list-item[data-id="' + capsuleId + '"]');
+            // Remove the markup
+            listItem.remove();
         });
     });
 </script>

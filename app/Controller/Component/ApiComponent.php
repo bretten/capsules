@@ -161,8 +161,10 @@ class ApiComponent extends Component {
         }
         // Get the Memoir
         $memoir = $this->Capsule->Memoir->getById($id);
-        // If no Memoir exists or if there is no Capsule ID, indicate no resource found
-        if (!$memoir || !isset($memoir['Memoir']) || !isset($memoir['Memoir']['capsule_id'])) {
+        // If no Memoir exists, if there is no Capsule ID, or if the Capsule is deleted, indicate no resource found
+        if (!$memoir || !isset($memoir['Memoir']) || !isset($memoir['Memoir']['capsule_id'])
+            || !$this->Capsule->exists($memoir['Memoir']['capsule_id'])
+        ) {
             throw new NotFoundException();
         }
         // Also indicate no resource found if the User does not own the Capsule and have not discovered it
@@ -399,7 +401,7 @@ class ApiComponent extends Component {
         }
 
         // Attempt to delete the Capsule
-        if ($this->Capsule->delete()) {
+        if ($this->Capsule->softDelete($id)) {
             // Indicate a no content response
             $this->sendNoContentResponse();
             return;
