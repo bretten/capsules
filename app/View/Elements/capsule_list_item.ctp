@@ -9,14 +9,28 @@ if (!isset($isSortedByDiscoveries)) {
 if (!isset($isSortedByFavs)) {
     $isSortedByFavs = false;
 }
+
+// Determine if the Discovery has been opened
+$isUnopened = isset($capsule['Discovery']) && isset($capsule['Discovery']['opened'])
+    && $capsule['Discovery']['opened'] == false;
 ?>
 
-<a href="#" class="list-group-item capsule-list-item" data-id="<?= $capsule['Capsule']['id']; ?>">
+<a href="#" class="list-group-item capsule-list-item<?= $isUnopened ? " list-group-item-warning" : "" ?>"
+   data-id="<?= $capsule['Capsule']['id']; ?>">
     <div class="row">
         <div class="col-md-1">
+            <?php if ($isUnopened) : ?>
+                <div class="btn-group btn-group-justified memoir-placeholder img-thumbnail" role="group">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-default btn-lg" disabled="true">
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                        </button>
+                    </div>
+                </div>
+            <?php endif; ?>
             <?php if (isset($capsule['Memoir'])) : ?>
                 <img src="/api/memoir/<?= $capsule['Memoir']['id']; ?>" alt="<?= $capsule['Memoir']['title']; ?>"
-                     class="img-thumbnail">
+                     class="img-thumbnail<?= $isUnopened ? " hidden" : ""; ?>">
             <?php endif; ?>
         </div>
 

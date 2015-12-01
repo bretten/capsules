@@ -78,6 +78,9 @@ class ApiComponent extends Component {
         $discovery = null;
         if (!$isOwned) {
             $discovery = $this->Capsule->Discovery->getByCapsuleIdForUser($id, $this->Auth->user('id'));
+            if (!isset($discovery['Discovery']['opened']) || $discovery['Discovery']['opened'] == false) {
+                $this->Capsule->Discovery->setAsOpened($discovery['Discovery']['id']);
+            }
             // If the User does not own the Capsule or has not discovered it, indicate resource not found
             if (!$discovery) {
                 throw new NotFoundException();

@@ -7,6 +7,7 @@ echo $this->element('capsule_searcher', array(
     'containerId' => $containerId,
     'baseUri' => "/api/discoveries",
     'sorts' => array(
+        \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC => __("Unopened first, then A-Z"),
         \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_NAME_ASC => __("A -Z"),
         \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_RATING_DESC => __("Best Rating"),
         \Capsules\Http\RequestContract::CAPSULE_SORT_KEY_DISCOVERY_COUNT_DESC => __("Most Discoveries"),

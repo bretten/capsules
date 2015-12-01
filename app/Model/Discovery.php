@@ -82,7 +82,8 @@ class Discovery extends AppModel {
      * @var array
      */
     public $fieldListProjection = array(
-        'Discovery.id', 'Discovery.user_id', 'Discovery.favorite', 'Discovery.rating', 'Discovery.created'
+        'Discovery.id', 'Discovery.user_id', 'Discovery.opened', 'Discovery.favorite', 'Discovery.rating',
+        'Discovery.created'
     );
 
     /**
@@ -129,6 +130,19 @@ class Discovery extends AppModel {
         );
 
         return $this->save($data);
+    }
+
+    /**
+     * Sets the specified Discovery as opened
+     *
+     * @param mixed $id The ID of the Discovery to set as opened
+     * @return array|bool Array of Model data on success, otherwise false
+     */
+    public function setAsOpened($id) {
+        // Set the ID
+        $this->id = $id;
+        // Save
+        return $this->saveField('opened', true);
     }
 
     /**

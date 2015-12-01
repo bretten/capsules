@@ -51,6 +51,11 @@ class RequestContract {
     const CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC = 3;
 
     /**
+     * Sort key for sorting unopened Discovery Capsules first, then by name, A-Z
+     */
+    const CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC = 4;
+
+    /**
      * Filter key for filtering Capsules that have been set as favorites
      */
     const CAPSULE_FILTER_KEY_FAVORITES = 0;
@@ -79,7 +84,8 @@ class RequestContract {
         RequestContract::CAPSULE_SORT_KEY_NAME_ASC => 'Capsule.name ASC',
         RequestContract::CAPSULE_SORT_KEY_RATING_DESC => 'Capsule.total_rating DESC',
         RequestContract::CAPSULE_SORT_KEY_DISCOVERY_COUNT_DESC => 'Capsule.discovery_count DESC',
-        RequestContract::CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC => 'Capsule.favorite_count DESC'
+        RequestContract::CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC => 'Capsule.favorite_count DESC',
+        RequestContract::CAPSULE_SORT_KEY_UNOPENED_THEN_NAME_ASC => 'Discovery.opened ASC, Capsule.name ASC'
     );
 
     /**
