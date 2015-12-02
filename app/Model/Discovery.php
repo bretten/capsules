@@ -97,6 +97,10 @@ class Discovery extends AppModel {
         if (isset($options['updateCtagForUser']) && $this->User->exists($options['updateCtagForUser'])) {
             $this->User->updateCtag('ctag_discoveries', $options['updateCtagForUser']);
         }
+        // Update the stats for the Capsule
+        if (isset($options['updateStats']) && is_array($options['updateStats'])) {
+            $this->Capsule->updateStats($options['updateStats']);
+        }
     }
 
     /**
@@ -143,6 +147,18 @@ class Discovery extends AppModel {
         $this->id = $id;
         // Save
         return $this->saveField('opened', true);
+    }
+
+    /**
+     * Gets the corresponding Capsule foreign key given a Discovery ID
+     *
+     * @param mixed $id Discovery ID
+     * @return string The Capsule foreign key
+     */
+    public function getCapsuleId($id) {
+        $this->id = $id;
+
+        return $this->field('capsule_id');
     }
 
     /**
@@ -199,7 +215,8 @@ class Discovery extends AppModel {
             );
         }
 
-        return $this->saveAll($data, array('atomic' => true, 'updateCtagForUser' => true));
+        return $this->saveAll($data,
+            array('atomic' => true, 'updateCtagForUser' => true, 'updateStats' => $capsuleIds));
     }
 
 }

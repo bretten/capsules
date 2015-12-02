@@ -32,7 +32,6 @@ class CapsulesController extends AppController {
     public function index() {
         // Get the Capsules
         $capsules = $this->Capsule->getForUser($this->Auth->user('id'), null, null, null, null, array(
-            'includeDiscoveryStats' => true,
             'includeMemoirs' => true,
             'page' => 1,
             'limit' => ApiComponent::$objectLimit,
@@ -225,15 +224,11 @@ class CapsulesController extends AppController {
         $ctagCapsules = $this->Capsule->User->getCtagCapsules($this->Auth->user('id'));
         $ctagDiscoveries = $this->Capsule->User->getCtagDiscoveries($this->Auth->user('id'));
         // Get the Capsules
-        $capsules = $this->Capsule->getForUser($this->Auth->user('id'), null, null, null, null, array(
-            'includeDiscoveryStats' => true
-        ));
+        $capsules = $this->Capsule->getForUser($this->Auth->user('id'));
         $capsules = Hash::combine($capsules, "{n}.Capsule.id", "{n}");
         $capsules = json_encode($capsules);
         // Get the Discoveries
-        $discoveries = $this->Capsule->getDiscoveredForUser($this->Auth->user('id'), null, null, null, null, array(
-            'includeDiscoveryStats' => true
-        ));
+        $discoveries = $this->Capsule->getDiscoveredForUser($this->Auth->user('id'));
         $discoveries = Hash::combine($discoveries, "{n}.Capsule.id", "{n}");
         $discoveries = json_encode($discoveries);
 

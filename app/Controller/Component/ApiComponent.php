@@ -101,7 +101,6 @@ class ApiComponent extends Component {
     public function getUserCapsules(CakeRequest $request) {
         // Query
         $query = array(
-            'includeDiscoveryStats' => true,
             'includeMemoirs' => true
         );
         // Parse pagination query parameters
@@ -131,7 +130,6 @@ class ApiComponent extends Component {
     public function getUserDiscoveries(CakeRequest $request) {
         // Query
         $query = array(
-            'includeDiscoveryStats' => true,
             'includeMemoirs' => true
         );
         // Parse pagination query parameters
@@ -219,13 +217,9 @@ class ApiComponent extends Component {
         if ($data['lat'] == null || $data['lng'] == null) {
             throw new BadRequestException();
         }
-        // Query
-        $query = array(
-            'includeDiscoveryStats' => true
-        );
         // Get all Capsules within the radius
         $capsules = $this->Capsule->getUndiscoveredForUser($this->Auth->user('id'), $data['lat'], $data['lng'],
-            Configure::read('Map.UserLocation.SearchRadius'), $query);
+            Configure::read('Map.UserLocation.SearchRadius'));
 
         // See if there are any Capsules to discover
         if (empty($capsules)) {
@@ -348,8 +342,13 @@ class ApiComponent extends Component {
         // Parse the request
         $data = $this->parseDiscoveryData($request->data);
 
+        // Get the Capsule ID
+        $capsuleId = $this->Capsule->Discovery->getCapsuleId($id);
+
         // Save
-        if ($this->Capsule->Discovery->save($data, array('fieldList' => $this->Capsule->Discovery->fieldListUpdate))) {
+        if ($this->Capsule->Discovery->save($data,
+            array('fieldList' => $this->Capsule->Discovery->fieldListUpdate, 'updateStats' => array($capsuleId)))
+        ) {
             // Indicate a no content response
             $this->sendNoContentResponse();
             return;

@@ -206,6 +206,15 @@ class Capsule extends AppModel {
     );
 
     /**
+     * Field list for updating a Capsule's stats
+     *
+     * @var array
+     */
+    public $fieldListUpdateStats = array(
+        'Capsule' => array('discovery_count', 'favorite_count', 'total_rating', 'modified')
+    );
+
+    /**
      * List of fields to be returned when querying the Capsule table
      *
      * @var array
@@ -816,6 +825,45 @@ class Capsule extends AppModel {
         }
 
         return $result;
+    }
+
+    /**
+     * Given an array of Capsule IDs, will calculate statistics related to the Capsules and then save the Capsules with
+     * the updated stats
+     *
+     * @param array $ids The IDs of the Capsules to update
+     * @return mixed
+     * @throws Exception
+     */
+    public function updateStats($ids = array()) {
+        // To calculate the Discovery stats, need to join with the Discoveries table
+        $query = array(
+            'includeDiscoveryStats' => true,
+            'conditions' => array(
+                'Capsule.id' => $ids
+            )
+        );
+        // Specify the fields that will be returned in the query
+        $query = $this->appendCapsuleProjectionToQuery($query);
+        // Query the Capsules table with a join on the Discoveries table so the stats can be calculated
+        $capsules = $this->find('all', $query);
+        // Save data array
+        $data = array();
+        // Iterate through each Capsule and update the stats
+        foreach ($capsules as $capsule) {
+            // Add this Capsule's updated stats to the save array
+            $data[] = array(
+                'Capsule' => array(
+                    'id' => $capsule['Capsule']['id'],
+                    'discovery_count' => $capsule['Capsule']['discovery_count'],
+                    'favorite_count' => $capsule['Capsule']['favorite_count'],
+                    'total_rating' => $capsule['Capsule']['total_rating'],
+                    'modified' => false
+                )
+            );
+        }
+        // Save the Capsules with their updated stats
+        return $this->saveMany($data, array('fieldList' => $this->fieldListUpdateStats));
     }
 
     /**
