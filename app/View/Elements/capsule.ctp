@@ -67,18 +67,6 @@ if (!isset($isOwned)) {
                     </em>
                 </small>
             </div>
-            <div class="text-center">
-                <span class="badge alert-info">
-                    <span class="glyphicon glyphicon-fire"></span><?= $capsule['Capsule']['total_rating']; ?>
-                </span>
-                <span class="badge alert-info">
-                    <span
-                        class="glyphicon glyphicon-map-marker"></span><?= $capsule['Capsule']['discovery_count']; ?>
-                </span>
-                <span class="badge alert-info">
-                    <span class="glyphicon glyphicon-star"></span><?= $capsule['Capsule']['favorite_count']; ?>
-                </span>
-            </div>
         </div>
     </div>
 </div>
@@ -99,4 +87,26 @@ if (!isset($isOwned)) {
             </div>
         </div>
     <?php endforeach; ?>
+</div>
+<div class="modal-footer">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <h5>
+                <span class="glyphicon glyphicon-fire"></span>&nbsp;<?= __("Total rating"); ?>
+            </h5>
+            <?= $capsule['Capsule']['total_rating']; ?>
+        </div>
+        <div class="col-md-4">
+            <h5>
+                <span class="glyphicon glyphicon-map-marker"></span>&nbsp;<?= __("Times discovered"); ?>
+            </h5>
+            <?= $capsule['Capsule']['discovery_count']; ?>
+        </div>
+        <div class="col-md-4">
+            <h5>
+                <span class="glyphicon glyphicon-star"></span>&nbsp;<?= __("Times favorited"); ?>
+            </h5>
+            <?= $capsule['Capsule']['favorite_count']; ?>
+        </div>
+    </div>
 </div>
