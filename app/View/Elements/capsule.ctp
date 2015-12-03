@@ -23,8 +23,25 @@ if (!isset($isOwned)) {
                                 <?= __("Close"); ?>
                             </a>
                         </li>
+                        <li class="dropdown-header"><?= __("Actions"); ?></li>
+                        <li>
+                            <?php
+                            $mapUrl = Router::url(array(
+                                'controller' => 'capsules',
+                                'action' => 'map',
+                                '?' => array(
+                                    'lat' => $capsule['Capsule']['lat'],
+                                    'lng' => $capsule['Capsule']['lng'],
+                                    'type' => $isOwned ? "Capsule" : "Discovery",
+                                    'id' => $capsule['Capsule']['id']
+                                )
+                            ));
+                            ?>
+                            <a href="<?= $mapUrl; ?>" target="_blank">
+                                <span class="glyphicon glyphicon-map-marker"></span>&nbsp;<?= __("Map"); ?>
+                            </a>
+                        </li>
                         <?php if ($isOwned) : ?>
-                            <li class="dropdown-header"><?= __("Actions"); ?></li>
                             <li>
                                 <a href="#" class="capsule-delete-anchor" data-id="<?= $capsule['Capsule']['id']; ?>">
                                     <span class="glyphicon glyphicon-trash"></span>&nbsp;<?= __("Delete"); ?>

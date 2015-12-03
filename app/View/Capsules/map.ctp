@@ -8,6 +8,12 @@
     // Define the "namespace"
     var map = {};
 
+    // See if an initial focus location was passed in
+    map.initialLat = <?= isset($lat) && is_numeric($lat) ? $lat : "undefined"; ?>;
+    map.initialLng = <?= isset($lng) && is_numeric($lng) ? $lng : "undefined"; ?>;
+    map.initialFocusType = "<?= isset($focusType) && $focusType ? $focusType : ""; ?>";
+    map.initialFocusId = <?= isset($focusId) && is_numeric($focusId) ? $focusId : "undefined"; ?>;
+
     $(document).ready(function () {
         // Modal for viewing Capsules
         map.modalCapsule = $('#modal-capsule');
@@ -86,6 +92,24 @@
             map.capsuleLog.append(markup);
             // Scroll the logger to the bottom
             map.capsuleLog.scrollTop = map.capsuleLog.scrollHeight;
+        };
+        // Focuses on the specified coordinates and animates the specified Capsule
+        map.delayedFocusOnLocation = function (lat, lng, type, id, animationDelay) {
+            // Focus on the location after a delay
+            setTimeout(function () {
+                // Zoom in on the location
+                map.capsuleMap.zoomMap(17);
+                // Center the map on the location
+                map.capsuleMap.centerMap(lat, lng);
+                // If there is a Capsule ID, animate the Marker after a delay
+                if (type != undefined && id != undefined) {
+                    setTimeout(function () {
+                        map.capsuleMap.animateMarkerById(type, id, function () {
+                            map.capsuleMap.onMarkerClickCallback(id);
+                        });
+                    }, animationDelay);
+                }
+            }, 100);
         };
         // Adds Capsules to the list of recent discoveries
         map.addRecentDiscoveries = function (capsules) {
@@ -264,19 +288,13 @@
             // Close the modal
             map.modalCapsuleList.modal('hide');
             // Focus on the Marker after a delay
-            setTimeout(function () {
-                // Zoom in on the Marker's location
-                map.capsuleMap.zoomMap(17);
-                // Center the map on the Marker's location
-                map.capsuleMap.centerMap(lat, lng);
-                // Animate the Marker after a delay
-                setTimeout(function () {
-                    map.capsuleMap.animateMarkerById(CapsuleType.Discovery, id, function () {
-                        map.capsuleMap.onMarkerClickCallback(id);
-                    });
-                }, 100);
-            }, 100);
+            map.delayedFocusOnLocation(lat, lng, CapsuleType.Discovery, id, 100);
         });
+
+        // If there were was an initial focus point, focus there now
+        if (map.initialLat != undefined && map.initialLng != undefined) {
+            map.delayedFocusOnLocation(map.initialLat, map.initialLng, map.initialFocusType, map.initialFocusId, 1000);
+        }
     });
 </script>
 

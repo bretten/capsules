@@ -237,10 +237,20 @@ class CapsulesController extends AppController {
         $discoveries = Hash::combine($discoveries, "{n}.Capsule.id", "{n}");
         $discoveries = json_encode($discoveries);
 
+        // See if a focus location or Capsule was passed in
+        $lat = isset($this->request->query['lat']) ? $this->request->query['lat'] : null;
+        $lng = isset($this->request->query['lng']) ? $this->request->query['lng'] : null;
+        $focusType = isset($this->request->query['type']) ? $this->request->query['type'] : null;
+        $focusId = isset($this->request->query['id']) ? $this->request->query['id'] : null;
+
         $this->set('ctagCapsules', $ctagCapsules);
         $this->set('ctagDiscoveries', $ctagDiscoveries);
         $this->set('capsules', $capsules);
         $this->set('discoveries', $discoveries);
+        $this->set('lat', $lat);
+        $this->set('lng', $lng);
+        $this->set('focusType', $focusType);
+        $this->set('focusId', $focusId);
     }
 
     /**
