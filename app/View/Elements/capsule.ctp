@@ -36,6 +36,13 @@ if (!isset($isOwned)) {
             </div>
             <h4 class="modal-title text-format-overflow" id="modal-label-capsule-info">
                 &nbsp;<?php echo $capsule['Capsule']['name']; ?>
+                <small>
+                    <span>
+                        <a href="/" target="_blank">
+                            <span class="glyphicon glyphicon-user"></span> <?= $capsule['User']['username']; ?>
+                        </a>
+                    </span>
+                </small>
             </h4>
         </div>
         <div class="col-md-4 pull-right">

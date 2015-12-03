@@ -33,6 +33,7 @@ class DiscoveriesController extends AppController {
         // Get the Capsules
         $capsules = $this->Discovery->Capsule->getDiscoveredForUser($this->Auth->user('id'), null, null, null, null,
             array(
+                'includeCapsuleOwner' => true,
                 'includeMemoirs' => true,
                 'page' => 1,
                 'limit' => ApiComponent::$objectLimit,

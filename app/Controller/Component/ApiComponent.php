@@ -101,6 +101,7 @@ class ApiComponent extends Component {
     public function getUserCapsules(CakeRequest $request) {
         // Query
         $query = array(
+            'includeCapsuleOwner' => true,
             'includeMemoirs' => true
         );
         // Parse pagination query parameters
@@ -130,6 +131,7 @@ class ApiComponent extends Component {
     public function getUserDiscoveries(CakeRequest $request) {
         // Query
         $query = array(
+            'includeCapsuleOwner' => true,
             'includeMemoirs' => true
         );
         // Parse pagination query parameters
@@ -219,7 +221,7 @@ class ApiComponent extends Component {
         }
         // Get all Capsules within the radius
         $capsules = $this->Capsule->getUndiscoveredForUser($this->Auth->user('id'), $data['lat'], $data['lng'],
-            Configure::read('Map.UserLocation.SearchRadius'));
+            Configure::read('Map.UserLocation.SearchRadius'), array('includeCapsuleOwner' => true));
 
         // See if there are any Capsules to discover
         if (empty($capsules)) {

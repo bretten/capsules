@@ -235,6 +235,10 @@ class Capsule extends AppModel {
         if (isset($query['includePoints']) && $query['includePoints'] === true) {
             $query = $this->appendCapsulePointsToQuery($query);
         }
+        // Include Capsule owner information
+        if (isset($query['includeCapsuleOwner']) && $query['includeCapsuleOwner'] === true) {
+            $query = $this->appendCapsuleOwnerToQuery($query);
+        }
         // Include statistics related to a Capsule's Discoveries
         if (isset($query['includeDiscoveryStats']) && $query['includeDiscoveryStats'] === true) {
             $query = $this->appendDiscoveryStatsToQuery($query);
@@ -304,6 +308,7 @@ class Capsule extends AppModel {
      */
     public function getById($id) {
         $query = array(
+            'includeCapsuleOwner' => true,
             'conditions' => array(
                 'Capsule.id' => $id
             ),
@@ -330,6 +335,7 @@ class Capsule extends AppModel {
      */
     public function getByIdForUser($id, $userId) {
         $query = array(
+            'includeCapsuleOwner' => true,
             'conditions' => array(
                 'Capsule.id' => $id,
                 'Capsule.user_id' => $userId
@@ -371,7 +377,6 @@ class Capsule extends AppModel {
         if ($latNE != null && $lngNE != null && $latSW != null && $lngSW != null) {
             $query = $this->appendInRectangleToQuery($latNE, $lngNE, $latSW, $lngSW, $query);
         }
-
         return $this->find('all', $query);
     }
 
@@ -514,6 +519,33 @@ class Capsule extends AppModel {
         $append = array(
             'conditions' => array(
                 'Capsule.user_id' => $userId
+            )
+        );
+
+        return array_merge_recursive($query, $append);
+    }
+
+    /**
+     * Appends parameters to the query that will result in a join with the Users table so that related User
+     * information is retrieved along with the Capsules.
+     *
+     * @param array $query
+     * @return array
+     */
+    private function appendCapsuleOwnerToQuery($query = array()) {
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => 'users',
+                    'alias' => 'User',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'Capsule.user_id = User.id'
+                    )
+                )
+            ),
+            'fields' => array(
+                'User.username'
             )
         );
 
