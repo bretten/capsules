@@ -45,14 +45,14 @@
 
         // Called when the user's location is updated
         capsuleEditor.onLocationUpdate = function () {
-            capsuleEditor.geolocationRequestErrorContainer.html("");
+            capsuleEditor.clearErrorMessages(capsuleEditor.geolocationRequestErrorContainer);
             capsuleEditor.locationRequestInput.html('<span class="glyphicon glyphicon-map-marker"></span> <?= __("Location retrieved!"); ?>');
             capsuleEditor.locationRequestInput.removeClass();
             capsuleEditor.locationRequestInput.addClass("btn btn-success");
         };
         // Called while the user's location is trying to be found
         capsuleEditor.onLocationInProgress = function () {
-            capsuleEditor.geolocationRequestErrorContainer.html("");
+            capsuleEditor.clearErrorMessages(capsuleEditor.geolocationRequestErrorContainer);
             capsuleEditor.locationRequestInput.html('<span class="glyphicon glyphicon-map-marker"></span> <?= __("Getting location..."); ?>');
             capsuleEditor.locationRequestInput.removeClass();
             capsuleEditor.locationRequestInput.addClass("btn btn-info");
@@ -65,7 +65,17 @@
         };
         // Sets the error message for location errors
         capsuleEditor.setLocationErrorMessage = function (errorMessage) {
-            capsuleEditor.geolocationRequestErrorContainer.html(errorMessage);
+            capsuleEditor.setErrorMessages(capsuleEditor.geolocationRequestErrorContainer, errorMessage);
+        };
+        // Sets the markup on an error container and then makes it visible
+        capsuleEditor.setErrorMessages = function (container, markup) {
+            container.html(markup);
+            container.removeClass('hidden');
+        };
+        // Hides an error container and removes the markup
+        capsuleEditor.clearErrorMessages = function (container) {
+            container.addClass('hidden');
+            container.html("");
         };
         // Executed before the form submit
         capsuleEditor.beforeFormSubmit = function () {
@@ -132,7 +142,8 @@
                 if (json.hasOwnProperty('messages')) {
                     // Display the Capsule error messages
                     if (json.messages.hasOwnProperty('name') && $.isArray(json.messages.name)) {
-                        capsuleEditor.capsuleNameErrorContainer.html(json.messages.name.join("<br>"));
+                        capsuleEditor.setErrorMessages(capsuleEditor.capsuleNameErrorContainer,
+                            json.messages.name.join("<br>"));
                     }
                     // Display the Memoir error messages
                     if (json.messages.hasOwnProperty('Memoir')) {
@@ -145,17 +156,18 @@
                                 // Title error
                                 if (messages.hasOwnProperty('title')) {
                                     var titleErrorContainer = memoirContainer.find('#Memoir' + index + 'TitleError');
-                                    titleErrorContainer.html(messages.title.join("<br>"));
+                                    capsuleEditor.setErrorMessages(titleErrorContainer, messages.title.join("<br>"));
                                 }
                                 // Message error
                                 if (messages.hasOwnProperty('message')) {
                                     var messageErrorContainer = memoirContainer.find('#Memoir' + index + 'MessageError');
-                                    messageErrorContainer.html(messages.message.join("<br>"));
+                                    capsuleEditor.setErrorMessages(messageErrorContainer,
+                                        messages.message.join("<br>"));
                                 }
                                 // File error
                                 if (messages.hasOwnProperty('file')) {
                                     var fileErrorContainer = memoirContainer.find('#Memoir' + index + 'FileError');
-                                    fileErrorContainer.html(messages.file.join("<br>"));
+                                    capsuleEditor.setErrorMessages(fileErrorContainer, messages.file.join("<br>"));
                                 }
                             });
                         }
@@ -226,7 +238,7 @@
         // Add a listener whenever a file input is changed
         capsuleEditor.memoirFileInput.on('change', function () {
             // Clear the error container
-            capsuleEditor.memoirFileErrorContainer.html("");
+            capsuleEditor.clearErrorMessages(capsuleEditor.memoirFileErrorContainer);
             // Show the preview
             capsuleEditor.editor.onFileInputChange($(this));
         });
@@ -235,7 +247,7 @@
             e.preventDefault();
             // Clear any previous errors
             capsuleEditor.errorNotification.addClass('hidden');
-            capsuleEditor.errorMessageContainers.html("");
+            capsuleEditor.clearErrorMessages(capsuleEditor.errorMessageContainers);
             // Set the position inputs
             capsuleEditor.capsuleLatInput.val(capsuleEditor.editor.geolocator.lat);
             capsuleEditor.capsuleLngInput.val(capsuleEditor.editor.geolocator.lng);
@@ -255,10 +267,22 @@
                 capsuleEditor.sendValidationRequest(capsuleEditor.capsuleForm);
             } else {
                 // Display any errors
-                capsuleEditor.capsuleNameErrorContainer.html(capsuleNameErrors.join("<br>"));
-                capsuleEditor.geolocationRequestErrorContainer.html(capsuleLocationErrors.join("<br>"));
-                capsuleEditor.memoirTitleErrorContainer.html(memoirTitleErrors.join("<br>"));
-                capsuleEditor.memoirFileErrorContainer.html(memoirFileErrors.join("<br>"));
+                if (capsuleNameErrors.length > 0) {
+                    capsuleEditor.setErrorMessages(capsuleEditor.capsuleNameErrorContainer,
+                        capsuleNameErrors.join("<br>"));
+                }
+                if (capsuleLocationErrors.length > 0) {
+                    capsuleEditor.setErrorMessages(capsuleEditor.geolocationRequestErrorContainer,
+                        capsuleLocationErrors.join("<br>"));
+                }
+                if (memoirTitleErrors.length > 0) {
+                    capsuleEditor.setErrorMessages(capsuleEditor.memoirTitleErrorContainer,
+                        memoirTitleErrors.join("<br>"));
+                }
+                if (memoirFileErrors.length > 0) {
+                    capsuleEditor.setErrorMessages(capsuleEditor.memoirFileErrorContainer,
+                        memoirFileErrors.join("<br>"));
+                }
                 // Show the general error notification
                 capsuleEditor.errorNotification.removeClass('hidden');
                 // Scroll to the top
@@ -291,86 +315,135 @@ echo $this->Form->input('lng', array('type' => 'hidden'));
             )); ?>
         </div>
 
+        <hr>
+
         <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><?= __("Where will you put it?"); ?></h3>
-                </div>
-                <div class="panel-body">
-                    <div id="listen" class="row text-center">
-                        <button id="location-request-btn" type="button" class="btn btn-info">
-                            <span class="glyphicon glyphicon-map-marker"></span>
-                            <?= __("Get My Location"); ?>
-                        </button>
-                        <div class="error-message" id="CapsuleLocationError"></div>
-                    </div>
-                    <div id="capsule-editor-map-container">
-                        <div id="capsule-editor-map"></div>
-                    </div>
-                </div>
+            <div class="col-md-6">
+                <h2 class="text-center text-success">
+                    <span class="glyphicon glyphicon-comment"></span>&nbsp;
+                    <?= __("What will you call it?"); ?>
+                </h2>
+            </div>
+            <div class="col-md-6">
+                <h4 class="text-info">
+                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;
+                    <?= __("Name the Capsule"); ?>
+                </h4>
+                <?php
+                echo $this->Form->input('name', array(
+                    'div' => 'form-group', 'class' => 'form-control', 'label' => false,
+                    'after' => '<div class="error-message hidden alert alert-danger" id="CapsuleNameError"></div>'
+                ));
+                ?>
             </div>
         </div>
 
+        <hr>
+
         <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><?= __("What will you call it?"); ?></h3>
+            <div class="col-md-6">
+                <h2 class="text-center text-success">
+                    <span class="glyphicon glyphicon-globe"></span>&nbsp;
+                    <?= __("Where will you put it?"); ?>
+                </h2>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="capsule-editor-map-container">
+                            <div id="capsule-editor-map"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <?php
-                    echo $this->Form->input('name', array(
-                        'div' => 'form-group', 'class' => 'form-control',
-                        'after' => '<div class="error-message" id="CapsuleNameError"></div>'
-                    ));
+            </div>
+            <div class="col-md-6">
+                <h4 class="text-info">
+                    <span class="glyphicon glyphicon-map-marker"></span>&nbsp;
+                    <?= __("Detect your location"); ?>
+                </h4>
+                <hr>
+                <div id="listen" class="text-center">
+                    <button id="location-request-btn" type="button" class="btn btn-info">
+                        <span class="glyphicon glyphicon-map-marker"></span>
+                        <?= __("Get My Location"); ?>
+                    </button>
+                    <div class="error-message hidden alert alert-danger" id="CapsuleLocationError"></div>
+                </div>
+                <hr>
+                <div class="well">
+                    <strong><?= __("NOTE:"); ?></strong>&nbsp;
+                    <?=
+                    __("If you are using a mobile device, then your current position can usually be accurately
+                    determined using the device's location services.  If you are using a desktop or laptop, then
+                    the location is determined by your browser and will not always be accurate.");
                     ?>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><?= __("What will you put inside?"); ?></h3>
-                </div>
-                <div class="panel-body">
-                    <div class="memoir" data-id="0">
-                        <?php
-                        echo $this->Form->input('Memoir.0.file', array(
-                            'div' => 'form-group', 'class' => 'memoir-file',
-                            'type' => 'file', 'accepts' => 'image/png, image/jpeg, image/gif',
-                            'label' => __("Choose a file"),
-                            'after' => '<div class="error-message" id="Memoir0FileError"></div>'
-                        ));
-                        ?>
-                        <label for="MemoirPreview">Preview</label>
+        <hr>
+
+        <div class="row memoir" data-id="0">
+            <div class="col-md-6">
+                <h2 class="text-center text-success">
+                    <span class="glyphicon glyphicon-picture"></span>&nbsp;
+                    <?= __("What will you put inside?"); ?>
+                </h2>
+
+                <div class="row">
+                    <div class="col-md-offset-2 col-md-8">
                         <?= $this->element('loading_indicator', array('id' => 'memoir-loading-indicator')); ?>
                         <img src="" class="img-responsive img-thumbnail hidden" id="upload-preview-container">
-
-                        <?php
-                        echo $this->Form->input('Memoir.0.title', array(
-                            'div' => 'form-group', 'class' => 'form-control',
-                            'after' => '<div class="error-message" id="Memoir0TitleError"></div>'
-                        ));
-                        echo $this->Form->input('Memoir.0.message', array(
-                            'div' => 'form-group', 'class' => 'form-control',
-                            'after' => '<div class="error-message" id="Memoir0MessageError"></div>'
-                        ));
-                        ?>
                     </div>
                 </div>
             </div>
+            <div class="col-md-6">
+                <h4 class="text-info">
+                    <span class="glyphicon glyphicon-paperclip"></span>&nbsp;
+                    <?= __("Choose a picture"); ?>
+                </h4>
+                <?php
+                echo $this->Form->input('Memoir.0.file', array(
+                    'div' => 'form-group', 'class' => 'memoir-file', 'label' => false,
+                    'type' => 'file', 'accepts' => 'image/png, image/jpeg, image/gif',
+                    'after' => '<div class="error-message hidden alert alert-danger" id="Memoir0FileError"></div>'
+                ));
+                ?>
+                <hr>
+                <h4 class="text-info">
+                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;
+                    <?= __("Name this picture"); ?>
+                </h4>
+                <?php
+                echo $this->Form->input('Memoir.0.title', array(
+                    'div' => 'form-group', 'class' => 'form-control', 'label' => false,
+                    'after' => '<div class="error-message hidden alert alert-danger" id="Memoir0TitleError"></div>'
+                ));
+                ?>
+                <hr>
+                <h4 class="text-info">
+                    <span class="glyphicon glyphicon-book"></span>&nbsp;
+                    <?= __("Leave an accompanying message"); ?>
+                </h4>
+                <?php
+                echo $this->Form->input('Memoir.0.message', array(
+                    'div' => 'form-group', 'class' => 'form-control', 'label' => false,
+                    'after' => '<div class="error-message hidden alert alert-danger" id="Memoir0MessageError"></div>'
+                ));
+                ?>
+            </div>
         </div>
 
+        <hr>
+
         <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><?= __("Is it ready?"); ?></h3>
-                </div>
-                <div class="panel-body text-center">
-                    <button type="submit" class="btn btn-lg btn-success"><?= __("Bury that Capsule!"); ?></button>
-                    <div class="row">
-                        <?= $this->element('loading_indicator', array('id' => 'submit-loading-indicator')); ?>
-                    </div>
+            <div class="col-md-12 text-center">
+                <h2 class="text-center text-success">
+                    <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp;
+                    <?= __("Is it ready?"); ?>
+                </h2>
+                <button type="submit" class="btn btn-lg btn-success"><?= __("Bury that Capsule!"); ?></button>
+                <div class="row">
+                    <?= $this->element('loading_indicator', array('id' => 'submit-loading-indicator')); ?>
                 </div>
             </div>
         </div>
