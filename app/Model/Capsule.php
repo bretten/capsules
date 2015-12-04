@@ -321,8 +321,6 @@ class Capsule extends AppModel {
         );
         // Exclude Capsules that have been soft-deleted
         $query = $this->appendSoftDeleteExclusionToQuery($query);
-        // Get the Discovery stats
-        $query = $this->appendDiscoveryStatsToQuery($query);
         return $this->find('first', $query);
     }
 
@@ -349,8 +347,6 @@ class Capsule extends AppModel {
         );
         // Exclude Capsules that have been soft-deleted
         $query = $this->appendSoftDeleteExclusionToQuery($query);
-        // Get the Discovery stats
-        $query = $this->appendDiscoveryStatsToQuery($query);
         return $this->find('first', $query);
     }
 
