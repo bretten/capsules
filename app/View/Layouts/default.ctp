@@ -82,9 +82,8 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
         <div id="content">
             <div class="container">
                 <?php echo $this->Session->flash(); ?>
+                <?php echo $this->fetch('content'); ?>
             </div>
-
-            <?php echo $this->fetch('content'); ?>
         </div>
     </div>
     <div id="footer" class="text-center">
