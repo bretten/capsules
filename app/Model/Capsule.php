@@ -616,7 +616,14 @@ class Capsule extends AppModel {
             )
         );
 
-        return array_merge_recursive($query, $append);
+        // Merge the queries
+        $query = array_merge_recursive($query, $append);
+
+        // Group the results by the Capsule primary key
+        // NOTE: Needs to be done after merging queries or else a null entry will be added to the group array
+        $query['group'] = array('Capsule.id');
+
+        return $query;
     }
 
     /**
