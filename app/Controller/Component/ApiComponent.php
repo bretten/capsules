@@ -189,6 +189,26 @@ class ApiComponent extends Component {
     }
 
     /**
+     * Gets the User specified by the ID
+     *
+     * @param int $id The ID of the User
+     */
+    public function getUser($id = 0) {
+        // Make sure an ID was passed in
+        if (!$id) {
+            throw new BadRequestException();
+        }
+        // Get the User
+        $user = $this->Capsule->User->getById($id);
+        // If the User could not be found, indicate the resource could not be found
+        if (!$user) {
+            throw new NotFoundException();
+        }
+
+        $this->controller->set('user', $user);
+    }
+
+    /**
      * Gets the User collection tag for Capsules
      */
     public function getCtagCapsules() {

@@ -176,7 +176,8 @@ class ApiController extends AppController {
     public function user($id = null) {
         switch ($this->currentHttpMethod) {
             case "GET":
-                throw new NotImplementedException(__(ApiController::$NOT_IMPLEMENTED_MESSAGE));
+                $this->Api->getUser($id);
+                break;
             case "POST":
                 if ($id == null) {
                     $this->Auth->allow('user');

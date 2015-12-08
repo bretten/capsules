@@ -36,6 +36,17 @@
 	Router::parseExtensions('json');
 
 /**
+ * User profile
+ */
+Router::connect(
+    '/user/:username',
+    array('controller' => 'users', 'action' => 'view'),
+    array(
+        'pass' => array('username')
+    )
+);
+
+/**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.
  */

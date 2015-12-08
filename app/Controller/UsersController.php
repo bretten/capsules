@@ -5,6 +5,7 @@ App::uses('AppController', 'Controller');
  * Users Controller
  *
  * @property User $User
+ * @property ApiComponent $Api
  * @property PaginatorComponent $Paginator
  */
 class UsersController extends AppController {
@@ -14,7 +15,7 @@ class UsersController extends AppController {
      *
      * @var array
      */
-    public $components = array('Paginator');
+    public $components = array('Api', 'Paginator');
 
     /**
      * beforeFilter method
@@ -98,15 +99,11 @@ class UsersController extends AppController {
      * view method
      *
      * @throws NotFoundException
-     * @param string $id
+     * @param string $username
      * @return void
      */
-    public function view($id = null) {
-        if (!$this->User->exists($id)) {
-            throw new NotFoundException(__('Invalid user'));
-        }
-        $options = array('conditions' => array('User.' . $this->User->primaryKey => $id));
-        $this->set('user', $this->User->find('first', $options));
+    public function view($username = null) {
+        $this->Api->getUser($this->User->getIdByUsername($username));
     }
 
     /**

@@ -6,6 +6,20 @@ if (!isset($discovery)) {
 if (!isset($isOwned)) {
     $isOwned = false;
 }
+
+// Determine the map URL
+$mapUrl = Router::url(array(
+    'controller' => 'capsules',
+    'action' => 'map',
+    '?' => array(
+        'lat' => $capsule['Capsule']['lat'],
+        'lng' => $capsule['Capsule']['lng'],
+        'type' => $isOwned ? "Capsule" : "Discovery",
+        'id' => $capsule['Capsule']['id']
+    )
+));
+// Determine the user profile URL
+$userUrl = "/user/" . $capsule['User']['username'];
 ?>
 
 <div class="modal-header">
@@ -25,18 +39,6 @@ if (!isset($isOwned)) {
                         </li>
                         <li class="dropdown-header"><?= __("Actions"); ?></li>
                         <li>
-                            <?php
-                            $mapUrl = Router::url(array(
-                                'controller' => 'capsules',
-                                'action' => 'map',
-                                '?' => array(
-                                    'lat' => $capsule['Capsule']['lat'],
-                                    'lng' => $capsule['Capsule']['lng'],
-                                    'type' => $isOwned ? "Capsule" : "Discovery",
-                                    'id' => $capsule['Capsule']['id']
-                                )
-                            ));
-                            ?>
                             <a href="<?= $mapUrl; ?>" target="_blank">
                                 <span class="glyphicon glyphicon-map-marker"></span>&nbsp;<?= __("Map"); ?>
                             </a>
@@ -55,7 +57,7 @@ if (!isset($isOwned)) {
                 &nbsp;<?php echo $capsule['Capsule']['name']; ?>
                 <small>
                     <span>
-                        <a href="/" target="_blank">
+                        <a href="<?= $userUrl; ?>" target="_blank">
                             <span class="glyphicon glyphicon-user"></span> <?= $capsule['User']['username']; ?>
                         </a>
                     </span>

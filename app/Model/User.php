@@ -109,6 +109,15 @@ class User extends AppModel {
     );
 
     /**
+     * List of fields to be returned when querying the User table
+     *
+     * @var array
+     */
+    public $fieldListProjection = array(
+        'User.id', 'User.username', 'User.created'
+    );
+
+    /**
      * beforeSave
      *
      * @param array $options Options passed from Model::save().
@@ -119,6 +128,37 @@ class User extends AppModel {
             $this->data = $this->appendNewAuthTokenToData($this->data);
         }
         return true;
+    }
+
+    /**
+     * Gets the User corresponding to the specified ID
+     *
+     * @param mixed $id The ID of the User to retrieve
+     * @return array|null The User data if a matching row is found, otherwise false
+     */
+    public function getById($id) {
+        $query = array(
+            'conditions' => array(
+                'User.id' => $id
+            ),
+            'fields' => $this->fieldListProjection
+        );
+        // Append the User stats to the query
+        $query = $this->appendUserStatsToQuery($id, $query);
+
+        return $this->find('first', $query);
+    }
+
+    /**
+     * Gets the ID corresponding to the specified username
+     *
+     * @param string $username The username to get the ID for
+     * @return string The ID corresponding to the username
+     */
+    public function getIdByUsername($username = "") {
+        return $this->field('id', array(
+            'User.username' => $username
+        ));
     }
 
     /**
@@ -199,6 +239,60 @@ class User extends AppModel {
         }
 
         return $data;
+    }
+
+    /**
+     * Determines the number of Capsules and Discoveries for the specified User
+     *
+     * @param mixed $userId The ID of the User
+     * @param array $query
+     * @return array
+     */
+    private function appendUserStatsToQuery($userId, $query = array()) {
+        // Add virtual fields for the Capsule and Discovery counts
+        $this->virtualFields['capsule_count'] = $this->Capsule->find('count', array(
+            'conditions' => array(
+                'Capsule.user_id' => $userId,
+                'Capsule.deleted' => false
+            )
+        ));
+        $this->virtualFields['discovery_count'] = "COUNT(Discovery.id)";
+        // Add joins to the query that will count the number of Discovered Capsules
+        $append = array(
+            'joins' => array(
+                array(
+                    'table' => 'discoveries',
+                    'alias' => 'Discovery',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'Discovery.user_id' => $userId
+                    )
+                ),
+                array(
+                    'table' => 'capsules',
+                    'alias' => 'Capsule',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'Discovery.capsule_id = Capsule.id',
+                    )
+                )
+            ),
+            'fields' => array(
+                'Discovery.id', 'User.capsule_count', 'User.discovery_count'
+            ),
+            'conditions' => array(
+                'Capsule.deleted' => false
+            )
+        );
+
+        // Merge the queries
+        $query = array_merge_recursive($query, $append);
+
+        // Group the results by the Discovery User foreign key
+        // NOTE: Needs to be done after merging queries or else a null entry will be added to the group array
+        $query['group'] = array('Discovery.user_id');
+
+        return $query;
     }
 
 }
