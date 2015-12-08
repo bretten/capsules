@@ -189,7 +189,7 @@ CapsuleMap.prototype.initializeGeolocator = function () {
     // Set the callback that executes when a location request is made
     this.geolocator.onRequestPositionCallback = this.onGeolocationRequest.bind(this);
     // Set the callback that executes if the geolocation permission prompt is not answered by the user
-    this.geolocator.onPermissionTimeoutCallback = this.onGeolocationPermisssionTimeout.bind(this);
+    this.geolocator.onPermissionTimeoutCallback = this.onGeolocationPermissionTimeout.bind(this);
     // Set the callback that executes on a successful location request
     this.geolocator.onPositionUpdateCallback = this.onGeolocationSuccess.bind(this);
     // Set the callback that executes on a location request error
@@ -227,7 +227,7 @@ CapsuleMap.prototype.onGeolocationSuccess = function (lat, lng) {
 /**
  * Callback method that executes if the geolocation permission prompt is not answered by the user
  */
-CapsuleMap.prototype.onGeolocationPermisssionTimeout = function () {
+CapsuleMap.prototype.onGeolocationPermissionTimeout = function () {
     if ($.isFunction(this.onGeolocationPermissionTimeoutCallback)) {
         this.onGeolocationPermissionTimeoutCallback(this.geolocator.isCurrentPositionAvailable());
     }
