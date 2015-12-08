@@ -2,6 +2,7 @@
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUnWgq9_H4JNhOPHhp1yPO2AnEf-aXPhE"></script>
 <script type="text/javascript" src="/js/Geolocator.js"></script>
 <script type="text/javascript" src="/js/CapsuleEditor.js"></script>
+<script type="text/javascript" src="/js/CapsuleMap.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
         // Define the namespace
@@ -179,7 +180,9 @@
         // Initialize the editor
         capsuleEditor.editor = new CapsuleEditor();
         // Initialize the map
-        capsuleEditor.editor.initializeMap(document.getElementById("capsule-editor-map"));
+        capsuleEditor.map = new CapsuleMap();
+        // Initialize the map
+        capsuleEditor.map.initializeMap(document.getElementById("capsule-editor-map"));
 
         // Max file size
         capsuleEditor.editor.maxUploadFileSize = <?= Configure::read('Upload.Limit.Image'); ?>;
@@ -209,12 +212,12 @@
             capsuleEditor.memoirLoadingIndicator.addClass("hidden");
         };
 
-        // Called when the editor successfully determines the user's location
-        capsuleEditor.editor.onGeolocationSuccessCallback = function () {
+        // Called when the map successfully determines the user's location
+        capsuleEditor.map.onGeolocationSuccessCallback = function () {
             capsuleEditor.onLocationUpdate();
         };
         // Called if the user does not give permission for their location within a certain period
-        capsuleEditor.editor.onGeolocationPermissionTimeoutCallback = function (isPositionAvailable) {
+        capsuleEditor.map.onGeolocationPermissionTimeoutCallback = function (isPositionAvailable) {
             if (isPositionAvailable) {
                 capsuleEditor.onLocationUpdate();
             } else {
@@ -222,18 +225,18 @@
             }
         };
         // Called whenever the browser tries to determine the user's location
-        capsuleEditor.editor.onGeolocationRequestCallback = function () {
+        capsuleEditor.map.onGeolocationRequestCallback = function () {
             capsuleEditor.onLocationInProgress();
         };
         // Called if there was an error determining the user's location
-        capsuleEditor.editor.onGeolocationErrorCallback = function (errorMessage) {
+        capsuleEditor.map.onGeolocationErrorCallback = function (errorMessage) {
             capsuleEditor.onLocationError();
             capsuleEditor.setLocationErrorMessage(errorMessage);
         };
 
         // Add a listener to the location request button for getting the current location
         capsuleEditor.locationRequestInput.on('click', function () {
-            capsuleEditor.editor.requestPosition();
+            capsuleEditor.map.requestPosition();
         });
         // Add a listener whenever a file input is changed
         capsuleEditor.memoirFileInput.on('change', function () {
@@ -249,8 +252,8 @@
             capsuleEditor.errorNotification.addClass('hidden');
             capsuleEditor.clearErrorMessages(capsuleEditor.errorMessageContainers);
             // Set the position inputs
-            capsuleEditor.capsuleLatInput.val(capsuleEditor.editor.geolocator.lat);
-            capsuleEditor.capsuleLngInput.val(capsuleEditor.editor.geolocator.lng);
+            capsuleEditor.capsuleLatInput.val(capsuleEditor.map.geolocator.lat);
+            capsuleEditor.capsuleLngInput.val(capsuleEditor.map.geolocator.lng);
             // Validate Capsule inputs on client-side
             var capsuleErrors = capsuleEditor.editor.validateCapsule(capsuleEditor.capsuleNameInput.val(),
                 capsuleEditor.capsuleLatInput.val(), capsuleEditor.capsuleLngInput.val());
@@ -291,7 +294,7 @@
         });
 
         // Prompt the user for the current position when the page is ready
-        capsuleEditor.editor.requestPosition();
+        capsuleEditor.map.requestPosition();
     });
 </script>
 
