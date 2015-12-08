@@ -125,6 +125,10 @@ class HandleUploadBehavior extends ModelBehavior {
 
         // Generate the new file name
         $fileName = $this->generateFileName();
+        // Rotate the file based on the EXIF meta data
+        $imagick = $this->rotateImage($imagick);
+        // Replace the original file with the updated file
+        $imagick->writeImage($fileUploadData['tmp_name']);
         // Determine the upload directory
         $fileLocation = APP . $this->settings['uploadDir'];
         // Move the file to the uploads directory
@@ -156,6 +160,32 @@ class HandleUploadBehavior extends ModelBehavior {
      */
     private function generateFileName() {
         return uniqid(rand(), true);
+    }
+
+    /**
+     * Rotates the specified image based on the EXIF meta data.
+     *
+     * @param Imagick $imagick The image object
+     * @return Imagick The rotated image object
+     */
+    private function rotateImage(\Imagick $imagick) {
+        $orientation = $imagick->getImageOrientation();
+
+        switch ($orientation) {
+            case \Imagick::ORIENTATION_BOTTOMRIGHT:
+                $imagick->rotateImage("#000000", 180);
+                break;
+            case \Imagick::ORIENTATION_RIGHTTOP:
+                $imagick->rotateImage("#000000", 90);
+                break;
+            case \Imagick::ORIENTATION_LEFTBOTTOM:
+                $imagick->rotateImage("#000000", -90);
+                break;
+        }
+
+        $imagick->setImageOrientation(\Imagick::ORIENTATION_TOPLEFT);
+
+        return $imagick;
     }
 
     /**
