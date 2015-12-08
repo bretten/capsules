@@ -1,4 +1,5 @@
 <h3><?php echo __("My Discoveries"); ?></h3>
+<hr>
 <?php
 
 $containerId = "capsule-list-view";

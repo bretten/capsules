@@ -303,19 +303,20 @@ echo $this->Form->input('lat', array('type' => 'hidden'));
 echo $this->Form->input('lng', array('type' => 'hidden'));
 ?>
 
+<h3><?= __("Bury a Capsule"); ?></h3>
+<hr>
 
 <div class="row">
     <div class="col-md-12">
-        <h3><?= __("Bury a Capsule"); ?></h3>
 
         <div class="row">
-            <?= $this->element('notification', array(
-                'message' => __("Please fix the errors below."),
-                'class' => 'alert-danger hidden'
-            )); ?>
+            <div class="col-md-12">
+                <?= $this->element('notification', array(
+                    'message' => __("Please fix the errors below."),
+                    'class' => 'alert-danger hidden'
+                )); ?>
+            </div>
         </div>
-
-        <hr>
 
         <div class="row">
             <div class="col-md-6">

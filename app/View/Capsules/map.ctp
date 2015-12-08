@@ -298,6 +298,8 @@
     });
 </script>
 
+<h3><?= __("Find a Capsule"); ?></h3>
+<hr>
 
 <div class="row">
     <div class="col-md-12">

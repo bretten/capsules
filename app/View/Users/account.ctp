@@ -1,6 +1,9 @@
-<div class="container">
-    <h2><?php echo AuthComponent::user('username'); ?></h2>
-    <?php echo $this->Form->create('User', array('role' => 'form')); ?>
+<h3><?= AuthComponent::user('username'); ?></h3>
+<hr>
+
+<div class="row">
+    <div class="col-md-12">
+        <?php echo $this->Form->create('User', array('role' => 'form')); ?>
         <?php
         echo $this->Form->input('email', array('div' => 'form-group', 'class' => 'form-control'));
         echo $this->element('change_password', array(
@@ -33,7 +36,8 @@
             )
         ));
         ?>
-    <div class="form-group">
-        <button type="submit" class="btn btn-success btn-block">Save</button>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success btn-block">Save</button>
+        </div>
     </div>
 </div>
