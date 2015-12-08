@@ -15,7 +15,7 @@ $isUnopened = isset($capsule['Discovery']) && isset($capsule['Discovery']['opene
     && $capsule['Discovery']['opened'] == false;
 ?>
 
-<a href="#" class="list-group-item capsule-list-item<?= $isUnopened ? " list-group-item-warning" : "" ?>"
+<a class="list-group-item capsule-list-item<?= $isUnopened ? " list-group-item-warning" : "" ?>"
    data-id="<?= $capsule['Capsule']['id']; ?>">
     <div class="row">
         <div class="col-md-1">
