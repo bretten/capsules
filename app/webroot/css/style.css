@@ -128,13 +128,6 @@ body
     margin: 10px 0;
 }
 
-/* AJAX Loading Notification */
-
-.modal-loader
-{
-    display: none;
-}
-
 /**
  * Discoveries
  */
