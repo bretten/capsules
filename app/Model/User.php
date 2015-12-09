@@ -285,14 +285,7 @@ class User extends AppModel {
             )
         );
 
-        // Merge the queries
-        $query = array_merge_recursive($query, $append);
-
-        // Group the results by the Discovery User foreign key
-        // NOTE: Needs to be done after merging queries or else a null entry will be added to the group array
-        $query['group'] = array('Discovery.user_id');
-
-        return $query;
+        return array_merge_recursive($query, $append);
     }
 
 }
