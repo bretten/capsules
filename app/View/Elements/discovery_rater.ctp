@@ -100,14 +100,20 @@ $isNegative = $rating == -1;
     </script>
 
     <div class="row">
-        <div class="col-md-2 col-md-offset-5">
+        <div class="col-md-6 text-center">
+            <h5>
+                <span class="glyphicon glyphicon-fire"></span>&nbsp;<?= __("Favorite it"); ?>
+            </h5>
             <button type="button"
                     class="discovery-favorite-btn btn btn-default<?= ($isFavorite) ? " btn-warning" : ""; ?>"
                     data-id="<?= $id; ?>">
                 <span class="glyphicon glyphicon-star"></span>
             </button>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-6 text-center">
+            <h5>
+                <span class="glyphicon glyphicon-fire"></span>&nbsp;<?= __("Rate it"); ?>
+            </h5>
             <div class="btn-group" role="group">
                 <button type="button"
                         class="discovery-rater-btn discovery-rater-up-btn btn btn-default<?= ($isPositive) ?

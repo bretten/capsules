@@ -24,7 +24,7 @@ $userUrl = "/user/" . $capsule['User']['username'];
 
 <div class="modal-header">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="pull-left">
                 <div class="dropdown">
                     <button class="btn btn-default btn-xs dropdown-toggle" type="button" data-toggle="dropdown"
@@ -64,17 +64,6 @@ $userUrl = "/user/" . $capsule['User']['username'];
                 </small>
             </h4>
         </div>
-        <div class="col-md-4 pull-right">
-            <?php if ($discovery) : ?>
-                <?php
-                echo $this->element('discovery_rater', array(
-                    'id' => $discovery['Discovery']['id'],
-                    'rating' => $discovery['Discovery']['rating'],
-                    'favorite' => $discovery['Discovery']['favorite']
-                ));
-                ?>
-            <?php endif; ?>
-        </div>
     </div>
     <div class="row">
         <div class="col-md-12">
@@ -108,6 +97,20 @@ $userUrl = "/user/" . $capsule['User']['username'];
     <?php endforeach; ?>
 </div>
 <div class="modal-footer">
+    <?php if ($discovery) : ?>
+        <div class="row">
+            <div class="col-md-12">
+                <?php
+                echo $this->element('discovery_rater', array(
+                    'id' => $discovery['Discovery']['id'],
+                    'rating' => $discovery['Discovery']['rating'],
+                    'favorite' => $discovery['Discovery']['favorite']
+                ));
+                ?>
+            </div>
+        </div>
+        <hr>
+    <?php endif; ?>
     <div class="row text-center">
         <div class="col-md-4">
             <h5>
