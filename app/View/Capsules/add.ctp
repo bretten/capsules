@@ -129,7 +129,22 @@
                     capsuleEditor.afterFormSubmit();
                 },
                 success: function (data, textStatus, jqXHR) {
-                    window.location.replace("/capsules");
+                    // Build a redirect URL for the new Capsule
+                    var url = "<?= Router::url(array('controller' => 'capsules', 'action' => 'map')); ?>";
+                    // Get the new ID
+                    if (data != undefined && data.hasOwnProperty("data")
+                        && data.data.hasOwnProperty("capsule")
+                        && data.data.capsule.hasOwnProperty("Capsule")
+                        && data.data.capsule.Capsule.hasOwnProperty("id")) {
+                        // Get the coordinates
+                        var lat = capsuleEditor.capsuleLatInput.val();
+                        var lng = capsuleEditor.capsuleLngInput.val();
+                        // Append the query parameters
+                        url += "?type=Capsule&id=" + encodeURIComponent(data.data.capsule.Capsule.id)
+                            + "&lat=" + encodeURIComponent(lat) + "&lng=" + encodeURIComponent(lng);
+                    }
+                    // Redirect
+                    window.location.replace(url);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     capsuleEditor.parseServerSideValidation(jqXHR, textStatus, errorThrown);
