@@ -22,6 +22,33 @@ $mapUrl = Router::url(array(
 $userUrl = "/user/" . $capsule['User']['username'];
 ?>
 
+<?php if ($isOwned) : ?>
+    <script type="text/javascript">
+        // Declare the "namespace"
+        var capsuleContent = {};
+
+        // Selectors
+        capsuleContent.deleteButton = $('#delete-anchor');
+        capsuleContent.hideDeleteButton = $('#hide-delete-button');
+        capsuleContent.deleteNotification = $('#delete-notification');
+
+        // Listener for the delete button
+        capsuleContent.deleteButton.on('click', function () {
+            // If the delete notification is hidden, show it
+            if (capsuleContent.deleteNotification.hasClass("hidden")) {
+                capsuleContent.deleteNotification.removeClass("hidden");
+            }
+        });
+        // Listener for the hide delete button
+        capsuleContent.hideDeleteButton.on('click', function () {
+            // If the delete notification is showing, hide it
+            if (!capsuleContent.deleteNotification.hasClass("hidden")) {
+                capsuleContent.deleteNotification.addClass("hidden");
+            }
+        });
+    </script>
+<?php endif; ?>
+
 <div class="modal-header">
     <div class="row">
         <div class="col-md-12">
@@ -45,7 +72,7 @@ $userUrl = "/user/" . $capsule['User']['username'];
                         </li>
                         <?php if ($isOwned) : ?>
                             <li>
-                                <a href="#" class="capsule-delete-anchor" data-id="<?= $capsule['Capsule']['id']; ?>">
+                                <a href="#" id="delete-anchor">
                                     <span class="glyphicon glyphicon-trash"></span>&nbsp;<?= __("Delete"); ?>
                                 </a>
                             </li>
@@ -79,6 +106,26 @@ $userUrl = "/user/" . $capsule['User']['username'];
     </div>
 </div>
 <div class="modal-body">
+    <?php if ($isOwned) : ?>
+        <div id="delete-notification" class="alert alert-danger hidden" role="alert">
+            <strong><?= __("Warning!"); ?></strong>&nbsp;
+            <?= __("Are you sure you want to dig up and destroy this Capsule?"); ?>
+            <hr>
+            <div class="row">
+                <div class="col-md-6 pull-left">
+                    <button type="button" id="hide-delete-button" class="btn btn-default">
+                        <?= __("No, I want to leave it"); ?>
+                    </button>
+                </div>
+                <div class="col-md-6 text-right">
+                    <button type="button" class="btn btn-danger confirm-delete-button"
+                            data-id="<?= $capsule['Capsule']['id']; ?>">
+                        <?= __("Yes"); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
     <?php foreach ($capsule['Memoir'] as $memoir) : ?>
         <div class="row">
             <div class="col-md-12">

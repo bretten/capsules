@@ -56,7 +56,7 @@ if (!isset($containerId)) {
         });
 
         // Listener for clicking on the Capsule delete element
-        $(document).on('click', '.capsule-delete-anchor', function (e) {
+        $(document).on('click', '.confirm-delete-button', function (e) {
             // Get the ID
             var capsuleId = $(this).data('id');
             // Send the DELETE request
