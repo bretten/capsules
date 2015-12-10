@@ -35,6 +35,8 @@
         map.capsulesFoundButton = $('#capsules-found-btn');
         // Button that starts the Capsule locator
         map.startLocatorButton = $('#start-locator-btn');
+        // Message indicating if there have been any Capsules found
+        map.noDiscoveriesMessage = $('#no-discoveries-message');
 
         // Activates the locator button
         map.activateLocatorButton = function (btn) {
@@ -149,6 +151,10 @@
                 success: function (data, textStatus, jqXHR) {
                     if (jqXHR.status === 200 && data !== 'undefined') {
                         if (data.hasOwnProperty("data") && data.data.hasOwnProperty("capsules")) {
+                            // If the message indicating no Capsules have been found yet is still showing, hide it
+                            if (!map.noDiscoveriesMessage.hasClass("hidden")) {
+                                map.noDiscoveriesMessage.addClass("hidden");
+                            }
                             // Get the number of Capsules discovered
                             var capsuleCount = Object.keys(data.data.capsules).length;
                             // Update the counter
@@ -350,11 +356,15 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title"><?= __("New Capsules discovered!"); ?></h4>
+                <h4 class="modal-title"><?= __("Recent Discoveries"); ?></h4>
             </div>
             <div class="modal-body">
                 <div class="list-group" id="modal-capsule-list-group">
+                    <span id="no-discoveries-message"><?= __("No new discoveries yet, so keep looking!"); ?></span>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <small><a href="/discoveries" target="_blank"><?= __("View past discoveries"); ?></a></small>
             </div>
         </div>
     </div>
