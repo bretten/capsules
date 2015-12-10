@@ -27,8 +27,6 @@
         map.modalCapsuleListGroup = $('#modal-capsule-list-group');
         // List group item that all recent discovery items clone their markup from
         map.modalCapsuleListItem = $('#modal-capsule-list-item');
-        // Log that records status updates
-        map.capsuleLog = $('#capsule-log');
         // Counter that records how many Capsules have been found in this current session
         map.capsulesFoundCounter = $('#capsules-found-counter');
         // Button that opens the list of recent discoveries
@@ -37,6 +35,8 @@
         map.startLocatorButton = $('#start-locator-btn');
         // Message indicating if there have been any Capsules found
         map.noDiscoveriesMessage = $('#no-discoveries-message');
+        // Displays location-related errors
+        map.geolocationRequestErrorContainer = $("#location-error-container");
 
         // Activates the locator button
         map.activateLocatorButton = function (btn) {
@@ -46,7 +46,6 @@
             btn.addClass("active btn-success");
             btn.removeClass("btn-warning btn-info");
             btn.html('<span class="glyphicon glyphicon-map-marker"></span> <?= __("Searching for Capsules..."); ?>');
-            map.logSuccess('<?= __("Capsule Locator 2000 is active!"); ?>');
         };
         // Deactivates the locator button
         map.deactivateLocatorButton = function (btn) {
@@ -56,7 +55,6 @@
             btn.addClass("btn-warning");
             btn.removeClass("active btn-success btn-info");
             btn.html('<span class="glyphicon glyphicon-map-marker"></span> <?= __("Start Searching for Capsules"); ?>');
-            map.logInfo('<?= __("Terminated Capsule search."); ?>');
         };
         // Sets the locator button to indicate it is busy
         map.setLocatorButtonBusy = function (btn) {
@@ -66,34 +64,16 @@
             btn.addClass("btn-info");
             btn.removeClass("active btn-success btn-warning");
             btn.html('<span class="glyphicon glyphicon-map-marker"></span> <?= __("Starting up..."); ?>');
-            map.logInfo('<?= __("Capsule Locator is starting up..."); ?>');
         };
-        // Logs a success message
-        map.logSuccess = function (message) {
-            map.logMessage("text-success", message);
+        // Sets the location error container
+        map.setLocationError = function (markup) {
+            map.geolocationRequestErrorContainer.html(markup);
+            map.geolocationRequestErrorContainer.removeClass('hidden');
         };
-        // Logs a informational message
-        map.logInfo = function (message) {
-            map.logMessage("text-info", message);
-        };
-        // Logs a warning message
-        map.logWarning = function (message) {
-            map.logMessage("text-warning", message);
-        };
-        // Logs an error message
-        map.logError = function (message) {
-            map.logMessage("text-danger", message);
-        };
-        // Logs a message to the Logger with a timestamp
-        map.logMessage = function (containerClass, message) {
-            // Get the timestamp
-            var timestamp = new Date().toLocaleString();
-            // Build the markup to append
-            var markup = '<div class="' + containerClass + '">[' + timestamp + '] '
-                + message + '</div>';
-            map.capsuleLog.append(markup);
-            // Scroll the logger to the bottom
-            map.capsuleLog.scrollTop = map.capsuleLog.scrollHeight;
+        // Hides the location error container
+        map.clearLocationError = function () {
+            map.geolocationRequestErrorContainer.html("");
+            map.geolocationRequestErrorContainer.addClass('hidden');
         };
         // Focuses on the specified coordinates and animates the specified Capsule
         map.delayedFocusOnLocation = function (lat, lng, type, id, animationDelay) {
@@ -140,8 +120,6 @@
         };
         // Discovers all Capsules nearby the specified location
         map.discoverNearbyCapsules = function (lat, lng) {
-            // Update the log indicating Capsules are being searched for
-            map.logWarning('<?= __("Searching for Capsules nearby..."); ?>');
             // Send a request to look for new Capsules
             $.ajax({
                 type: 'POST',
@@ -161,8 +139,6 @@
                             map.capsulesFoundCounter.html(parseInt(map.capsulesFoundCounter.html()) + capsuleCount);
                             // Add the newly discovered Capsules to the map
                             map.capsuleMap.addNewCapsulesFromServer(CapsuleType.Discovery, data.data.capsules);
-                            // Update the log
-                            map.logSuccess(capsuleCount + ' <?= __("Capsules found") ;?>');
                             // Open the modal
                             map.modalCapsuleList.modal('show');
                             // Append new Capsules to the list of recent discoveries
@@ -170,8 +146,6 @@
                                 map.addRecentDiscoveries(data.data.capsules);
                             }, 200);
                         }
-                    } else if (jqXHR.status === 204) {
-                        map.logInfo('<?= __("No new Capsules currently nearby."); ?>');
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -229,8 +203,6 @@
         };
         // Called when the user's location is successfully determined
         map.capsuleMap.onGeolocationSuccessCallback = function (lat, lng) {
-            // Update the log
-            map.logSuccess('<?= __("Location updated!"); ?>');
             // Update the button status
             map.activateLocatorButton(map.startLocatorButton);
             // Discover any nearby Capsules
@@ -239,21 +211,19 @@
         // Called if the user does not give permission for their location within a certain period
         map.capsuleMap.onGeolocationPermissionTimeoutCallback = function (isPositionAvailable) {
             if (!isPositionAvailable) {
-                // Update the log
-                map.logWarning('<?= __("Still awaiting location permission... (Did you deny permission?)"); ?>');
                 // Deactivate the locator
                 map.deactivateLocatorButton(map.startLocatorButton);
             }
         };
         // Called whenever the browser tries to determine the user's location
         map.capsuleMap.onGeolocationRequestCallback = function () {
-            map.logWarning('<?= __("Updating current location..."); ?>');
         };
         // Called if there was an error determining the user's location
         map.capsuleMap.onGeolocationErrorCallback = function (errorMessage) {
-            map.logError(errorMessage);
             // Deactivate the locator
             map.deactivateLocatorButton(map.startLocatorButton);
+            // Set the location error messages
+            map.setLocationError(errorMessage);
         };
 
         // Set the initial collection tags from the server
@@ -268,6 +238,9 @@
 
         // Add a click listener to the locator button that activates or deactivates it
         map.startLocatorButton.on('click', function () {
+            // Clear the location error message
+            map.clearLocationError();
+
             if ($(this).hasClass("active")) {
                 map.deactivateLocatorButton($(this));
                 map.capsuleMap.stopPositionUpdateListener();
@@ -307,40 +280,32 @@
 <h3><?= __("Find a Capsule"); ?></h3>
 <hr>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="row">
-                    <div class="col-md-4 text-left">
-                        <button id="start-locator-btn" type="button" class="btn btn-warning btn-sm">
-                            <span class="glyphicon glyphicon-map-marker"></span>
-                            <?= __("Start searching for Capsules"); ?>
-                        </button>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <h3 class="panel-title">
-                            <?= __("Capsule Locator 2000"); ?>
-                        </h3>
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <button class="btn btn-default btn-sm" type="button" id="capsules-found-btn">
-                            <?= __("Capsules Found"); ?> <span class="badge" id="capsules-found-counter">0</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-12" id="capsule-log-container">
-                        <samp id="capsule-log">
-                        </samp>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="row pull-right">
+    <div class="col-md-12 text-right">
+        <button class="btn btn-default btn-sm" type="button" id="capsules-found-btn">
+            <?= __("Capsules Found"); ?> <span class="badge" id="capsules-found-counter">0</span>
+        </button>
     </div>
 </div>
+
+<h4 class="text-info">
+    <span class="glyphicon glyphicon-map-marker"></span>&nbsp;
+    <?= __("Capsule Detector 3000"); ?>
+</h4>
+
+<hr>
+
+<div class="row">
+    <div class="col-md-12 text-center">
+        <button id="start-locator-btn" type="button" class="btn btn-warning btn-sm">
+            <span class="glyphicon glyphicon-map-marker"></span>
+            <?= __("Start searching for Capsules"); ?>
+        </button>
+        <div class="error-message hidden alert alert-danger" id="location-error-container"></div>
+    </div>
+</div>
+
+<hr>
 
 <div class="row">
     <div class="col-md-12">
