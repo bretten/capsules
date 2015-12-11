@@ -60,14 +60,25 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
                 <div class="collapse navbar-collapse" id="navbar-header-collapse">
                     <ul class="nav navbar-nav navbar-right">
                         <?php if (AuthComponent::user()) : ?>
-                        <li><?php echo $this->Html->link(__('Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?></li>
-                        <li><?php echo $this->Html->link(__('Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?></li>
-                        <li><?php echo $this->Html->link(__('Bury a Capsule'), array('controller' => 'capsules', 'action' => 'add')); ?></li>
-                        <li><?php echo $this->Html->link(__('Find a Capsule'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
-                        <li class="dropdown">
+                            <?php
+                            // Determine which link is active
+                            $isCapsules =
+                                $this->here == Router::url(array('controller' => 'capsules', 'action' => 'index'));
+                            $isDiscoveries =
+                                $this->here == Router::url(array('controller' => 'discoveries', 'action' => 'index'));
+                            $isBury = $this->here == Router::url(array('controller' => 'capsules', 'action' => 'add'));
+                            $isFind = $this->here == Router::url(array('controller' => 'capsules', 'action' => 'map'));
+                            $isAccount =
+                                $this->here == Router::url(array('controller' => 'users', 'action' => 'account'));
+                            ?>
+                        <li<?= $isCapsules ? ' class="active"' : ''; ?>><?php echo $this->Html->link(__('Capsules'), array('controller' => 'capsules', 'action' => 'index')); ?></li>
+                        <li<?= $isDiscoveries ? ' class="active"' : ''; ?>><?php echo $this->Html->link(__('Discoveries'), array('controller' => 'discoveries', 'action' => 'index')); ?></li>
+                        <li<?= $isBury ? ' class="active"' : ''; ?>><?php echo $this->Html->link(__('Bury a Capsule'), array('controller' => 'capsules', 'action' => 'add')); ?></li>
+                        <li<?= $isFind ? ' class="active"' : ''; ?>><?php echo $this->Html->link(__('Find a Capsule'), array('controller' => 'capsules', 'action' => 'map')); ?></li>
+                        <li class="dropdown<?= $isAccount ? ' active' : ''; ?>">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo AuthComponent::user('username'); ?> <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
-                                <li><?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?></li>
+                                <li<?= $isAccount ? ' class="active"' : ''; ?>><?php echo $this->Html->link(__('Account'), array('controller' => 'users', 'action' => 'account')); ?></li>
                                 <li class="divider"></li>
                                 <li><?php echo $this->Html->link(__('Logout'), array('controller' => 'users', 'action' => 'logout')); ?></li>
                             </ul>
