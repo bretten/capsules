@@ -170,10 +170,6 @@
             radius: <?= Configure::read('Map.UserLocation.DiscoveryRadius'); ?> // meters
         });
 
-        // Start searching for Capsules
-        map.capsuleMap.startPositionUpdateListener();
-        // Update the button status to indicate that it is active
-        map.setLocatorButtonBusy(map.startLocatorButton);
         // Start interval that checks for Capsules updates
         map.capsuleMap.startCapsuleUpdateInterval();
 
