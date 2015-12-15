@@ -96,9 +96,9 @@ class JsonResponseHelper extends AppHelper {
     /**
      * Adds an authentication token to the data array
      *
-     * @param array $token Authentication token
+     * @param string $token Authentication token
      */
-    public function addAuthTokenToData(array $token) {
+    public function addAuthTokenToData($token = "") {
         $this->data['token'] = $token;
     }
 
