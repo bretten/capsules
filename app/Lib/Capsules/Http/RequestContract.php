@@ -31,6 +31,12 @@ class RequestContract {
     const PARAM_NAME_SEARCH = "search";
 
     /**
+     * Request parameter name for indicating to return a collection of Capsules as a JSON object instead of a
+     * JSON array
+     */
+    const PARAM_NAME_CAPSULES_AS_OBJECT = "capsulesAsObject";
+
+    /**
      * Sort key for sorting Capsules by name, A-Z
      */
     const CAPSULE_SORT_KEY_NAME_ASC = 0;

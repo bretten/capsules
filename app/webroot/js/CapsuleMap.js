@@ -472,9 +472,9 @@ CapsuleMap.prototype.requestCapsules = function (capsuleType) {
     var url;
     // Determine which type of Capsules to request
     if (capsuleType == CapsuleType.Capsule) {
-        url = "/api/capsules";
+        url = "/api/capsules?capsulesAsObject=1";
     } else if (capsuleType == CapsuleType.Discovery) {
-        url = "/api/discoveries";
+        url = "/api/discoveries?capsulesAsObject=1";
     } else {
         return;
     }

@@ -84,8 +84,11 @@ class JsonResponseHelper extends AppHelper {
      * Adds Capsule data to the data array
      *
      * @param array $capsules Collection of Capsule data
+     * @param array $requestParams The HTTP request parameters
      */
-    public function addCapsulesToData(array $capsules) {
+    public function addCapsulesToData(array $capsules, array $requestParams = array()) {
+        // Format the Capsule data
+        $capsules = $this->formatCapsuleData($capsules, $requestParams);
         // Remove any unnecessary Capsule data
         $capsules = $this->removeUnnecessaryCapsuleData($capsules, /* isCollection */
             true);
@@ -109,6 +112,43 @@ class JsonResponseHelper extends AppHelper {
      */
     public function addCtagToData($ctag = "") {
         $this->data['ctag'] = $ctag;
+    }
+
+    /**
+     * Formats the JSON output format for the Capsules depending on the request parameters
+     *
+     * @param array $capsules The collection of Capsules
+     * @param array $requestParams The HTTP request parameters
+     * @return array The formatted Capsule data
+     */
+    private function formatCapsuleData(array $capsules, array $requestParams = array()) {
+        if (empty($requestParams)) {
+            return $capsules;
+        }
+
+        // Format the Capsules as an object where the object properties will be the Capsule IDs
+        $capsules = $this->formatCapsulesAsObject($capsules, $requestParams);
+
+        return $capsules;
+    }
+
+    /**
+     * Sets the Capsule IDs as keys in the Capsule collection data array.  When this array is encoded to JSON,
+     * the collection of Capsules will become a JSON object instead of a JSON array, where the object properties
+     * are the Capsule IDs.
+     *
+     * @param array $capsules The collection of Capsules
+     * @param array $requestParams The HTTP request parameters
+     * @return array The formatted Capsule data
+     */
+    private function formatCapsulesAsObject(array $capsules, array $requestParams) {
+        // Check to see if the request parameters indicate to format the Capsules as a JSON object
+        if (isset($requestParams[\Capsules\Http\RequestContract::PARAM_NAME_CAPSULES_AS_OBJECT])
+            && $requestParams[\Capsules\Http\RequestContract::PARAM_NAME_CAPSULES_AS_OBJECT] == "1"
+        ) {
+            $capsules = Hash::combine($capsules, "{n}.Capsule.id", "{n}");
+        }
+        return $capsules;
     }
 
     /**
