@@ -39,47 +39,47 @@ class RequestContract {
     /**
      * Sort key for sorting Capsules by name, A-Z
      */
-    const CAPSULE_SORT_KEY_NAME_ASC = 0;
+    const CAPSULE_SORT_KEY_NAME_ASC = 1;
 
     /**
      * Sort key for sorting Capsules from highest to lowest rating
      */
-    const CAPSULE_SORT_KEY_RATING_DESC = 1;
+    const CAPSULE_SORT_KEY_RATING_DESC = 2;
 
     /**
      * Sort key for sorting Capsules from most to least discoveries
      */
-    const CAPSULE_SORT_KEY_DISCOVERY_COUNT_DESC = 2;
+    const CAPSULE_SORT_KEY_DISCOVERY_COUNT_DESC = 3;
 
     /**
      * Sort key for sorting Capsules from most to least favorites
      */
-    const CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC = 3;
+    const CAPSULE_SORT_KEY_FAVORITE_COUNT_DESC = 4;
 
     /**
      * Filter key for filtering Capsules that have been set as favorites
      */
-    const CAPSULE_FILTER_KEY_FAVORITES = 0;
+    const CAPSULE_FILTER_KEY_FAVORITES = 1;
 
     /**
      * Filter key for filtering Capsules that have been rated up
      */
-    const CAPSULE_FILTER_KEY_UP_VOTES = 1;
+    const CAPSULE_FILTER_KEY_UP_VOTES = 2;
 
     /**
      * Filter key for filtering Capsules that have been rated down
      */
-    const CAPSULE_FILTER_KEY_DOWN_VOTES = 2;
+    const CAPSULE_FILTER_KEY_DOWN_VOTES = 3;
 
     /**
      * Filter key for filtering Capsules that have not been rated
      */
-    const CAPSULE_FILTER_KEY_NO_VOTES = 3;
+    const CAPSULE_FILTER_KEY_NO_VOTES = 4;
 
     /**
      * Filter key for filtering Capsules that have not been opened
      */
-    const CAPSULE_FILTER_KEY_UNOPENED = 4;
+    const CAPSULE_FILTER_KEY_UNOPENED = 5;
 
     /**
      * Mapping of Capsule sort keys corresponding to ORDER clauses
