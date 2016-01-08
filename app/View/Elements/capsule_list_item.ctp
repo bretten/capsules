@@ -85,6 +85,11 @@ $isUnopened = isset($capsule['Discovery']) && isset($capsule['Discovery']['opene
                     <span class="glyphicon glyphicon-star"></span><?= $capsule['Capsule']['favorite_count']; ?>
                 </span>
             </div>
+            <div class="text-right">
+                <h5 class="list-group-item-text">
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;<?= $capsule['User']['username']; ?>
+                </h5>
+            </div>
         </div>
     </div>
 </a>
