@@ -15,7 +15,7 @@ class User extends AppModel {
      * @var array
      */
     public $actsAs = array(
-        'User' => array(
+        'CakeDecorations.User' => array(
             'passwordField' => 'password',
             'confirmPassword' => array(
                 'field' => 'confirm_password',

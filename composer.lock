@@ -4,8 +4,37 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c4e2f31aaca28a13e702764837387724",
+    "hash": "20d2b38469d0e90f9a6333586fec32ab",
+    "content-hash": "6ffa23e8a9fb20b3d189f42d6b791565",
     "packages": [
+        {
+            "name": "bretten/cake_decorations",
+            "version": "2.5.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bretten/cake_decorations.git",
+                "reference": "bdc397740c30303e02f469dba9d35f7a9cff35cb"
+            },
+            "require": {
+                "cakephp/cakephp": ">=2.5.0 <3.0",
+                "composer/installers": "~1.0"
+            },
+            "type": "cakephp-plugin",
+            "authors": [
+                {
+                    "name": "Brett Namba",
+                    "homepage": "http://www.brettnamba.com",
+                    "role": "Author"
+                }
+            ],
+            "description": "Collection of Behaviors, Components, and Helpers",
+            "homepage": "https://github.com/bretten",
+            "keywords": [
+                "cakephp",
+                "plugin"
+            ],
+            "time": "2016-01-21 07:50:18"
+        },
         {
             "name": "cakephp/cakephp",
             "version": "2.7.5",
@@ -49,6 +78,104 @@
                 "framework"
             ],
             "time": "2015-10-02 01:03:56"
+        },
+        {
+            "name": "composer/installers",
+            "version": "v1.0.23",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/installers.git",
+                "reference": "6213d900e92647831f7a406d5c530ea1f3d4360e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/installers/zipball/6213d900e92647831f7a406d5c530ea1f3d4360e",
+                "reference": "6213d900e92647831f7a406d5c530ea1f3d4360e",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.0"
+            },
+            "replace": {
+                "roundcube/plugin-installer": "*",
+                "shama/baton": "*"
+            },
+            "require-dev": {
+                "composer/composer": "1.0.*@dev",
+                "phpunit/phpunit": "4.1.*"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Composer\\Installers\\Plugin",
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Composer\\Installers\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kyle Robinson Young",
+                    "email": "kyle@dontkry.com",
+                    "homepage": "https://github.com/shama"
+                }
+            ],
+            "description": "A multi-framework Composer library installer",
+            "homepage": "http://composer.github.com/installers/",
+            "keywords": [
+                "Craft",
+                "Dolibarr",
+                "Hurad",
+                "MODX Evo",
+                "OXID",
+                "SMF",
+                "Thelia",
+                "WolfCMS",
+                "agl",
+                "aimeos",
+                "annotatecms",
+                "bitrix",
+                "cakephp",
+                "chef",
+                "codeigniter",
+                "concrete5",
+                "croogo",
+                "dokuwiki",
+                "drupal",
+                "elgg",
+                "fuelphp",
+                "grav",
+                "installer",
+                "joomla",
+                "kohana",
+                "laravel",
+                "lithium",
+                "magento",
+                "mako",
+                "mediawiki",
+                "modulework",
+                "moodle",
+                "phpbb",
+                "piwik",
+                "ppi",
+                "puppet",
+                "roundcube",
+                "shopware",
+                "silverstripe",
+                "symfony",
+                "typo3",
+                "wordpress",
+                "zend",
+                "zikula"
+            ],
+            "time": "2016-01-27 12:54:22"
         }
     ],
     "packages-dev": [],

@@ -58,7 +58,7 @@ class ApiController extends AppController {
             $this->Auth->authenticate = array('Basic');
         } else {
             // Force authentication by token for all other API methods
-            $this->Auth->authenticate = array('Token');
+            $this->Auth->authenticate = array('CakeDecorations.Token');
         }
         // Set the view path
         $this->setViewPath($this->request->params['action'], strtolower($this->currentHttpMethod));

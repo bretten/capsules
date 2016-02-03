@@ -135,6 +135,11 @@ Configure::write('Search.Filter.NoVote', 'novote');
 Configure::write('Upload.Limit.Image', 5120000);
 
 /**
+ * Load the CakeDecorations Plugin
+ */
+CakePlugin::load('CakeDecorations', array('bootstrap' => false, 'routes' => false));
+
+/**
  * Load libraries
  */
 spl_autoload_register(function ($class) {

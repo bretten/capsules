@@ -15,11 +15,11 @@ class Discovery extends AppModel {
      * @var array
      */
     public $actsAs = array(
-        'Belongs' => array(
+        'CakeDecorations.Belongs' => array(
             'userPrimaryKey' => 'id',
             'foreignKey' => 'user_id'
         ),
-        'Resource' => array(
+        'CakeDecorations.Resource' => array(
             'etagField' => 'etag',
             'autoSave' => true
         )
